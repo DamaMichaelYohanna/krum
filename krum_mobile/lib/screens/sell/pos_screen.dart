@@ -1,0 +1,1388 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:provider/provider.dart';
+import '../../models/models.dart';
+import '../../providers/store_provider.dart';
+import '../../utils/formatters.dart';
+import '../scanner/barcode_scanner_screen.dart';
+import '../inventory/product_form_screen.dart';
+import '../sales/sales_history_screen.dart';
+
+class PosScreen extends StatefulWidget {
+  final VoidCallback onOpenProductCreate;
+  const PosScreen({super.key, required this.onOpenProductCreate});
+
+  @override
+  State<PosScreen> createState() => _PosScreenState();
+}
+
+class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMixin {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  // Split-Screen Continuous Scanner state
+  bool _isLiveScannerOpen = false;
+  MobileScannerController? _scannerController;
+  late final AnimationController _animController;
+  String? _lastScannedCode;
+  DateTime? _lastScannedTime;
+  String? _lastScannedBanner;
+  Color _bannerColor = const Color(0xff176b4d);
+  bool _isTorchOn = false;
+  Timer? _bannerDismissTimer;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _bannerDismissTimer?.cancel();
+    _audioPlayer.dispose();
+    _searchController.dispose();
+    _scannerController?.dispose();
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _showBannerNotification(String message, Color color) {
+    _bannerDismissTimer?.cancel();
+    if (!mounted) return;
+    setState(() {
+      _lastScannedBanner = message;
+      _bannerColor = color;
+    });
+
+    _bannerDismissTimer = Timer(const Duration(milliseconds: 2400), () {
+      if (mounted) {
+        setState(() {
+          _lastScannedBanner = null;
+        });
+      }
+    });
+  }
+
+  Future<void> _playScanFeedback() async {
+    // 1. Vibrate device (robust vibration)
+    try {
+      HapticFeedback.vibrate();
+    } catch (_) {}
+
+    // 2. Play supermarket cashier beep sound
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(AssetSource('sounds/beep.wav'), volume: 1.0);
+    } catch (_) {
+      try {
+        SystemSound.play(SystemSoundType.click);
+      } catch (_) {}
+    }
+  }
+
+  void _toggleLiveScanner() {
+    setState(() {
+      _isLiveScannerOpen = !_isLiveScannerOpen;
+      _bannerDismissTimer?.cancel();
+      if (_isLiveScannerOpen) {
+        _scannerController = MobileScannerController(
+          detectionSpeed: DetectionSpeed.noDuplicates,
+          facing: CameraFacing.back,
+          torchEnabled: false,
+        );
+      } else {
+        _scannerController?.dispose();
+        _scannerController = null;
+        _lastScannedCode = null;
+        _lastScannedBanner = null;
+        _isTorchOn = false;
+      }
+    });
+  }
+
+  Future<void> _onLiveBarcodeDetected(BarcodeCapture capture) async {
+    for (final barcode in capture.barcodes) {
+      final raw = barcode.rawValue ?? barcode.displayValue;
+      if (raw == null) continue;
+      final code = raw.replaceAll(RegExp(r'[\r\n\t\u200B-\u200D\uFEFF]'), '').trim();
+      if (code.isEmpty) continue;
+
+      // Smart debounce: prevent scanning the same barcode within 1.4s
+      final now = DateTime.now();
+      if (_lastScannedCode == code &&
+          _lastScannedTime != null &&
+          now.difference(_lastScannedTime!).inMilliseconds < 1400) {
+        return;
+      }
+
+      _lastScannedCode = code;
+      _lastScannedTime = now;
+
+      final provider = context.read<StoreProvider>();
+      final product = await provider.findProductOrLookup(code);
+
+      if (!mounted) return;
+
+      if (product != null) {
+        if (!product.active) {
+          _playScanFeedback();
+          _showBannerNotification('${product.name} is marked inactive', Colors.amber.shade800);
+          return;
+        }
+
+        _playScanFeedback();
+        provider.addToCart(product);
+        _showBannerNotification('Added ${product.name} (+1)', const Color(0xff176b4d));
+      } else {
+        _playScanFeedback();
+        _showBannerNotification('Code "$code" not found', Colors.red.shade700);
+
+        // Prompt to create product
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Product Not Found'),
+            content: Text('Item with code "$code" is not registered in your store yet. Would you like to add it?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProductFormScreen(initialBarcode: code),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Create Product'),
+              ),
+            ],
+          ),
+        );
+      }
+      break;
+    }
+  }
+
+  void _showManualBarcodeInput() {
+    final textController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Enter Barcode Manually'),
+        content: TextField(
+          controller: textController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Barcode or Item Code',
+            hintText: 'e.g. 615110001234',
+            prefixIcon: Icon(Icons.barcode_reader),
+            border: OutlineInputBorder(),
+          ),
+          onSubmitted: (val) {
+            if (val.trim().isNotEmpty) {
+              Navigator.pop(ctx);
+              _processScannedBarcode(val.trim());
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+            onPressed: () {
+              final val = textController.text.trim();
+              if (val.isNotEmpty) {
+                Navigator.pop(ctx);
+                _processScannedBarcode(val);
+              }
+            },
+            child: const Text('Add to Cart'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiveScannerView(BuildContext context, StoreProvider provider, String currency) {
+    const scanWidth = 260.0;
+    const scanHeight = 120.0;
+
+    return Container(
+      height: 240,
+      width: double.infinity,
+      color: Colors.black,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Live Camera Stream
+          if (_scannerController != null)
+            MobileScanner(
+              controller: _scannerController!,
+              onDetect: _onLiveBarcodeDetected,
+              errorBuilder: (context, error) {
+                return Container(
+                  color: const Color(0xFF1E1E1E),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.videocam_off_rounded, color: Colors.white54, size: 36),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Camera Inactive / Permission Needed',
+                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton.icon(
+                        onPressed: _showManualBarcodeInput,
+                        style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+                        icon: const Icon(Icons.keyboard, size: 16),
+                        label: const Text('Enter Code Manually', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+
+          // Viewfinder Target Reticle
+          Center(
+            child: SizedBox(
+              width: scanWidth,
+              height: scanHeight,
+              child: Stack(
+                children: [
+                  // Corner brackets
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: CornerBracketPainter(
+                        color: Colors.greenAccent.shade400,
+                        cornerLength: 22,
+                        strokeWidth: 3.5,
+                      ),
+                    ),
+                  ),
+
+                  // Animated laser scanning line
+                  AnimatedBuilder(
+                    animation: _animController,
+                    builder: (context, _) {
+                      final topOffset = (_animController.value * (scanHeight - 20)) - (scanHeight / 2 - 10);
+                      return Center(
+                        child: Transform.translate(
+                          offset: Offset(0, topOffset),
+                          child: Container(
+                            width: scanWidth - 24,
+                            height: 2.5,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.greenAccent.withValues(alpha: 0.0),
+                                  Colors.greenAccent,
+                                  Colors.white,
+                                  Colors.greenAccent,
+                                  Colors.greenAccent.withValues(alpha: 0.0),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.greenAccent.withValues(alpha: 0.8),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Top control bar
+          Positioned(
+            top: 8,
+            left: 12,
+            right: 12,
+            child: Row(
+              children: [
+                // Live status badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.greenAccent,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'Live Scanner',
+                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+
+                // Torch toggle
+                IconButton(
+                  tooltip: _isTorchOn ? 'Turn Flash Off' : 'Turn Flash On',
+                  icon: Icon(
+                    _isTorchOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
+                    color: _isTorchOn ? Colors.amber : Colors.white70,
+                    size: 22,
+                  ),
+                  onPressed: () {
+                    _scannerController?.toggleTorch();
+                    setState(() => _isTorchOn = !_isTorchOn);
+                  },
+                ),
+
+                // Switch Camera
+                IconButton(
+                  tooltip: 'Switch Camera',
+                  icon: const Icon(Icons.cameraswitch_rounded, color: Colors.white70, size: 22),
+                  onPressed: () => _scannerController?.switchCamera(),
+                ),
+
+                // Manual Input
+                IconButton(
+                  tooltip: 'Type Barcode',
+                  icon: const Icon(Icons.keyboard_outlined, color: Colors.white70, size: 22),
+                  onPressed: _showManualBarcodeInput,
+                ),
+
+                // Close / Switch back to Catalog View
+                FilledButton.tonal(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: _toggleLiveScanner,
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.grid_view_rounded, size: 16),
+                      SizedBox(width: 4),
+                      Text('Catalog', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Bottom feedback banner
+          Positioned(
+            bottom: 8,
+            left: 16,
+            right: 16,
+            child: Center(
+              child: _lastScannedBanner != null
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _bannerColor.withValues(alpha: 0.95),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _bannerColor.withValues(alpha: 0.5),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _bannerColor == const Color(0xff176b4d) ? Icons.check_circle : Icons.info_outline,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              _lastScannedBanner!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.65),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Text(
+                        'Align barcode in frame · Scans continuously',
+                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+  Future<void> _processScannedBarcode(String code) async {
+    final cleanCode = code.trim();
+    if (cleanCode.isEmpty) return;
+
+    final provider = context.read<StoreProvider>();
+    final product = await provider.findProductOrLookup(cleanCode);
+
+    if (!mounted) return;
+
+    if (product != null) {
+      if (!product.active) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Product Inactive'),
+            content: Text('"${product.name}" is marked as inactive. Please enable it in Inventory before selling.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      _playScanFeedback();
+      provider.addToCart(product);
+      _showBannerNotification('Added ${product.name} (+1)', const Color(0xff176b4d));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Added ${product.name} to cart'),
+          duration: const Duration(milliseconds: 1400),
+          backgroundColor: const Color(0xff176b4d),
+        ),
+      );
+    } else {
+      // Barcode / item code not found: Prompt to create product with code pre-filled
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Product Not Found'),
+          content: Text('Item with code "$cleanCode" is not registered in your store yet. Would you like to add it?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProductFormScreen(initialBarcode: cleanCode),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Create Product'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _showCheckoutSheet() {
+    final provider = context.read<StoreProvider>();
+    final total = provider.cartTotal;
+    final currency = provider.business?.currency ?? 'NGN';
+    final amountPaidController = TextEditingController(text: total.toStringAsFixed(0));
+    final discountController = TextEditingController(
+      text: provider.cartDiscount > 0 ? provider.cartDiscount.toStringAsFixed(0) : '',
+    );
+    String selectedMethod = provider.paymentMethod;
+    Customer? customer = provider.selectedCustomer;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          final paid = double.tryParse(amountPaidController.text) ?? 0.0;
+          final balance = total - paid;
+          final isCredit = balance > 0;
+
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Complete Sale',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 10),
+
+                  // Total Summary
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xff176b4d).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Total Payable:',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          CurrencyFormatter.format(total, currency: currency),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xff176b4d),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Customer selection (Walk-in vs Debtor)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<int?>(
+                          initialValue: customer?.id,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Customer',
+                            prefixIcon: Icon(Icons.person_outline),
+                            border: OutlineInputBorder(),
+                          ),
+                          items: [
+                            const DropdownMenuItem<int?>(
+                              value: null,
+                              child: Text('Walk-in Customer (Instant)', overflow: TextOverflow.ellipsis),
+                            ),
+                            ...provider.customers.map(
+                              (c) => DropdownMenuItem<int?>(
+                                value: c.id,
+                                child: Text(
+                                  '${c.name} (Owes ${CurrencyFormatter.format(c.outstanding, currency: currency)})',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ],
+                          onChanged: (val) {
+                            setSheetState(() {
+                              customer = val == null
+                                  ? null
+                                  : provider.customers.firstWhere((c) => c.id == val);
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton.filledTonal(
+                        tooltip: 'Add new customer',
+                        icon: const Icon(Icons.person_add_alt_1),
+                        onPressed: () async {
+                          final nameCtrl = TextEditingController();
+                          final phoneCtrl = TextEditingController();
+                          final newCust = await showDialog<Customer?>(
+                            context: context,
+                            builder: (dialogCtx) => AlertDialog(
+                              title: const Text('Quick Add Customer'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  TextField(
+                                    controller: nameCtrl,
+                                    autofocus: true,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Customer Name *',
+                                      hintText: 'e.g. Mary Adamu',
+                                      border: OutlineInputBorder(),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    controller: phoneCtrl,
+                                    keyboardType: TextInputType.phone,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Phone Number (Optional)',
+                                      border: OutlineInputBorder(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Cancel')),
+                                FilledButton(
+                                  style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+                                  onPressed: () async {
+                                    final name = nameCtrl.text.trim();
+                                    if (name.isNotEmpty) {
+                                      final created = await provider.createCustomer(name, phone: phoneCtrl.text.trim());
+                                      if (dialogCtx.mounted) Navigator.pop(dialogCtx, created);
+                                    }
+                                  },
+                                  child: const Text('Add'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (newCust != null) {
+                            setSheetState(() {
+                              customer = newCust;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Payment Method (Section 16: Cash, Bank transfer, POS, Other)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _paymentMethodRadio(
+                          label: 'Cash',
+                          value: 'cash',
+                          selected: selectedMethod,
+                          onSelect: (m) => setSheetState(() => selectedMethod = m),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _paymentMethodRadio(
+                          label: 'Transfer',
+                          value: 'transfer',
+                          selected: selectedMethod,
+                          onSelect: (m) => setSheetState(() => selectedMethod = m),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _paymentMethodRadio(
+                          label: 'POS',
+                          value: 'pos',
+                          selected: selectedMethod,
+                          onSelect: (m) => setSheetState(() => selectedMethod = m),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Discount Input
+                  TextField(
+                    controller: discountController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Discount (₦)',
+                      prefixIcon: Icon(Icons.discount_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (val) {
+                      final disc = double.tryParse(val) ?? 0.0;
+                      provider.setCartDiscount(disc);
+                      setSheetState(() {
+                        amountPaidController.text = provider.cartTotal.toStringAsFixed(0);
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Amount Paid Input (Handles Full or Credit Sales)
+                  TextField(
+                    controller: amountPaidController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Amount Paid (₦)',
+                      prefixIcon: const Icon(Icons.paid_outlined),
+                      border: const OutlineInputBorder(),
+                      helperText: isCredit
+                          ? 'Customer owes ${CurrencyFormatter.format(balance, currency: currency)}'
+                          : 'Full payment received',
+                      helperStyle: TextStyle(
+                        color: isCredit ? Colors.orange.shade900 : Colors.green.shade800,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onChanged: (_) => setSheetState(() {}),
+                  ),
+
+                  if (isCredit && customer == null) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.amber.shade300),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Select a registered customer to track this debt.',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 20),
+
+                  FilledButton(
+                    onPressed: (isCredit && customer == null)
+                        ? null
+                        : () async {
+                            final paidAmount = double.tryParse(amountPaidController.text) ?? 0.0;
+                            provider.setSelectedCustomer(customer);
+                            provider.setPaymentMethod(selectedMethod);
+
+                            try {
+                              await provider.checkoutSale(amountPaid: paidAmount);
+                              if (ctx.mounted) Navigator.pop(ctx);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isCredit
+                                          ? 'Sale completed on credit. Debt recorded for ${customer!.name}!'
+                                          : 'Sale completed safely and saved offline!',
+                                    ),
+                                    backgroundColor: const Color(0xff176b4d),
+                                    action: SnackBarAction(
+                                      label: 'View Receipt',
+                                      textColor: Colors.white,
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                                );
+                              }
+                            }
+                          },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xff176b4d),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: Text(
+                      isCredit
+                          ? 'Record Credit Sale (${CurrencyFormatter.format(paidAmountFor(amountPaidController), currency: currency)})'
+                          : 'Complete Sale (${CurrencyFormatter.format(total, currency: currency)})',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  double paidAmountFor(TextEditingController controller) {
+    return double.tryParse(controller.text) ?? 0.0;
+  }
+
+  Widget _paymentMethodRadio({
+    required String label,
+    required String value,
+    required String selected,
+    required Function(String) onSelect,
+  }) {
+    final isSelected = selected == value;
+    return InkWell(
+      onTap: () => onSelect(value),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xff176b4d).withValues(alpha: 0.1) : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? const Color(0xff176b4d) : Colors.grey.shade300,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? const Color(0xff176b4d) : Colors.black87,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<StoreProvider>();
+    final currency = provider.business?.currency ?? 'NGN';
+
+    final cleanQuery = _searchQuery.toLowerCase();
+    final noZerosQuery = cleanQuery.replaceFirst(RegExp(r'^0+'), '');
+
+    final filteredProducts = provider.products.where((p) {
+      if (!p.active) return false;
+      if (_searchQuery.isEmpty) return true;
+      final pBarcode = p.barcode.toLowerCase();
+      final pSku = p.sku.toLowerCase();
+      final pName = p.name.toLowerCase();
+      final pId = p.id.toString();
+
+      if (pName.contains(cleanQuery) ||
+          pBarcode.contains(cleanQuery) ||
+          pSku.contains(cleanQuery) ||
+          pId == cleanQuery) {
+        return true;
+      }
+
+      if (noZerosQuery.isNotEmpty) {
+        final bNoZero = pBarcode.replaceFirst(RegExp(r'^0+'), '');
+        final sNoZero = pSku.replaceFirst(RegExp(r'^0+'), '');
+        if (bNoZero.contains(noZerosQuery) || sNoZero.contains(noZerosQuery)) {
+          return true;
+        }
+      }
+
+      return false;
+    }).toList();
+
+    if (_isLiveScannerOpen) {
+      return Column(
+        children: [
+          // Top Half: Live Continuous Camera Viewfinder
+          _buildLiveScannerView(context, provider, currency),
+
+          // Bottom Half: Live Cart Panel with Realtime Quantity Steppers
+          Expanded(
+            child: Container(
+              color: Colors.white,
+              child: _buildCartPanel(context, provider, currency),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      children: [
+        // Top Search & Barcode Scan Bar (Section 30)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: SearchBar(
+                  controller: _searchController,
+                  hintText: 'Search product or barcode',
+                  leading: const Icon(Icons.search),
+                  trailing: [
+                    if (_searchQuery.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      ),
+                  ],
+                  onChanged: (val) => setState(() => _searchQuery = val.trim()),
+                  onSubmitted: (val) {
+                    if (val.trim().isNotEmpty) {
+                      _processScannedBarcode(val.trim());
+                      _searchController.clear();
+                      setState(() => _searchQuery = '');
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: 'Open Split-Screen Live Scanner',
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.qr_code_scanner, size: 20),
+                  label: const Text('Live Scan', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xff176b4d),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: _toggleLiveScanner,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: 'View Past Sales & Receipts',
+                child: IconButton(
+                  icon: const Icon(Icons.receipt_long_outlined, color: Color(0xff176b4d)),
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xffE2F0EA),
+                    padding: const EdgeInsets.all(12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Middle Section: Product Selector List & Active Cart
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product Quick-Tap List
+              Expanded(
+                flex: 3,
+                child: filteredProducts.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey.shade400),
+                            const SizedBox(height: 12),
+                            Text(
+                              _searchQuery.isEmpty ? 'No products in store' : 'No matching product',
+                              style: const TextStyle(fontSize: 15, color: Colors.black54),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed: widget.onOpenProductCreate,
+                              icon: const Icon(Icons.add),
+                              label: const Text('Add Product'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        itemCount: filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts[index];
+                          final basePrice = product.baseUnit.sellingPrice;
+                          final isOutOfStock = product.isOutOfStock;
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: BorderSide(color: Colors.grey.shade200),
+                            ),
+                            child: ListTile(
+                              title: Text(
+                                product.name,
+                                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                              ),
+                              subtitle: Text(
+                                '${CurrencyFormatter.format(basePrice, currency: currency)} / ${product.baseUnitName} · Stock: ${CurrencyFormatter.formatQty(product.stockBase)}',
+                                style: TextStyle(
+                                  color: isOutOfStock ? Colors.red : Colors.black54,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.add_shopping_cart, color: Color(0xff176b4d)),
+                                onPressed: () {
+                                  provider.addToCart(product);
+                                },
+                              ),
+                              onTap: () {
+                                provider.addToCart(product);
+                              },
+                            ),
+                          );
+                        },
+                      ),
+              ),
+
+              // Desktop/Tablet or Split View Cart Items
+              if (MediaQuery.of(context).size.width > 680)
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(left: BorderSide(color: Colors.grey.shade200)),
+                      color: Colors.white,
+                    ),
+                    child: _buildCartPanel(context, provider, currency),
+                  ),
+                ),
+            ],
+          ),
+        ),
+
+        // Bottom Cart Summary Bar for Mobile
+        if (MediaQuery.of(context).size.width <= 680)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(top: BorderSide(color: Colors.grey.shade200)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Cart summary tap to show items
+                InkWell(
+                  onTap: () => _showCartModal(context, provider, currency),
+                  child: Row(
+                    children: [
+                      Badge(
+                        label: Text('${provider.cartItemCount}'),
+                        child: const Icon(Icons.shopping_cart_outlined, color: Color(0xff176b4d)),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Cart Total', style: TextStyle(fontSize: 11, color: Colors.black54)),
+                          Text(
+                            CurrencyFormatter.format(provider.cartTotal, currency: currency),
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xff176b4d),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  onPressed: provider.cart.isEmpty ? null : _showCheckoutSheet,
+                  icon: const Icon(Icons.check),
+                  label: const Text('Checkout'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xff176b4d),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCartPanel(BuildContext context, StoreProvider provider, String currency) {
+    if (provider.cart.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.shopping_cart_outlined, size: 48, color: Colors.black26),
+              const SizedBox(height: 12),
+              Text(
+                _isLiveScannerOpen ? 'Live Scanner Ready' : 'Your cart is empty',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _isLiveScannerOpen
+                    ? 'Point camera at product barcodes above.\nScanned items appear here with instant quantity controls.'
+                    : 'Tap products or scan barcode to add to cart',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.black54, fontSize: 13),
+              ),
+              if (!_isLiveScannerOpen) ...[
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: _toggleLiveScanner,
+                  style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+                  icon: const Icon(Icons.qr_code_scanner),
+                  label: const Text('Start Live Scanner'),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Cart (${provider.cartItemCount} items)',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              TextButton(
+                onPressed: provider.clearCart,
+                child: const Text('Clear', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ListView.separated(
+            itemCount: provider.cart.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final item = provider.cart[index];
+              return _cartItemRow(context, provider, item, index, currency);
+            },
+          ),
+        ),
+        const Divider(height: 1),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Subtotal:', style: TextStyle(color: Colors.black54)),
+                  Text(CurrencyFormatter.format(provider.cartSubtotal, currency: currency)),
+                ],
+              ),
+              if (provider.cartDiscount > 0) ...[
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Discount:', style: TextStyle(color: Colors.red)),
+                    Text('-${CurrencyFormatter.format(provider.cartDiscount, currency: currency)}', style: const TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  Text(
+                    CurrencyFormatter.format(provider.cartTotal, currency: currency),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xff176b4d)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              FilledButton(
+                onPressed: _showCheckoutSheet,
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xff176b4d),
+                  minimumSize: const Size.fromHeight(48),
+                ),
+                child: const Text('Checkout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _cartItemRow(BuildContext context, StoreProvider provider, CartItem item, int index, String currency) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  item.product.name,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                ),
+              ),
+              Text(
+                CurrencyFormatter.format(item.total, currency: currency),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              // Unit Selector (Section 11, 12, 13: piece vs crate vs carton)
+              if (item.product.units.length > 1)
+                DropdownButton<ProductUnit>(
+                  value: item.product.units.firstWhere(
+                    (u) => u.id == item.selectedUnit.id,
+                    orElse: () => item.selectedUnit,
+                  ),
+                  isDense: true,
+                  underline: const SizedBox(),
+                  items: item.product.units.map((u) {
+                    return DropdownMenuItem<ProductUnit>(
+                      value: u,
+                      child: Text(
+                        '${u.unitName} (${CurrencyFormatter.format(u.sellingPrice, currency: currency)})',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (newUnit) {
+                    if (newUnit != null) {
+                      provider.updateCartItemUnit(index, newUnit);
+                    }
+                  },
+                )
+              else
+                Text(
+                  '${item.selectedUnit.unitName} · ${CurrencyFormatter.format(item.unitPrice, currency: currency)}',
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+
+              const Spacer(),
+
+              // Quantity Stepper
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline, size: 20),
+                onPressed: () => provider.updateCartQuantity(index, item.quantity - 1),
+              ),
+              Text(
+                CurrencyFormatter.formatQty(item.quantity),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline, size: 20, color: Color(0xff176b4d)),
+                onPressed: () => provider.updateCartQuantity(index, item.quantity + 1),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCartModal(BuildContext context, StoreProvider provider, String currency) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SizedBox(
+        height: MediaQuery.of(ctx).size.height * 0.7,
+        child: _buildCartPanel(ctx, provider, currency),
+      ),
+    );
+  }
+}

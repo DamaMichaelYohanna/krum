@@ -1,0 +1,25 @@
+# Python / Django
+.venv/
+venv/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+.env
+krum_backend/staticfiles/
+
+# Flutter / Dart
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+
+# Editor and operating system files
+.idea/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+
