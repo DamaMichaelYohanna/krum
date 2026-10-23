@@ -132,7 +132,7 @@ class DashboardScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const SalesHistoryScreen(initialTabIndex: 0)),
+                              MaterialPageRoute(builder: (_) => const SalesHistoryScreen(initialTabIndex: 1)),
                             );
                           },
                         ),
@@ -290,7 +290,7 @@ class DashboardScreen extends StatelessWidget {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const SalesHistoryScreen(initialTabIndex: 1)),
+                              MaterialPageRoute(builder: (_) => const SalesHistoryScreen(initialTabIndex: 0)),
                             );
                           },
                           style: TextButton.styleFrom(

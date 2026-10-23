@@ -842,7 +842,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                                       onPressed: () {
                                         Navigator.push(
                                           context,
-                                          MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
+                                          MaterialPageRoute(builder: (_) => const SalesHistoryScreen(initialTabIndex: 1)),
                                         );
                                       },
                                     ),

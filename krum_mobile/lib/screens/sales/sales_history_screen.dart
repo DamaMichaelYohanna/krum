@@ -452,12 +452,12 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           tabs: [
             Tab(
-              icon: const Icon(Icons.receipt_long_outlined, size: 20),
-              text: 'Receipts (${filteredSales.length})',
-            ),
-            Tab(
               icon: const Icon(Icons.shopping_bag_outlined, size: 20),
               text: 'Items Sold (${itemizedSummary.length})',
+            ),
+            Tab(
+              icon: const Icon(Icons.receipt_long_outlined, size: 20),
+              text: 'Receipts (${filteredSales.length})',
             ),
           ],
         ),
@@ -632,11 +632,11 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                 : TabBarView(
                     controller: _tabController,
                     children: [
-                      // TAB 1: Receipts List
-                      _buildReceiptsTab(context, filteredSales, currency),
-
-                      // TAB 2: Items Sold Breakdown
+                      // TAB 1: Items Sold Breakdown
                       _buildItemsSoldTab(context, itemizedSummary, currency),
+
+                      // TAB 2: Receipts List
+                      _buildReceiptsTab(context, filteredSales, currency),
                     ],
                   ),
           ),
