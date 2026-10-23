@@ -20,6 +20,7 @@ krum_backend/staticfiles/
 .idea/
 .vscode/
 *.log
+*.apk
 .DS_Store
 Thumbs.db
 
