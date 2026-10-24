@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/store_provider.dart';
@@ -55,7 +56,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 child: const Text('Cancel'),
               ),
               FilledButton.icon(
-                style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+                style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
                 onPressed: () {
                   Navigator.pop(ctx);
                   Navigator.push(
@@ -255,7 +256,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     },
                     icon: const Icon(Icons.add_shopping_cart),
                     label: const Text('Add to Cart'),
-                    style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+                    style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
                   ),
                 ),
               ],
@@ -292,7 +293,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       text = 'Low stock';
     } else {
       bg = Colors.green.shade50;
-      fg = const Color(0xff176b4d);
+      fg = AppColors.primary;
       text = 'In stock';
     }
 
@@ -478,7 +479,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             MaterialPageRoute(builder: (_) => const ProductFormScreen()),
           );
         },
-        backgroundColor: const Color(0xff176b4d),
+        backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Add Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),

@@ -12,6 +12,7 @@ class AppTheme {
         onPrimary: Colors.white,
         secondary: AppColors.primaryLight,
         onSecondary: AppColors.primaryDark,
+        tertiary: AppColors.primaryAccent,
         surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
         error: AppColors.error,
@@ -46,27 +47,29 @@ class AppTheme {
       // Card Theme (Soft shadows, slightly rounded)
       cardTheme: CardThemeData(
         color: AppColors.surface,
-        elevation: 4,
-        shadowColor: AppColors.primary.withOpacity(0.08),
+        elevation: 2,
+        shadowColor: AppColors.primary.withValues(alpha: 0.08),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.border, width: 0.8),
         ),
         margin: EdgeInsets.zero,
       ),
       
-      // Button Theme
+      // Button Theme (Ocean teal with soft glow)
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          elevation: 0,
+          elevation: 2,
+          shadowColor: AppColors.primaryGlow,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           textStyle: GoogleFonts.plusJakartaSans(
             fontSize: 16,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -78,22 +81,22 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.error),
+          borderSide: const BorderSide(color: AppColors.error),
         ),
         labelStyle: GoogleFonts.plusJakartaSans(color: AppColors.textSecondary),
-        hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.border),
+        hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted),
       ),
       
       // Navigation Bar Theme

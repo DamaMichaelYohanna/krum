@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../providers/store_provider.dart';
 import '../customers/customers_screen.dart';
@@ -137,7 +138,7 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   const Text('Product Categories', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   IconButton(
-                    icon: const Icon(Icons.add_circle, color: Color(0xff176b4d)),
+                    icon: const Icon(Icons.add_circle, color: AppColors.primary),
                     onPressed: () => _showNewCategoryDialog(context),
                   ),
                 ],
@@ -195,7 +196,7 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   const Text('Custom Units', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   IconButton(
-                    icon: const Icon(Icons.add_circle, color: Color(0xff176b4d)),
+                    icon: const Icon(Icons.add_circle, color: AppColors.primary),
                     onPressed: () => _showNewUnitDialog(context),
                   ),
                 ],
@@ -251,14 +252,14 @@ class SettingsScreen extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xff176b4d).withOpacity(0.08),
+              color: AppColors.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xff176b4d).withOpacity(0.2)),
+              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
             ),
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: const Color(0xff176b4d),
+                  backgroundColor: AppColors.primary,
                   radius: 24,
                   child: Text(
                     business?.name.isNotEmpty == true ? business!.name[0].toUpperCase() : 'K',
@@ -291,7 +292,7 @@ class SettingsScreen extends StatelessWidget {
           // Business Operations Group
           _sectionHeader('Business Operations'),
           ListTile(
-            leading: const Icon(Icons.people_outline, color: Color(0xff176b4d)),
+            leading: const Icon(Icons.people_outline, color: AppColors.primary),
             title: const Text('Customers & Debtors'),
             subtitle: Text('${provider.customers.where((c) => c.outstanding > 0).length} customer(s) owing'),
             trailing: const Icon(Icons.chevron_right),
@@ -300,7 +301,7 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.local_shipping_outlined, color: Color(0xff176b4d)),
+            leading: const Icon(Icons.local_shipping_outlined, color: AppColors.primary),
             title: const Text('Receive Stock / Supplier Purchases'),
             subtitle: Text('${provider.suppliers.length} registered suppliers'),
             trailing: const Icon(Icons.chevron_right),
@@ -318,7 +319,7 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.receipt_long_outlined, color: Color(0xff176b4d)),
+            leading: const Icon(Icons.receipt_long_outlined, color: AppColors.primary),
             title: const Text('Sales & Items Sold History'),
             subtitle: const Text('View receipts, past transactions & items sold'),
             trailing: const Icon(Icons.chevron_right),
@@ -341,7 +342,7 @@ class SettingsScreen extends StatelessWidget {
           // Store Configurations (Categories, Units & Sync)
           _sectionHeader('Store Configuration'),
           ListTile(
-            leading: const Icon(Icons.category_outlined, color: Color(0xff176b4d)),
+            leading: const Icon(Icons.category_outlined, color: AppColors.primary),
             title: const Text('Product Categories'),
             subtitle: Text('${provider.categories.length} category(ies) defined'),
             trailing: IconButton(
@@ -351,7 +352,7 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _showCategoriesManagerDialog(context),
           ),
           ListTile(
-            leading: const Icon(Icons.scale_outlined, color: Color(0xff176b4d)),
+            leading: const Icon(Icons.scale_outlined, color: AppColors.primary),
             title: const Text('Custom Units'),
             subtitle: Text('${provider.units.length} unit(s) defined (Mudu, Crate, Bag, etc.)'),
             trailing: IconButton(
@@ -361,7 +362,7 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _showUnitsManagerDialog(context),
           ),
           ListTile(
-            leading: const Icon(Icons.sync, color: Color(0xff176b4d)),
+            leading: const Icon(Icons.sync, color: AppColors.primary),
             title: const Text('Sync Now'),
             subtitle: Text(
               provider.pendingSyncCount == 0

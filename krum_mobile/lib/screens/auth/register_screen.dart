@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../providers/store_provider.dart';
 
@@ -48,7 +49,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xff176b4d),
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -161,7 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             }
                           },
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xff176b4d),
+                      backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),

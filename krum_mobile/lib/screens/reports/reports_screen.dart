@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/store_provider.dart';
@@ -93,8 +94,8 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xff176b4d),
-          indicatorColor: const Color(0xff176b4d),
+          labelColor: AppColors.primary,
+          indicatorColor: AppColors.primary,
           tabs: const [
             Tab(text: 'Profit & Loss'),
             Tab(text: 'Sales Report'),
@@ -168,7 +169,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
         ),
         const SizedBox(height: 14),
 
-        _statementRow('Sales Revenue', pl.revenue, isBold: true, color: const Color(0xff176b4d), currency: currency),
+        _statementRow('Sales Revenue', pl.revenue, isBold: true, color: AppColors.primary, currency: currency),
         _statementRow('Cost of Goods Sold (COGS)', -pl.cogs, isNegative: true, currency: currency),
         const Divider(),
         _statementRow('Gross Profit', pl.grossProfit, isBold: true, color: Colors.teal.shade800, currency: currency),
@@ -217,7 +218,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: pl.netProfit >= 0 ? const Color(0xff176b4d) : Colors.red.shade900,
+                  color: pl.netProfit >= 0 ? AppColors.primary : Colors.red.shade900,
                 ),
               ),
             ],

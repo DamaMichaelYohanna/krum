@@ -197,7 +197,7 @@ class DashboardScreen extends StatelessWidget {
                         _quickActionButton(
                           icon: Icons.receipt_long_rounded,
                           label: 'Sales',
-                          color: const Color(0xFF0F4733),
+                          color: AppColors.primaryDark,
                           onTap: () {
                             Navigator.push(
                               context,

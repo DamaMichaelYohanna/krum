@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/store_provider.dart';
@@ -584,14 +585,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(widget.product != null ? 'Product updated successfully!' : 'Product created successfully!'),
-                                backgroundColor: const Color(0xff176b4d),
+                                backgroundColor: AppColors.primary,
                               ),
                             );
                             Navigator.pop(context);
                           }
                         },
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xff176b4d),
+                    backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: provider.isLoading

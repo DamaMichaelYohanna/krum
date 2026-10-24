@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/store_provider.dart';
@@ -228,7 +229,7 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
                       const Text('Total Purchase Cost:', style: TextStyle(fontWeight: FontWeight.w600)),
                       Text(
                         CurrencyFormatter.format(totalCost, currency: currency),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xff176b4d)),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary),
                       ),
                     ],
                   ),
@@ -279,14 +280,14 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Stock received successfully and inventory increased!'),
-                          backgroundColor: Color(0xff176b4d),
+                          backgroundColor: AppColors.primary,
                         ),
                       );
                       Navigator.pop(context);
                     }
                   },
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xff176b4d),
+                    backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: const Text('Record Stock Receipt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/store_provider.dart';
@@ -33,7 +34,7 @@ class _StockAdjustmentDialogState extends State<StockAdjustmentDialog> {
     return AlertDialog(
       title: Row(
         children: [
-          const Icon(Icons.tune, color: Color(0xff176b4d)),
+          const Icon(Icons.tune, color: AppColors.primary),
           const SizedBox(width: 8),
           Expanded(child: Text('Adjust Stock: ${widget.product.name}')),
         ],
@@ -148,7 +149,7 @@ class _StockAdjustmentDialogState extends State<StockAdjustmentDialog> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Stock adjustment applied and saved!'),
-                  backgroundColor: Color(0xff176b4d),
+                  backgroundColor: AppColors.primary,
                 ),
               );
             }

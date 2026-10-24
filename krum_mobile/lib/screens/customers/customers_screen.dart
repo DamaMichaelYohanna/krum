@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/store_provider.dart';
@@ -81,7 +82,7 @@ class _CustomersScreenState extends State<CustomersScreen> with SingleTickerProv
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () async {
               final name = nameController.text.trim();
               if (name.isEmpty) {
@@ -102,7 +103,7 @@ class _CustomersScreenState extends State<CustomersScreen> with SingleTickerProv
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Customer "$name" added successfully!'),
-                    backgroundColor: const Color(0xff176b4d),
+                    backgroundColor: AppColors.primary,
                   ),
                 );
               }
@@ -149,7 +150,7 @@ class _CustomersScreenState extends State<CustomersScreen> with SingleTickerProv
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () async {
               final name = nameController.text.trim();
               if (name.isEmpty) return;
@@ -159,7 +160,7 @@ class _CustomersScreenState extends State<CustomersScreen> with SingleTickerProv
               if (ctx.mounted) Navigator.pop(ctx);
               if (mounted && success) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Customer "$name" updated!'), backgroundColor: const Color(0xff176b4d)),
+                  SnackBar(content: Text('Customer "$name" updated!'), backgroundColor: AppColors.primary),
                 );
               }
             },
@@ -211,7 +212,7 @@ class _CustomersScreenState extends State<CustomersScreen> with SingleTickerProv
         builder: (context, setDialogState) => AlertDialog(
           title: Row(
             children: [
-              const Icon(Icons.payments_outlined, color: Color(0xff176b4d)),
+              const Icon(Icons.payments_outlined, color: AppColors.primary),
               const SizedBox(width: 8),
               Expanded(child: Text('Record Debt Payment: ${customer.name}')),
             ],
@@ -287,7 +288,7 @@ class _CustomersScreenState extends State<CustomersScreen> with SingleTickerProv
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Payment of ${CurrencyFormatter.format(amount, currency: currency)} recorded!'),
-                      backgroundColor: const Color(0xff176b4d),
+                      backgroundColor: AppColors.primary,
                     ),
                   );
                 }
@@ -319,8 +320,8 @@ class _CustomersScreenState extends State<CustomersScreen> with SingleTickerProv
         title: const Text('Customers & Debtors'),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xff176b4d),
-          indicatorColor: const Color(0xff176b4d),
+          labelColor: AppColors.primary,
+          indicatorColor: AppColors.primary,
           tabs: [
             Tab(text: 'Debtors (${debtors.length})'),
             Tab(text: 'All Customers (${allCustomers.length})'),
@@ -478,7 +479,7 @@ class _CustomersScreenState extends State<CustomersScreen> with SingleTickerProv
                                           value: 'pay',
                                           child: Row(
                                             children: [
-                                              Icon(Icons.payment, size: 18, color: Color(0xff176b4d)),
+                                              Icon(Icons.payment, size: 18, color: AppColors.primary),
                                               SizedBox(width: 8),
                                               Text('Record Payment'),
                                             ],
@@ -519,7 +520,7 @@ class _CustomersScreenState extends State<CustomersScreen> with SingleTickerProv
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showNewCustomerDialog,
-        backgroundColor: const Color(0xff176b4d),
+        backgroundColor: AppColors.primary,
         icon: const Icon(Icons.person_add, color: Colors.white),
         label: const Text('Add Customer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),

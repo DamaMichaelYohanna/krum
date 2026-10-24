@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../providers/store_provider.dart';
 import 'register_screen.dart';
@@ -84,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xff176b4d),
+                      color: AppColors.primary,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Icon(Icons.storefront, color: Colors.white, size: 36),
@@ -96,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.5,
-                      color: Color(0xff176b4d),
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -168,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             await provider.login(username, password);
                           },
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xff176b4d),
+                      backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
@@ -195,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text(
                           'Register Store',
                           style: TextStyle(
-                            color: Color(0xff176b4d),
+                            color: AppColors.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

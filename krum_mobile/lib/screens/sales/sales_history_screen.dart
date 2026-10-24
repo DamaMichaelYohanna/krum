@@ -500,7 +500,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                 gradient: LinearGradient(
                   colors: [
                     AppColors.primaryLight,
-                    const Color(0xFFD4EDE2).withValues(alpha: 0.5),
+                    AppColors.primaryBorder.withValues(alpha: 0.5),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,

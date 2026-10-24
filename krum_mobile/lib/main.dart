@@ -91,7 +91,7 @@ class _AppShellState extends State<AppShell> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Added ${product.name} to cart!'),
-            backgroundColor: const Color(0xff176b4d),
+            backgroundColor: AppColors.primary,
           ),
         );
       } else {

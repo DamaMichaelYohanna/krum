@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -30,7 +31,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
   String? _lastScannedCode;
   DateTime? _lastScannedTime;
   String? _lastScannedBanner;
-  Color _bannerColor = const Color(0xff176b4d);
+  Color _bannerColor = AppColors.primary;
   bool _isTorchOn = false;
   Timer? _bannerDismissTimer;
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -140,7 +141,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
 
         _playScanFeedback();
         provider.addToCart(product);
-        _showBannerNotification('Added ${product.name} (+1)', const Color(0xff176b4d));
+        _showBannerNotification('Added ${product.name} (+1)', AppColors.primary);
       } else {
         _playScanFeedback();
         _showBannerNotification('Code "$code" not found', Colors.red.shade700);
@@ -157,7 +158,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                 child: const Text('Cancel'),
               ),
               FilledButton.icon(
-                style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+                style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
                 onPressed: () {
                   Navigator.pop(ctx);
                   Navigator.push(
@@ -206,7 +207,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
             child: const Text('Cancel'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () {
               final val = textController.text.trim();
               if (val.isNotEmpty) {
@@ -254,7 +255,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                       const SizedBox(height: 8),
                       FilledButton.icon(
                         onPressed: _showManualBarcodeInput,
-                        style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+                        style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
                         icon: const Icon(Icons.keyboard, size: 16),
                         label: const Text('Enter Code Manually', style: TextStyle(fontSize: 12)),
                       ),
@@ -431,7 +432,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            _bannerColor == const Color(0xff176b4d) ? Icons.check_circle : Icons.info_outline,
+                            _bannerColor == AppColors.primary ? Icons.check_circle : Icons.info_outline,
                             color: Colors.white,
                             size: 16,
                           ),
@@ -500,12 +501,12 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
 
       _playScanFeedback();
       provider.addToCart(product);
-      _showBannerNotification('Added ${product.name} (+1)', const Color(0xff176b4d));
+      _showBannerNotification('Added ${product.name} (+1)', AppColors.primary);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Added ${product.name} to cart'),
           duration: const Duration(milliseconds: 1400),
-          backgroundColor: const Color(0xff176b4d),
+          backgroundColor: AppColors.primary,
         ),
       );
     } else {
@@ -521,7 +522,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
               child: const Text('Cancel'),
             ),
             FilledButton.icon(
-              style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
               onPressed: () {
                 Navigator.pop(ctx);
                 Navigator.push(
@@ -595,7 +596,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xff176b4d).withValues(alpha: 0.08),
+                      color: AppColors.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -610,7 +611,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xff176b4d),
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
@@ -692,7 +693,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                               actions: [
                                 TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Cancel')),
                                 FilledButton(
-                                  style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+                                  style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
                                   onPressed: () async {
                                     final name = nameCtrl.text.trim();
                                     if (name.isNotEmpty) {
@@ -835,7 +836,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                                           ? 'Sale completed on credit. Debt recorded for ${customer!.name}!'
                                           : 'Sale completed safely and saved offline!',
                                     ),
-                                    backgroundColor: const Color(0xff176b4d),
+                                    backgroundColor: AppColors.primary,
                                     action: SnackBarAction(
                                       label: 'View Receipt',
                                       textColor: Colors.white,
@@ -858,7 +859,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                             }
                           },
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xff176b4d),
+                      backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
@@ -895,10 +896,10 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xff176b4d).withValues(alpha: 0.1) : Colors.grey.shade100,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? const Color(0xff176b4d) : Colors.grey.shade300,
+            color: isSelected ? AppColors.primary : Colors.grey.shade300,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -908,7 +909,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
             style: TextStyle(
               fontSize: 13,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? const Color(0xff176b4d) : Colors.black87,
+              color: isSelected ? AppColors.primary : Colors.black87,
             ),
           ),
         ),
@@ -1006,7 +1007,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                   icon: const Icon(Icons.qr_code_scanner, size: 20),
                   label: const Text('Live Scan', style: TextStyle(fontWeight: FontWeight.bold)),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xff176b4d),
+                    backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -1017,9 +1018,9 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
               Tooltip(
                 message: 'View Past Sales & Receipts',
                 child: IconButton(
-                  icon: const Icon(Icons.receipt_long_outlined, color: Color(0xff176b4d)),
+                  icon: const Icon(Icons.receipt_long_outlined, color: AppColors.primary),
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xffE2F0EA),
+                    backgroundColor: AppColors.primaryLight,
                     padding: const EdgeInsets.all(12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -1091,7 +1092,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                                 ),
                               ),
                               trailing: IconButton(
-                                icon: const Icon(Icons.add_shopping_cart, color: Color(0xff176b4d)),
+                                icon: const Icon(Icons.add_shopping_cart, color: AppColors.primary),
                                 onPressed: () {
                                   provider.addToCart(product);
                                 },
@@ -1145,7 +1146,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                     children: [
                       Badge(
                         label: Text('${provider.cartItemCount}'),
-                        child: const Icon(Icons.shopping_cart_outlined, color: Color(0xff176b4d)),
+                        child: const Icon(Icons.shopping_cart_outlined, color: AppColors.primary),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -1157,7 +1158,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                             style: const TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xff176b4d),
+                              color: AppColors.primary,
                             ),
                           ),
                         ],
@@ -1171,7 +1172,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                   icon: const Icon(Icons.check),
                   label: const Text('Checkout'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xff176b4d),
+                    backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                 ),
@@ -1208,7 +1209,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                 const SizedBox(height: 16),
                 FilledButton.icon(
                   onPressed: _toggleLiveScanner,
-                  style: FilledButton.styleFrom(backgroundColor: const Color(0xff176b4d)),
+                  style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
                   icon: const Icon(Icons.qr_code_scanner),
                   label: const Text('Start Live Scanner'),
                 ),
@@ -1277,7 +1278,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                   const Text('Total:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   Text(
                     CurrencyFormatter.format(provider.cartTotal, currency: currency),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xff176b4d)),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppColors.primary),
                   ),
                 ],
               ),
@@ -1285,7 +1286,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
               FilledButton(
                 onPressed: _showCheckoutSheet,
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xff176b4d),
+                  backgroundColor: AppColors.primary,
                   minimumSize: const Size.fromHeight(48),
                 ),
                 child: const Text('Checkout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -1362,7 +1363,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               IconButton(
-                icon: const Icon(Icons.add_circle_outline, size: 20, color: Color(0xff176b4d)),
+                icon: const Icon(Icons.add_circle_outline, size: 20, color: AppColors.primary),
                 onPressed: () => provider.updateCartQuantity(index, item.quantity + 1),
               ),
             ],

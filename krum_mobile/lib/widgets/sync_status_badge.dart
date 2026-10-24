@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/store_provider.dart';
 import '../services/sync_service.dart';
@@ -33,7 +34,7 @@ class SyncStatusBadge extends StatelessWidget {
         icon = Icons.sync_problem_outlined;
         break;
       case SyncStatus.synced:
-        color = const Color(0xff176b4d);
+        color = AppColors.primary;
         label = 'Synced';
         icon = Icons.check_circle_outline;
         break;
