@@ -11,38 +11,6 @@ import '../sales/sales_history_screen.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  void _showServerConfigDialog(BuildContext context) {
-    final provider = context.read<StoreProvider>();
-    final urlController = TextEditingController(text: provider.api.baseUrl);
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Backend Server URL'),
-        content: TextField(
-          controller: urlController,
-          decoration: const InputDecoration(
-            hintText: 'http://127.0.0.1:8000/api',
-            labelText: 'API Base URL',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              await provider.api.setBaseUrl(urlController.text.trim());
-              if (ctx.mounted) Navigator.pop(ctx);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showNewUnitDialog(BuildContext context) {
     final unitNameController = TextEditingController();
     final unitSymbolController = TextEditingController();
@@ -378,13 +346,6 @@ class SettingsScreen extends StatelessWidget {
               },
               child: const Text('Sync'),
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.dns_outlined, color: Colors.blueGrey),
-            title: const Text('Server Connection'),
-            subtitle: Text(provider.api.baseUrl),
-            trailing: const Icon(Icons.edit_outlined),
-            onTap: () => _showServerConfigDialog(context),
           ),
 
           const Divider(),
