@@ -1284,7 +1284,12 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
               ),
               const SizedBox(height: 14),
               FilledButton(
-                onPressed: _showCheckoutSheet,
+                onPressed: () {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  }
+                  _showCheckoutSheet();
+                },
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   minimumSize: const Size.fromHeight(48),
@@ -1322,15 +1327,18 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
           Row(
             children: [
               // Unit Selector (Section 11, 12, 13: piece vs crate vs carton)
-              if (item.product.units.length > 1)
+              if (item.product.allUnits.length > 1)
                 DropdownButton<ProductUnit>(
-                  value: item.product.units.firstWhere(
-                    (u) => u.id == item.selectedUnit.id,
-                    orElse: () => item.selectedUnit,
+                  value: item.product.allUnits.firstWhere(
+                    (u) =>
+                        (u.unitId != 0 && item.selectedUnit.unitId != 0 && u.unitId == item.selectedUnit.unitId) ||
+                        (u.id != 0 && item.selectedUnit.id != 0 && u.id == item.selectedUnit.id) ||
+                        u.unitName.toLowerCase() == item.selectedUnit.unitName.toLowerCase(),
+                    orElse: () => item.product.allUnits.first,
                   ),
                   isDense: true,
                   underline: const SizedBox(),
-                  items: item.product.units.map((u) {
+                  items: item.product.allUnits.map((u) {
                     return DropdownMenuItem<ProductUnit>(
                       value: u,
                       child: Text(
@@ -1380,9 +1388,11 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => SizedBox(
-        height: MediaQuery.of(ctx).size.height * 0.7,
-        child: _buildCartPanel(ctx, provider, currency),
+      builder: (ctx) => Consumer<StoreProvider>(
+        builder: (modalCtx, modalProvider, _) => SizedBox(
+          height: MediaQuery.of(modalCtx).size.height * 0.7,
+          child: _buildCartPanel(modalCtx, modalProvider, currency),
+        ),
       ),
     );
   }

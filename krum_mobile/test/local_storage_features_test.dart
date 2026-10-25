@@ -617,6 +617,66 @@ void main() {
     expect(statement.contains('INVENTORY VALUATION'), true);
     expect(statement.contains('RECEIVABLES (DEBTORS)'), true);
   });
+
+  test('Switching cart item units updates prices, totals, and deducts base stock accurately', () async {
+    SharedPreferences.setMockInitialValues({});
+    final api = ApiService();
+    final sync = SyncService(api: api);
+    final provider = StoreProvider(api: api, syncService: sync);
+    await provider.init();
+
+    final pieceUnit = provider.units.firstWhere((u) => u.name == 'Piece');
+    final cartonUnit = provider.units.firstWhere((u) => u.name == 'Carton');
+
+    // Create a product with base unit Piece (₦500) and alternative unit Carton (₦5,500, contains 12 pieces)
+    await provider.createProduct(
+      name: 'Coca Cola 50cl',
+      baseUnitId: pieceUnit.id,
+      sellingPrice: 500.0,
+      costPrice: 350.0,
+      openingStock: 120.0, // 120 pieces in stock
+      alternativeUnits: [
+        {
+          'unit_id': cartonUnit.id,
+          'unit_name': 'Carton',
+          'conversion_to_base': 12.0,
+          'selling_price': 5500.0,
+          'cost_price': 4000.0,
+        }
+      ],
+    );
+
+    final coke = provider.products.firstWhere((p) => p.name == 'Coca Cola 50cl');
+    expect(coke.allUnits.length, 2);
+
+    // 1. Add Coke to cart (defaults to base unit Piece)
+    provider.addToCart(coke, quantity: 2.0);
+    expect(provider.cart.length, 1);
+    expect(provider.cart.first.selectedUnit.unitName, 'Piece');
+    expect(provider.cart.first.unitPrice, 500.0);
+    expect(provider.cart.first.total, 1000.0); // 2 * 500
+    expect(provider.cartTotal, 1000.0);
+
+    // 2. Switch unit in cart from Piece to Carton
+    final cartonObj = coke.allUnits.firstWhere((u) => u.unitName == 'Carton');
+    provider.updateCartItemUnit(0, cartonObj);
+
+    // 3. Verify cart immediately updates with Carton pricing and conversion
+    expect(provider.cart.length, 1);
+    expect(provider.cart.first.selectedUnit.unitName, 'Carton');
+    expect(provider.cart.first.unitPrice, 5500.0);
+    expect(provider.cart.first.total, 11000.0); // 2 cartons * 5500 = 11,000
+    expect(provider.cartTotal, 11000.0);
+    expect(provider.cart.first.requiredBaseQuantity, 24.0); // 2 cartons * 12 = 24 base pieces
+
+    // 4. Checkout the 2 cartons
+    await provider.checkoutSale(amountPaid: 11000.0);
+    expect(provider.cart.length, 0);
+
+    // 5. Verify stock deduction: 120 opening - 24 base pieces sold = 96 pieces remaining
+    final updatedCoke = provider.products.firstWhere((p) => p.name == 'Coca Cola 50cl');
+    expect(updatedCoke.stockBase, 96.0);
+  });
 }
 
 

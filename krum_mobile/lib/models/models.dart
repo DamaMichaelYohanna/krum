@@ -115,6 +115,18 @@ class ProductUnit {
         sellingPrice: sellingPrice ?? this.sellingPrice,
         minimumPrice: minimumPrice ?? this.minimumPrice,
       );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProductUnit &&
+          runtimeType == other.runtimeType &&
+          ((id != 0 && other.id != 0 && id == other.id) ||
+           (unitId != 0 && other.unitId != 0 && unitId == other.unitId) ||
+           (unitName.isNotEmpty && unitName.toLowerCase() == other.unitName.toLowerCase()));
+
+  @override
+  int get hashCode => (unitId != 0 ? unitId : (id != 0 ? id : unitName.hashCode));
 }
 
 class Product {
@@ -187,6 +199,22 @@ class Product {
   bool get isOutOfStock => stockBase <= 0;
   bool get isLowStock => stockBase > 0 && stockBase <= reorderLevel;
   double get basePrice => baseUnit.sellingPrice;
+
+  List<ProductUnit> get allUnits {
+    if (units.isEmpty) {
+      return [baseUnit];
+    }
+    final hasBase = units.any(
+      (u) =>
+          (baseUnitId != 0 && u.unitId == baseUnitId) ||
+          u.conversionToBase == 1.0 ||
+          u.unitName.toLowerCase() == baseUnitName.toLowerCase(),
+    );
+    if (!hasBase) {
+      return [baseUnit, ...units];
+    }
+    return units;
+  }
 
   ProductUnit get baseUnit {
     return units.firstWhere(

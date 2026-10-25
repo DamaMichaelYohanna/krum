@@ -159,7 +159,11 @@ class StoreProvider extends ChangeNotifier {
   void addToCart(Product product, {ProductUnit? unit, double quantity = 1.0}) {
     final targetUnit = unit ?? product.baseUnit;
     final existingIndex = _cart.indexWhere(
-      (item) => item.product.id == product.id && item.selectedUnit.id == targetUnit.id,
+      (item) =>
+          item.product.id == product.id &&
+          ((targetUnit.id != 0 && item.selectedUnit.id != 0 && item.selectedUnit.id == targetUnit.id) ||
+           (targetUnit.unitId != 0 && item.selectedUnit.unitId != 0 && item.selectedUnit.unitId == targetUnit.unitId) ||
+           item.selectedUnit.unitName.toLowerCase() == targetUnit.unitName.toLowerCase()),
     );
 
     if (existingIndex >= 0) {
@@ -183,8 +187,23 @@ class StoreProvider extends ChangeNotifier {
 
   void updateCartItemUnit(int index, ProductUnit newUnit) {
     if (index >= 0 && index < _cart.length) {
-      _cart[index].selectedUnit = newUnit;
-      _cart[index].customUnitPrice = newUnit.sellingPrice;
+      final currentItem = _cart[index];
+      final otherIndex = _cart.indexWhere(
+        (it) =>
+            !identical(it, currentItem) &&
+            it.product.id == currentItem.product.id &&
+            ((newUnit.id != 0 && it.selectedUnit.id != 0 && it.selectedUnit.id == newUnit.id) ||
+             (newUnit.unitId != 0 && it.selectedUnit.unitId != 0 && it.selectedUnit.unitId == newUnit.unitId) ||
+             it.selectedUnit.unitName.toLowerCase() == newUnit.unitName.toLowerCase()),
+      );
+
+      if (otherIndex >= 0) {
+        _cart[otherIndex].quantity += currentItem.quantity;
+        _cart.removeAt(index);
+      } else {
+        _cart[index].selectedUnit = newUnit;
+        _cart[index].customUnitPrice = newUnit.sellingPrice;
+      }
       notifyListeners();
     }
   }
