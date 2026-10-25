@@ -498,6 +498,125 @@ void main() {
     expect(reloadedItems.first.productName, 'Milo 500g');
     expect(reloadedItems.first.quantitySold, 3.0);
   });
+
+  test('Comprehensive Business Reports offline calculation: P&L, itemized sales, category summary, inventory valuation, debtors, CSV export, and statement text', () async {
+    SharedPreferences.setMockInitialValues({});
+
+    final api = ApiService();
+    final syncService = SyncService(api: api);
+    final provider = StoreProvider(api: api, syncService: syncService);
+    await provider.init();
+
+    // 1. Create Products
+    final beverageCat = provider.categories.firstWhere((c) => c.name.toLowerCase().contains('beverage'), orElse: () => provider.categories.first);
+    final grainCat = provider.categories.firstWhere((c) => c.name.toLowerCase().contains('grain') || c.name.toLowerCase().contains('general'), orElse: () => provider.categories.first);
+
+    await provider.createProduct(
+      name: 'Nestle Milo',
+      categoryId: beverageCat.id,
+      baseUnitId: provider.units.first.id,
+      openingStock: 50.0,
+      costPrice: 2000.0,
+      sellingPrice: 3000.0,
+    );
+
+    await provider.createProduct(
+      name: 'Brown Sugar',
+      categoryId: grainCat.id,
+      baseUnitId: provider.units.first.id,
+      openingStock: 20.0,
+      costPrice: 800.0,
+      sellingPrice: 1200.0,
+    );
+
+    // 2. Add an Expense
+    await provider.recordExpense(
+      category: 'Utilities',
+      amount: 1500.0,
+      description: 'Shop Electricity',
+      occurredAt: DateTime.now().toIso8601String().substring(0, 10),
+    );
+
+    // 3. Create a Customer with Debt
+    await provider.createCustomer(
+      'Alhaji Musa',
+      phone: '08012345678',
+      initialDebt: 4500.0,
+    );
+
+    // 4. Perform a Sale
+    final milo = provider.products.firstWhere((p) => p.name == 'Nestle Milo');
+    final sugar = provider.products.firstWhere((p) => p.name == 'Brown Sugar');
+
+    provider.addToCart(milo, quantity: 2.0); // 2 milo @ 3000 = 6000
+    provider.addToCart(sugar, quantity: 1.0); // 1 sugar @ 1200 = 1200
+    // Total = 7200, COGS = (2 * 2000) + (1 * 800) = 4800, Gross Profit = 2400
+
+    await provider.checkoutSale(amountPaid: 7200.0);
+
+    // 5. Test Profit & Loss Report Offline
+    final pl = provider.getProfitLossReport(period: 'today');
+    expect(pl.revenue, 7200.0);
+    expect(pl.cogs, 4800.0);
+    expect(pl.grossProfit, 2400.0);
+    expect(pl.operatingExpenses, 1500.0);
+    expect(pl.netProfit, 900.0); // 2400 gross - 1500 exp = 900
+    expect(pl.expenseBreakdown.length, 1);
+    expect(pl.expenseBreakdown.first['category'], 'Utilities');
+    expect(pl.expenseBreakdown.first['total'], 1500.0);
+
+    // 6. Test Sales Report Items
+    final salesItems = provider.getSalesReportItems(period: 'today');
+    expect(salesItems.length, 2);
+    final topSold = salesItems.firstWhere((it) => it['product'] == 'Nestle Milo');
+    expect(topSold['quantity'], 2.0);
+    expect(topSold['revenue'], 6000.0);
+    expect(topSold['cogs'], 4000.0);
+    expect(topSold['gross_profit'], 2000.0);
+
+    // 7. Test Category Sales Summary
+    final catSummary = provider.getCategorySalesSummary(period: 'today');
+    expect(catSummary.isNotEmpty, true);
+    final totalRevCheck = catSummary.fold<double>(0.0, (acc, c) => acc + (c['revenue'] as double));
+    expect(totalRevCheck, 7200.0);
+
+    // 8. Test Inventory Valuation Summary
+    final invSummary = provider.getInventoryValuationSummary();
+    expect(invSummary['total_cost_value'], greaterThan(0.0));
+    expect(invSummary['total_retail_value'], greaterThan(0.0));
+    expect(invSummary['potential_profit'], greaterThan(0.0));
+
+    // 9. Test Debtors Summary
+    final debtorsSummary = provider.getDebtorsSummary();
+    expect(debtorsSummary['count'], 1);
+    expect(debtorsSummary['total_debt'], 4500.0);
+
+    // 10. Test CSV Export Generation
+    final plCsv = provider.exportReportCsvData('profit_loss', period: 'today');
+    expect(plCsv.contains('PROFIT & LOSS STATEMENT'), true);
+    expect(plCsv.contains('7200.00'), true);
+    expect(plCsv.contains('4800.00'), true);
+    expect(plCsv.contains('900.00'), true);
+
+    final salesCsv = provider.exportReportCsvData('sales', period: 'today');
+    expect(salesCsv.contains('Nestle Milo'), true);
+    expect(salesCsv.contains('Brown Sugar'), true);
+
+    final invCsv = provider.exportReportCsvData('inventory');
+    expect(invCsv.contains('Nestle Milo'), true);
+
+    final debtCsv = provider.exportReportCsvData('debtors');
+    expect(debtCsv.contains('Alhaji Musa'), true);
+    expect(debtCsv.contains('4500.00'), true);
+
+    // 11. Test Shareable Text Statement Generation
+    final statement = provider.generateShareableSummaryText(period: 'today');
+    expect(statement.contains('KRUM STORE BUSINESS REPORT'), true);
+    expect(statement.contains('Sales Revenue'), true);
+    expect(statement.contains('NET PROFIT'), true);
+    expect(statement.contains('INVENTORY VALUATION'), true);
+    expect(statement.contains('RECEIVABLES (DEBTORS)'), true);
+  });
 }
 
 

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../services/sync_service.dart';
+import '../utils/formatters.dart';
 
 class StoreProvider extends ChangeNotifier {
   final ApiService api;
@@ -1094,16 +1095,414 @@ class StoreProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> loadProfitLoss({String period = 'this_month'}) async {
-    if (!api.isAuthenticated) return;
-    _setLoading(true);
-    try {
-      final json = await api.getProfitLoss(period: period);
-      _profitLoss = ProfitLossData.fromJson(json);
-    } catch (e) {
-      _errorMessage = e.toString();
+  ProfitLossData getProfitLossReport({
+    String period = 'this_month',
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    final filteredSales = filterSales(
+      period: period,
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    final filteredExpenses = filterExpenses(
+      period: period,
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    double revenue = 0.0;
+    double cogs = 0.0;
+    for (final sale in filteredSales) {
+      final total = (sale['total_amount'] as num?)?.toDouble() ??
+          (sale['total'] as num?)?.toDouble() ??
+          0.0;
+      final saleCogs = (sale['cogs'] as num?)?.toDouble() ?? 0.0;
+      revenue += total;
+      cogs += saleCogs;
     }
-    _setLoading(false);
+
+    double totalExpenses = 0.0;
+    final Map<String, double> categoryExpenseMap = {};
+    for (final exp in filteredExpenses) {
+      final amt = exp.amount;
+      final cat = exp.category.isNotEmpty ? exp.category : 'Other';
+      totalExpenses += amt;
+      categoryExpenseMap[cat] = (categoryExpenseMap[cat] ?? 0.0) + amt;
+    }
+
+    final expenseBreakdown = categoryExpenseMap.entries
+        .map((e) => {'category': e.key, 'total': e.value})
+        .toList()
+      ..sort((a, b) => (b['total'] as double).compareTo(a['total'] as double));
+
+    final grossProfit = revenue - cogs;
+    final netProfit = grossProfit - totalExpenses;
+
+    final pl = ProfitLossData(
+      period: period,
+      currency: business?.currency ?? 'NGN',
+      revenue: revenue,
+      cogs: cogs,
+      grossProfit: grossProfit,
+      operatingExpenses: totalExpenses,
+      netProfit: netProfit,
+      expenseBreakdown: expenseBreakdown,
+    );
+
+    _profitLoss = pl;
+    return pl;
+  }
+
+  List<Map<String, dynamic>> getSalesReportItems({
+    String period = 'this_month',
+    DateTime? startDate,
+    DateTime? endDate,
+    String? searchQuery,
+  }) {
+    final filteredSales = filterSales(
+      period: period,
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    final Map<String, Map<String, dynamic>> itemMap = {};
+
+    for (final sale in filteredSales) {
+      final items = sale['items'] as List<dynamic>? ?? [];
+      for (final raw in items) {
+        if (raw is Map<String, dynamic>) {
+          final pId = raw['product_id'] as int? ?? 0;
+          final pName = raw['product_name'] as String? ?? raw['product'] as String? ?? 'Item';
+          final uName = raw['unit_name'] as String? ?? raw['unit'] as String? ?? '';
+          final qty = (raw['quantity'] as num?)?.toDouble() ?? 0.0;
+          final uPrice = (raw['unit_price'] as num?)?.toDouble() ?? 0.0;
+          final lineTotal = (raw['total'] as num?)?.toDouble() ?? (qty * uPrice);
+
+          double lineCogs = (raw['cogs'] as num?)?.toDouble() ?? 0.0;
+          if (lineCogs == 0.0 && qty > 0) {
+            final prod = products.firstWhere(
+              (p) => p.id == pId || p.name.toLowerCase() == pName.toLowerCase(),
+              orElse: () => Product(id: 0, name: pName, baseUnitName: uName),
+            );
+            final unitCost = prod.averageCost > 0 ? prod.averageCost : (prod.basePrice * 0.75);
+            lineCogs = qty * unitCost;
+          }
+
+          final key = '$pId-$pName-$uName';
+          if (!itemMap.containsKey(key)) {
+            itemMap[key] = {
+              'product_id': pId,
+              'product': pName,
+              'unit': uName,
+              'quantity': 0.0,
+              'unit_price': uPrice,
+              'revenue': 0.0,
+              'cogs': 0.0,
+              'gross_profit': 0.0,
+              'margin': 0.0,
+              'transactions': 0,
+            };
+          }
+
+          final entry = itemMap[key]!;
+          entry['quantity'] = (entry['quantity'] as double) + qty;
+          entry['revenue'] = (entry['revenue'] as double) + lineTotal;
+          entry['cogs'] = (entry['cogs'] as double) + lineCogs;
+          entry['gross_profit'] = (entry['revenue'] as double) - (entry['cogs'] as double);
+          final rev = entry['revenue'] as double;
+          entry['margin'] = rev > 0 ? ((entry['gross_profit'] as double) / rev) * 100 : 0.0;
+          entry['transactions'] = (entry['transactions'] as int) + 1;
+        }
+      }
+    }
+
+    var list = itemMap.values.toList();
+    if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+      final q = searchQuery.toLowerCase().trim();
+      list = list.where((item) => (item['product'] as String).toLowerCase().contains(q)).toList();
+    }
+
+    list.sort((a, b) => (b['revenue'] as double).compareTo(a['revenue'] as double));
+    return list;
+  }
+
+  List<Map<String, dynamic>> getCategorySalesSummary({
+    String period = 'this_month',
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    final filteredSales = filterSales(
+      period: period,
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    final Map<String, Map<String, dynamic>> catMap = {};
+    double totalRevenueAll = 0.0;
+
+    for (final sale in filteredSales) {
+      final items = sale['items'] as List<dynamic>? ?? [];
+      for (final raw in items) {
+        if (raw is Map<String, dynamic>) {
+          final pId = raw['product_id'] as int? ?? 0;
+          final pName = raw['product_name'] as String? ?? raw['product'] as String? ?? 'Item';
+          final qty = (raw['quantity'] as num?)?.toDouble() ?? 0.0;
+          final uPrice = (raw['unit_price'] as num?)?.toDouble() ?? 0.0;
+          final lineTotal = (raw['total'] as num?)?.toDouble() ?? (qty * uPrice);
+
+          final prod = products.firstWhere(
+            (p) => p.id == pId || p.name.toLowerCase() == pName.toLowerCase(),
+            orElse: () => Product(id: 0, name: pName, categoryName: 'General'),
+          );
+          final catName = (prod.categoryName != null && prod.categoryName!.isNotEmpty) ? prod.categoryName! : 'General';
+
+          if (!catMap.containsKey(catName)) {
+            catMap[catName] = {
+              'category': catName,
+              'revenue': 0.0,
+              'units_sold': 0.0,
+              'item_count': 0,
+            };
+          }
+
+          final entry = catMap[catName]!;
+          entry['revenue'] = (entry['revenue'] as double) + lineTotal;
+          entry['units_sold'] = (entry['units_sold'] as double) + qty;
+          entry['item_count'] = (entry['item_count'] as int) + 1;
+          totalRevenueAll += lineTotal;
+        }
+      }
+    }
+
+    final list = catMap.values.toList();
+    for (final entry in list) {
+      final rev = entry['revenue'] as double;
+      entry['percentage'] = totalRevenueAll > 0 ? (rev / totalRevenueAll) * 100 : 0.0;
+    }
+
+    list.sort((a, b) => (b['revenue'] as double).compareTo(a['revenue'] as double));
+    return list;
+  }
+
+  Map<String, dynamic> getInventoryValuationSummary({String? searchQuery}) {
+    double totalCost = 0.0;
+    double totalRetail = 0.0;
+    int lowCount = 0;
+    int outCount = 0;
+
+    final List<Map<String, dynamic>> items = [];
+
+    for (final p in products) {
+      if (p.isOutOfStock) outCount++;
+      if (p.isLowStock) lowCount++;
+
+      final cost = p.averageCost > 0 ? p.averageCost : (p.basePrice * 0.75);
+      final price = p.basePrice;
+      final stock = p.stockBase;
+
+      final costVal = stock > 0 ? (stock * cost) : 0.0;
+      final retailVal = stock > 0 ? (stock * price) : 0.0;
+      final profitVal = retailVal - costVal;
+      final margin = retailVal > 0 ? (profitVal / retailVal) * 100 : 0.0;
+
+      totalCost += costVal;
+      totalRetail += retailVal;
+
+      items.add({
+        'id': p.id,
+        'name': p.name,
+        'category': (p.categoryName != null && p.categoryName!.isNotEmpty) ? p.categoryName! : 'General',
+        'unit': p.baseUnitName,
+        'stock': stock,
+        'cost_price': cost,
+        'selling_price': price,
+        'stock_cost_value': costVal,
+        'stock_retail_value': retailVal,
+        'potential_profit': profitVal,
+        'margin': margin,
+        'is_low_stock': p.isLowStock,
+        'is_out_of_stock': p.isOutOfStock,
+      });
+    }
+
+    var filteredItems = items;
+    if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+      final q = searchQuery.toLowerCase().trim();
+      filteredItems = items.where((it) => (it['name'] as String).toLowerCase().contains(q)).toList();
+    }
+
+    filteredItems.sort((a, b) => (b['stock_cost_value'] as double).compareTo(a['stock_cost_value'] as double));
+
+    final potentialProfit = totalRetail - totalCost;
+    final overallMargin = totalRetail > 0 ? (potentialProfit / totalRetail) * 100 : 0.0;
+
+    return {
+      'total_cost_value': totalCost,
+      'total_retail_value': totalRetail,
+      'potential_profit': potentialProfit,
+      'potential_margin': overallMargin,
+      'total_products': products.length,
+      'low_stock_count': lowCount,
+      'out_of_stock_count': outCount,
+      'items': filteredItems,
+    };
+  }
+
+  Map<String, dynamic> getDebtorsSummary({String? searchQuery}) {
+    var debtors = customers.where((c) => c.outstanding > 0).toList();
+    if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+      final q = searchQuery.toLowerCase().trim();
+      debtors = debtors.where((c) => c.name.toLowerCase().contains(q) || c.phone.contains(q)).toList();
+    }
+    debtors.sort((a, b) => b.outstanding.compareTo(a.outstanding));
+
+    final totalDebt = debtors.fold<double>(0.0, (acc, c) => acc + c.outstanding);
+
+    return {
+      'total_debt': totalDebt,
+      'count': debtors.length,
+      'debtors': debtors,
+    };
+  }
+
+  String exportReportCsvData(
+    String type, {
+    String period = 'this_month',
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    final curr = business?.currency ?? 'NGN';
+    final buffer = StringBuffer();
+
+    switch (type.toLowerCase()) {
+      case 'profit_loss':
+        final pl = getProfitLossReport(period: period, startDate: startDate, endDate: endDate);
+        buffer.writeln('PROFIT & LOSS STATEMENT');
+        buffer.writeln('Store,${business?.name ?? "Krum Store"}');
+        buffer.writeln('Period,$period');
+        buffer.writeln('Currency,$curr');
+        buffer.writeln('Sales Revenue,${pl.revenue.toStringAsFixed(2)}');
+        buffer.writeln('Cost of Goods Sold (COGS),${pl.cogs.toStringAsFixed(2)}');
+        buffer.writeln('Gross Profit,${pl.grossProfit.toStringAsFixed(2)}');
+        final grossMargin = pl.revenue > 0 ? (pl.grossProfit / pl.revenue * 100).toStringAsFixed(1) : '0.0';
+        buffer.writeln('Gross Margin %,$grossMargin%');
+        buffer.writeln('Operating Expenses,${pl.operatingExpenses.toStringAsFixed(2)}');
+        buffer.writeln('Net Profit,${pl.netProfit.toStringAsFixed(2)}');
+        final netMargin = pl.revenue > 0 ? (pl.netProfit / pl.revenue * 100).toStringAsFixed(1) : '0.0';
+        buffer.writeln('Net Margin %,$netMargin%');
+        buffer.writeln('');
+        buffer.writeln('OPERATING EXPENSES BREAKDOWN');
+        buffer.writeln('Category,Amount ($curr)');
+        for (final exp in pl.expenseBreakdown) {
+          buffer.writeln('"${exp['category']}",${(exp['total'] as double).toStringAsFixed(2)}');
+        }
+        break;
+
+      case 'sales':
+        final items = getSalesReportItems(period: period, startDate: startDate, endDate: endDate);
+        buffer.writeln('Product,Unit,Quantity Sold,Unit Price,Total Revenue,COGS,Gross Profit,Margin %');
+        for (final it in items) {
+          buffer.writeln(
+            '"${it['product']}","${it['unit']}",${it['quantity']},${(it['unit_price'] as double).toStringAsFixed(2)},${(it['revenue'] as double).toStringAsFixed(2)},${(it['cogs'] as double).toStringAsFixed(2)},${(it['gross_profit'] as double).toStringAsFixed(2)},${(it['margin'] as double).toStringAsFixed(1)}%',
+          );
+        }
+        break;
+
+      case 'inventory':
+        final inv = getInventoryValuationSummary();
+        final items = inv['items'] as List<Map<String, dynamic>>;
+        buffer.writeln('Product,Category,Current Stock,Unit,Unit Cost,Selling Price,Stock Cost Value,Stock Retail Value,Potential Profit');
+        for (final it in items) {
+          buffer.writeln(
+            '"${it['name']}","${it['category']}",${it['stock']},"${it['unit']}",${(it['cost_price'] as double).toStringAsFixed(2)},${(it['selling_price'] as double).toStringAsFixed(2)},${(it['stock_cost_value'] as double).toStringAsFixed(2)},${(it['stock_retail_value'] as double).toStringAsFixed(2)},${(it['potential_profit'] as double).toStringAsFixed(2)}',
+          );
+        }
+        break;
+
+      case 'debtors':
+        final debt = getDebtorsSummary();
+        final list = debt['debtors'] as List<Customer>;
+        buffer.writeln('Customer Name,Phone Number,Outstanding Debt ($curr)');
+        for (final c in list) {
+          buffer.writeln('"${c.name}","${c.phone}",${c.outstanding.toStringAsFixed(2)}');
+        }
+        break;
+    }
+
+    return buffer.toString();
+  }
+
+  String generateShareableSummaryText({
+    String period = 'this_month',
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    final curr = business?.currency ?? 'NGN';
+    final pl = getProfitLossReport(period: period, startDate: startDate, endDate: endDate);
+    final inv = getInventoryValuationSummary();
+    final debt = getDebtorsSummary();
+
+    String periodLabel = period.replaceAll('_', ' ').toUpperCase();
+    if (period == 'custom' && startDate != null && endDate != null) {
+      periodLabel = '${startDate.day}/${startDate.month}/${startDate.year} - ${endDate.day}/${endDate.month}/${endDate.year}';
+    }
+
+    final grossMargin = pl.revenue > 0 ? ((pl.grossProfit / pl.revenue) * 100).toStringAsFixed(1) : '0.0';
+    final netMargin = pl.revenue > 0 ? ((pl.netProfit / pl.revenue) * 100).toStringAsFixed(1) : '0.0';
+
+    final buffer = StringBuffer();
+    buffer.writeln('📊 *KRUM STORE BUSINESS REPORT*');
+    buffer.writeln('🏪 Store: ${business?.name ?? "Krum Store"}');
+    buffer.writeln('📅 Period: $periodLabel');
+    buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
+    buffer.writeln('💰 *FINANCIAL STATEMENT*');
+    buffer.writeln('• Sales Revenue: $curr ${CurrencyFormatter.format(pl.revenue, currency: "")}');
+    buffer.writeln('• Cost of Goods (COGS): -$curr ${CurrencyFormatter.format(pl.cogs, currency: "")}');
+    buffer.writeln('• Gross Profit: $curr ${CurrencyFormatter.format(pl.grossProfit, currency: "")} ($grossMargin%)');
+    buffer.writeln('• Operating Expenses: -$curr ${CurrencyFormatter.format(pl.operatingExpenses, currency: "")}');
+    buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
+    buffer.writeln('✨ *NET PROFIT: $curr ${CurrencyFormatter.format(pl.netProfit, currency: "")} ($netMargin%)*');
+    buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
+    buffer.writeln('📦 *INVENTORY VALUATION*');
+    buffer.writeln('• Stock at Cost: $curr ${CurrencyFormatter.format(inv['total_cost_value'] as double, currency: "")}');
+    buffer.writeln('• Retail Value: $curr ${CurrencyFormatter.format(inv['total_retail_value'] as double, currency: "")}');
+    buffer.writeln('• Potential Profit: $curr ${CurrencyFormatter.format(inv['potential_profit'] as double, currency: "")}');
+    buffer.writeln('• Low Stock Items: ${inv['low_stock_count']} | Out of Stock: ${inv['out_of_stock_count']}');
+    buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
+    buffer.writeln('👥 *RECEIVABLES (DEBTORS)*');
+    buffer.writeln('• Total Debt Owed: $curr ${CurrencyFormatter.format(debt['total_debt'] as double, currency: "")} (${debt['count']} debtors)');
+    buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
+    buffer.writeln('Generated by Krum Store Manager');
+
+    return buffer.toString();
+  }
+
+  Future<void> loadProfitLoss({
+    String period = 'this_month',
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    // 1. Immediately calculate offline so reports work with zero latency
+    getProfitLossReport(
+      period: period,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    notifyListeners();
+
+    // 2. If authenticated, attempt to fetch remote and merge if remote has newer data
+    if (api.isAuthenticated) {
+      try {
+        final json = await api.getProfitLoss(period: period);
+        final remote = ProfitLossData.fromJson(json);
+        if (remote.revenue > 0 || _profitLoss?.revenue == 0.0) {
+          _profitLoss = remote;
+          notifyListeners();
+        }
+      } catch (_) {}
+    }
   }
 
   Future<void> syncNow() async {

@@ -140,14 +140,14 @@ class Product {
     this.barcode = '',
     this.categoryId,
     this.categoryName,
-    required this.baseUnitId,
-    required this.baseUnitName,
+    this.baseUnitId = 0,
+    this.baseUnitName = 'Piece',
     this.brand = '',
     this.reorderLevel = 0.0,
     this.active = true,
     this.stockBase = 0.0,
     this.averageCost = 0.0,
-    required this.units,
+    this.units = const [],
   });
 
   Product copyWith({
@@ -186,6 +186,7 @@ class Product {
 
   bool get isOutOfStock => stockBase <= 0;
   bool get isLowStock => stockBase > 0 && stockBase <= reorderLevel;
+  double get basePrice => baseUnit.sellingPrice;
 
   ProductUnit get baseUnit {
     return units.firstWhere(

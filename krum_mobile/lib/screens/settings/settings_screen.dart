@@ -154,7 +154,7 @@ class SettingsScreen extends StatelessWidget {
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: provider.categories.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    separatorBuilder: (context, index) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final cat = provider.categories[index];
                       final productCount = provider.products.where((p) => p.categoryId == cat.id).length;
@@ -206,7 +206,7 @@ class SettingsScreen extends StatelessWidget {
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: provider.units.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (context, index) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final unit = provider.units[index];
                     final inUse = provider.products.any((p) => p.baseUnitId == unit.id || p.units.any((u) => u.unitId == unit.id));
@@ -252,9 +252,9 @@ class SettingsScreen extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
+              color: AppColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [

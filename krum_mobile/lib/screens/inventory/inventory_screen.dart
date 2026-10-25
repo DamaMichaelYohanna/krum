@@ -211,7 +211,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: product.units.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (context, index) => const Divider(height: 1),
                 itemBuilder: (context, i) {
                   final u = product.units[i];
                   return ListTile(
@@ -302,7 +302,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: fg.withOpacity(0.3)),
+        border: Border.all(color: fg.withValues(alpha: 0.3)),
       ),
       child: Text(
         text,

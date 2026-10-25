@@ -97,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
-                    value: _currency,
+                    initialValue: _currency,
                     decoration: const InputDecoration(
                       labelText: 'Currency',
                       prefixIcon: Icon(Icons.monetization_on_outlined),
