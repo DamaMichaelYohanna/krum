@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/store_provider.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/app_search_bar.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -357,10 +358,9 @@ class _CustomersScreenState extends State<CustomersScreen> with SingleTickerProv
 
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: SearchBar(
+            child: AppSearchBar(
               controller: _searchController,
-              hintText: 'Search customer by name or phone',
-              leading: const Icon(Icons.search),
+              hintText: 'Search customer by name or phone...',
               onChanged: (val) => setState(() => _searchQuery = val.trim()),
             ),
           ),

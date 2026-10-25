@@ -275,7 +275,9 @@ class SyncService extends ChangeNotifier {
     String description = '',
     String? occurredAt,
   }) async {
+    final clientTransactionId = _uuid.v4();
     final expensePayload = {
+      'client_transaction_id': clientTransactionId,
       'category': category,
       'amount': amount,
       'description': description,

@@ -12,6 +12,7 @@ import '../scanner/barcode_scanner_screen.dart';
 import '../inventory/product_form_screen.dart';
 import '../sales/sales_history_screen.dart';
 import '../../utils/pdf_receipt_helper.dart';
+import '../../widgets/app_search_bar.dart';
 
 class PosScreen extends StatefulWidget {
   final VoidCallback onOpenProductCreate;
@@ -1071,71 +1072,99 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
       bottom: false,
       child: Column(
         children: [
-          // Top Search & Barcode Scan Bar (Section 30)
+          // Top Search & Barcode Scan Bar
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: SearchBar(
-                  controller: _searchController,
-                  hintText: 'Search product or barcode',
-                  leading: const Icon(Icons.search),
-                  trailing: [
-                    if (_searchQuery.isNotEmpty)
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
+            child: Row(
+              children: [
+                Expanded(
+                  child: AppSearchBar(
+                    controller: _searchController,
+                    hintText: 'Search product, SKU, or barcode...',
+                    onChanged: (val) => setState(() => _searchQuery = val.trim()),
+                    onSubmitted: (val) {
+                      if (val.trim().isNotEmpty) {
+                        _processScannedBarcode(val.trim());
+                        _searchController.clear();
+                        setState(() => _searchQuery = '');
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Live Scanner Button
+                Tooltip(
+                  message: 'Open Split-Screen Live Scanner',
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.primary, AppColors.primaryDark],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                  ],
-                  onChanged: (val) => setState(() => _searchQuery = val.trim()),
-                  onSubmitted: (val) {
-                    if (val.trim().isNotEmpty) {
-                      _processScannedBarcode(val.trim());
-                      _searchController.clear();
-                      setState(() => _searchQuery = '');
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Tooltip(
-                message: 'Open Split-Screen Live Scanner',
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.qr_code_scanner, size: 20),
-                  label: const Text('Live Scan', style: TextStyle(fontWeight: FontWeight.bold)),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: _toggleLiveScanner,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 14),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 20),
+                              SizedBox(width: 6),
+                              Text(
+                                'Scan',
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  onPressed: _toggleLiveScanner,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Tooltip(
-                message: 'View Past Sales & Receipts',
-                child: IconButton(
-                  icon: const Icon(Icons.receipt_long_outlined, color: AppColors.primary),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.primaryLight,
-                    padding: const EdgeInsets.all(12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                const SizedBox(width: 8),
+                // Past Sales & Receipts Button
+                Tooltip(
+                  message: 'View Past Sales & Receipts',
+                  child: Container(
+                    height: 48,
+                    width: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.primaryBorder),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
+                          );
+                        },
+                        child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 22),
+                      ),
+                    ),
                   ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
-                    );
-                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
 
         // Middle Section: Product Selector List & Active Cart
         Expanded(

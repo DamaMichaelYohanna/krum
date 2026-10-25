@@ -605,12 +605,12 @@ class StoreProvider extends ChangeNotifier {
     final Map<String, Expense> map = {};
 
     for (final e in syncService.localExpenses) {
-      final key = e['id'] != null ? 'id_${e['id']}' : (e['created_at']?.toString() ?? '${e['category']}_${e['amount']}_${e['occurred_at']}');
+      final key = e['client_transaction_id'] ?? (e['id'] != null ? 'id_${e['id']}' : (e['created_at']?.toString() ?? '${e['category']}_${e['amount']}_${e['occurred_at']}'));
       map[key] = Expense.fromJson(e);
     }
 
     for (final e in syncService.pendingExpenses) {
-      final key = e['id'] != null ? 'id_${e['id']}' : (e['created_at']?.toString() ?? '${e['category']}_${e['amount']}_${e['occurred_at']}');
+      final key = e['client_transaction_id'] ?? (e['id'] != null ? 'id_${e['id']}' : (e['created_at']?.toString() ?? '${e['category']}_${e['amount']}_${e['occurred_at']}'));
       map[key] = Expense.fromJson(e);
     }
 

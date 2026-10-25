@@ -7,6 +7,7 @@ import '../../utils/formatters.dart';
 import 'product_form_screen.dart';
 import 'stock_adjustment_dialog.dart';
 import '../scanner/barcode_scanner_screen.dart';
+import '../../widgets/app_search_bar.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -369,64 +370,98 @@ class _InventoryScreenState extends State<InventoryScreen> {
             // Search & Filter Header
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SearchBar(
-                    controller: _searchController,
-                    hintText: 'Search inventory or barcode',
-                    leading: const Icon(Icons.search),
-                    trailing: [
-                      if (_searchQuery.isNotEmpty)
-                        IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() => _searchQuery = '');
-                          },
-                        ),
-                    ],
-                    onChanged: (val) => setState(() => _searchQuery = val.trim()),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: AppSearchBar(
+                      controller: _searchController,
+                      hintText: 'Search inventory by name, SKU, or barcode...',
+                      onChanged: (val) => setState(() => _searchQuery = val.trim()),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filledTonal(
-                  icon: const Icon(Icons.qr_code_scanner),
-                  tooltip: 'Scan barcode',
-                  onPressed: _scanBarcode,
-                ),
-              ],
-            ),
-          ),
-
-          // Category Pills
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              children: [
-                ChoiceChip(
-                  label: const Text('All'),
-                  selected: _selectedCategoryFilter == null,
-                  onSelected: (_) => setState(() => _selectedCategoryFilter = null),
-                ),
-                const SizedBox(width: 6),
-                ...categories.map((c) => Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: ChoiceChip(
-                        label: Text(c.name),
-                        selected: _selectedCategoryFilter == c.id,
-                        onSelected: (_) => setState(() => _selectedCategoryFilter = c.id),
+                  const SizedBox(width: 10),
+                  // Barcode Scanner Action Button
+                  Tooltip(
+                    message: 'Scan barcode',
+                    child: Container(
+                      height: 48,
+                      width: 48,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.primary, AppColors.primaryDark],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                    )),
-                ActionChip(
-                  avatar: const Icon(Icons.add, size: 16),
-                  label: const Text('New Category'),
-                  onPressed: () => _showAddCategoryDialog(context),
-                ),
-              ],
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: _scanBarcode,
+                          child: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 22),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+
+            // Category Pills
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              child: Row(
+                children: [
+                  _buildCategoryPill(
+                    label: 'All Products',
+                    isSelected: _selectedCategoryFilter == null,
+                    onTap: () => setState(() => _selectedCategoryFilter = null),
+                  ),
+                  const SizedBox(width: 8),
+                  ...categories.map((c) => Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: _buildCategoryPill(
+                          label: c.name,
+                          isSelected: _selectedCategoryFilter == c.id,
+                          onTap: () => setState(() => _selectedCategoryFilter = c.id),
+                        ),
+                      )),
+                  InkWell(
+                    onTap: () => _showAddCategoryDialog(context),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.primaryBorder),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add, size: 16, color: AppColors.primary),
+                          SizedBox(width: 4),
+                          Text(
+                            'New Category',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // Product List
           Expanded(
@@ -499,6 +534,46 @@ class _InventoryScreenState extends State<InventoryScreen> {
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Add Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+
+  Widget _buildCategoryPill({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: 1.2,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
+          ),
+        ),
       ),
     );
   }
