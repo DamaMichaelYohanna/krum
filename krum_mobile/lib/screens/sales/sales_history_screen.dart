@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 import '../../models/models.dart';
 import '../../providers/store_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/formatters.dart';
+import '../../utils/pdf_receipt_helper.dart';
 
 class SalesHistoryScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -374,21 +376,85 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
               ),
             ),
 
-            // Bottom Close Button
+            // Bottom Action Buttons
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              side: const BorderSide(color: AppColors.primary),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            icon: const Icon(Icons.print_outlined, size: 18),
+                            label: const Text('Print / PDF'),
+                            onPressed: () async {
+                              final provider = context.read<StoreProvider>();
+                              await PdfReceiptHelper.printOrSavePdf(
+                                sale: sale,
+                                business: provider.business,
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            icon: const Icon(Icons.share_outlined, size: 18),
+                            label: const Text('Share PDF'),
+                            onPressed: () async {
+                              final provider = context.read<StoreProvider>();
+                              await PdfReceiptHelper.shareReceiptPdf(
+                                sale: sale,
+                                business: provider.business,
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                    onPressed: () => Navigator.pop(ctx),
-                    child: const Text('Close Receipt', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton.icon(
+                            icon: const Icon(Icons.copy_outlined, size: 16),
+                            label: const Text('Copy WhatsApp / SMS Text'),
+                            onPressed: () {
+                              final provider = context.read<StoreProvider>();
+                              final text = PdfReceiptHelper.generateReceiptText(
+                                sale: sale,
+                                business: provider.business,
+                              );
+                              Clipboard.setData(ClipboardData(text: text));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Receipt text copied! Ready to paste into WhatsApp.'),
+                                  backgroundColor: AppColors.primary,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('Close', style: TextStyle(color: Colors.grey)),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),

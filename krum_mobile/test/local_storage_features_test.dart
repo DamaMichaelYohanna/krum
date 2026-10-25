@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:krum/services/api_service.dart';
 import 'package:krum/services/sync_service.dart';
 import 'package:krum/providers/store_provider.dart';
+import 'package:krum/utils/pdf_receipt_helper.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -676,6 +677,51 @@ void main() {
     // 5. Verify stock deduction: 120 opening - 24 base pieces sold = 96 pieces remaining
     final updatedCoke = provider.products.firstWhere((p) => p.name == 'Coca Cola 50cl');
     expect(updatedCoke.stockBase, 96.0);
+  });
+
+  test('Receipt PDF generation and formatted text sharing for completed sales', () async {
+    SharedPreferences.setMockInitialValues({});
+    final api = ApiService();
+    final sync = SyncService(api: api);
+    final provider = StoreProvider(api: api, syncService: sync);
+    await provider.init();
+
+    final pieceUnit = provider.units.firstWhere((u) => u.name == 'Piece');
+
+    await provider.createProduct(
+      name: 'Peak Milk 400g',
+      baseUnitId: pieceUnit.id,
+      sellingPrice: 2500.0,
+      costPrice: 1900.0,
+      openingStock: 50.0,
+    );
+
+    final milk = provider.products.firstWhere((p) => p.name == 'Peak Milk 400g');
+    provider.addToCart(milk, quantity: 2.0); // 5000.0
+    await provider.checkoutSale(amountPaid: 5000.0);
+
+    expect(provider.sales.isNotEmpty, true);
+    final completedSale = provider.sales.first;
+
+    // 1. Generate formatted WhatsApp/SMS text receipt
+    final receiptText = PdfReceiptHelper.generateReceiptText(
+      sale: completedSale,
+      business: provider.business,
+    );
+    expect(receiptText.contains('SALES RECEIPT'), true);
+    expect(receiptText.contains('Peak Milk 400g'), true);
+    expect(receiptText.contains('TOTAL PAYABLE'), true);
+    expect(receiptText.contains('Thank you for your patronage!'), true);
+
+    // 2. Generate PDF byte array (Thermal Roll 80mm standard format)
+    final pdfBytes = await PdfReceiptHelper.generateReceiptPdf(
+      sale: completedSale,
+      business: provider.business,
+    );
+    expect(pdfBytes.isNotEmpty, true);
+    // PDF files always begin with the magic header bytes %PDF-
+    final header = String.fromCharCodes(pdfBytes.take(5));
+    expect(header, '%PDF-');
   });
 }
 

@@ -11,6 +11,7 @@ import '../../utils/formatters.dart';
 import '../scanner/barcode_scanner_screen.dart';
 import '../inventory/product_form_screen.dart';
 import '../sales/sales_history_screen.dart';
+import '../../utils/pdf_receipt_helper.dart';
 
 class PosScreen extends StatefulWidget {
   final VoidCallback onOpenProductCreate;
@@ -828,27 +829,8 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                             try {
                               await provider.checkoutSale(amountPaid: paidAmount);
                               if (ctx.mounted) Navigator.pop(ctx);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      isCredit
-                                          ? 'Sale completed on credit. Debt recorded for ${customer!.name}!'
-                                          : 'Sale completed safely and saved offline!',
-                                    ),
-                                    backgroundColor: AppColors.primary,
-                                    action: SnackBarAction(
-                                      label: 'View Receipt',
-                                      textColor: Colors.white,
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (_) => const SalesHistoryScreen(initialTabIndex: 1)),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                );
+                              if (context.mounted && provider.sales.isNotEmpty) {
+                                _showSaleSuccessReceiptModal(context, provider, provider.sales.first);
                               }
                             } catch (e) {
                               if (context.mounted) {
@@ -875,6 +857,120 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showSaleSuccessReceiptModal(BuildContext context, StoreProvider provider, Map<String, dynamic> sale) {
+    final currency = provider.business?.currency ?? 'NGN';
+    final total = (sale['total_amount'] as num?)?.toDouble() ?? (sale['total'] as num?)?.toDouble() ?? 0.0;
+    final amountPaid = (sale['amount_paid'] as num?)?.toDouble() ?? total;
+    final balance = (total - amountPaid) > 0 ? (total - amountPaid) : 0.0;
+    final isCredit = balance > 0;
+    final customerName = (sale['customer_name'] ?? 'Walk-in Customer').toString();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 36),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isCredit ? 'Credit Sale Recorded!' : 'Sale Completed Successfully!',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${CurrencyFormatter.format(total, currency: currency)} · $customerName',
+                style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              ),
+              if (isCredit) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'Amount Paid: ${CurrencyFormatter.format(amountPaid, currency: currency)} · Owed: ${CurrencyFormatter.format(balance, currency: currency)}',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.orange.shade800),
+                ),
+              ],
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.primary),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      icon: const Icon(Icons.print_outlined, size: 20),
+                      label: const Text('Print / PDF'),
+                      onPressed: () async {
+                        await PdfReceiptHelper.printOrSavePdf(sale: sale, business: provider.business);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      icon: const Icon(Icons.share_outlined, size: 20),
+                      label: const Text('Share PDF'),
+                      onPressed: () async {
+                        await PdfReceiptHelper.shareReceiptPdf(sale: sale, business: provider.business);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.copy_outlined, size: 16),
+                      label: const Text('Copy WhatsApp / SMS Text'),
+                      onPressed: () {
+                        final text = PdfReceiptHelper.generateReceiptText(sale: sale, business: provider.business);
+                        Clipboard.setData(ClipboardData(text: text));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Receipt text copied! Ready to paste into WhatsApp.'),
+                            backgroundColor: AppColors.primary,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  FilledButton.tonal(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('New Sale'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
