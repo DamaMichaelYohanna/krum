@@ -723,6 +723,112 @@ void main() {
     final header = String.fromCharCodes(pdfBytes.take(5));
     expect(header, '%PDF-');
   });
+
+  test('Supplier restocking updates moving weighted average cost, unit cost prices, selling price, and stock valuation offline', () async {
+    SharedPreferences.setMockInitialValues({});
+    final api = ApiService();
+    final sync = SyncService(api: api);
+    final provider = StoreProvider(api: api, syncService: sync);
+    await provider.init();
+
+    final pieceUnit = provider.units.firstWhere((u) => u.name == 'Piece');
+    final cartonUnit = provider.units.firstWhere((u) => u.name == 'Carton');
+
+    // 1. Create a product with 10 Pieces opening stock @ cost of ₦1,000 each (selling price ₦1,500)
+    // Plus a carton unit (1 carton = 10 pieces)
+    await provider.createProduct(
+      name: 'Golden Penny Spaghetti 500g',
+      baseUnitId: pieceUnit.id,
+      sellingPrice: 1500.0,
+      costPrice: 1000.0,
+      openingStock: 10.0,
+      alternativeUnits: [
+        {
+          'unit_id': cartonUnit.id,
+          'unit_name': 'Carton',
+          'conversion_to_base': 10.0,
+          'selling_price': 14000.0,
+          'cost_price': 10000.0,
+        }
+      ],
+    );
+
+    var prod = provider.products.firstWhere((p) => p.name == 'Golden Penny Spaghetti 500g');
+    expect(prod.stockBase, 10.0);
+    expect(prod.averageCost, 1000.0);
+    expect(prod.baseUnit.costPrice, 1000.0);
+    expect(prod.baseUnit.sellingPrice, 1500.0);
+
+    // Initial stock valuation: 10 * 1000 = 10,000
+    expect(provider.products.fold<double>(0.0, (acc, p) => acc + (p.stockBase * p.averageCost)), 10000.0);
+
+    // 2. Restock 10 Pieces from supplier at a new higher unit cost of ₦1,500 each, and update selling price to ₦2,000
+    // Weighted Average Cost calculation:
+    // (10 old * 1,000 + 10 new * 1,500) / 20 = 25,000 / 20 = ₦1,250
+    await provider.receivePurchase(
+      productId: prod.id,
+      productUnitId: prod.baseUnit.id,
+      quantity: 10.0,
+      unitCost: 1500.0,
+      amountPaid: 15000.0,
+      newSellingPrice: 2000.0,
+      reference: 'RESTOCK-001',
+    );
+
+    prod = provider.products.firstWhere((p) => p.name == 'Golden Penny Spaghetti 500g');
+    expect(prod.stockBase, 20.0);
+    expect(prod.averageCost, 1250.0);
+    expect(prod.baseUnit.costPrice, 1500.0);
+    expect(prod.baseUnit.sellingPrice, 2000.0);
+
+    // New stock valuation: 20 * 1250 = 25,000
+    expect(provider.products.fold<double>(0.0, (acc, p) => acc + (p.stockBase * p.averageCost)), 25000.0);
+
+    // 3. Restock 1 Carton (10 pieces) at ₦16,000 per carton (i.e. ₦1,600 per base piece)
+    // Weighted Average Cost calculation:
+    // (20 old * 1,250 + 10 new * 1,600) / 30 = (25,000 + 16,000) / 30 = 41,000 / 30 = ₦1,366.67
+    final cartonObj = prod.units.firstWhere((u) => u.unitName == 'Carton');
+    await provider.receivePurchase(
+      productId: prod.id,
+      productUnitId: cartonObj.id,
+      quantity: 1.0,
+      unitCost: 16000.0,
+      amountPaid: 16000.0,
+      newSellingPrice: 19000.0,
+      reference: 'RESTOCK-002',
+    );
+
+    prod = provider.products.firstWhere((p) => p.name == 'Golden Penny Spaghetti 500g');
+    expect(prod.stockBase, 30.0);
+    expect(prod.averageCost, closeTo(1366.67, 0.01));
+    final updatedCarton = prod.units.firstWhere((u) => u.unitName == 'Carton');
+    expect(updatedCarton.costPrice, 16000.0);
+    expect(updatedCarton.sellingPrice, 19000.0);
+
+    // 4. Sell 2 pieces and verify COGS uses the updated moving average cost
+    provider.addToCart(prod, quantity: 2.0);
+    await provider.checkoutSale(amountPaid: 4000.0); // 2 * 2000 = 4000
+
+    expect(provider.sales.isNotEmpty, true);
+    final lastSale = provider.sales.first;
+    final cogs = (lastSale['cogs'] as num).toDouble();
+    final total = (lastSale['total_amount'] as num).toDouble();
+    expect(cogs, closeTo(2 * 1366.67, 0.02));
+    expect(total - cogs, closeTo(4000 - (2 * 1366.67), 0.02));
+
+    // 5. Verify local storage persistence across a completely new provider instance
+    final sync2 = SyncService(api: api);
+    final provider2 = StoreProvider(api: api, syncService: sync2);
+    await provider2.init();
+
+    final persistedProd = provider2.products.firstWhere((p) => p.name == 'Golden Penny Spaghetti 500g');
+    expect(persistedProd.stockBase, 28.0); // 30 - 2 sold
+    expect(persistedProd.averageCost, closeTo(1366.67, 0.01));
+    expect(persistedProd.baseUnit.sellingPrice, 2000.0);
+    final persistedCarton = persistedProd.units.firstWhere((u) => u.unitName == 'Carton');
+    expect(persistedCarton.costPrice, 16000.0);
+    expect(persistedCarton.sellingPrice, 19000.0);
+  });
 }
 
 

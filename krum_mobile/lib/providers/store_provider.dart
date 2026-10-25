@@ -477,6 +477,7 @@ class StoreProvider extends ChangeNotifier {
     required double quantity,
     required double unitCost,
     required double amountPaid,
+    double? newSellingPrice,
     String reference = '',
   }) async {
     await syncService.enqueuePurchase(
@@ -486,8 +487,10 @@ class StoreProvider extends ChangeNotifier {
       quantity: quantity,
       unitCost: unitCost,
       amountPaid: amountPaid,
+      newSellingPrice: newSellingPrice,
       reference: reference,
     );
+    await refreshDashboard();
     notifyListeners();
   }
 

@@ -16,6 +16,7 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _qtyController = TextEditingController();
   final _unitCostController = TextEditingController();
+  final _sellingPriceController = TextEditingController();
   final _amountPaidController = TextEditingController();
   final _refController = TextEditingController();
 
@@ -27,6 +28,7 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
   void dispose() {
     _qtyController.dispose();
     _unitCostController.dispose();
+    _sellingPriceController.dispose();
     _amountPaidController.dispose();
     _refController.dispose();
     super.dispose();
@@ -141,8 +143,19 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
                     setState(() {
                       _selectedProduct = prod;
                       _selectedUnit = prod?.baseUnit;
-                      if (prod != null && prod.averageCost > 0) {
-                        _unitCostController.text = prod.averageCost.toStringAsFixed(0);
+                      if (prod != null) {
+                        final u = prod.baseUnit;
+                        final currentCost = u.costPrice > 0 ? u.costPrice : (prod.averageCost * u.conversionToBase);
+                        if (currentCost > 0) {
+                          _unitCostController.text = currentCost.toStringAsFixed(0);
+                        } else {
+                          _unitCostController.clear();
+                        }
+                        if (u.sellingPrice > 0) {
+                          _sellingPriceController.text = u.sellingPrice.toStringAsFixed(0);
+                        } else {
+                          _sellingPriceController.clear();
+                        }
                       }
                     });
                   },
@@ -165,7 +178,20 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
                         child: Text('${u.unitName} (Contains ${CurrencyFormatter.formatQty(u.conversionToBase)} ${_selectedProduct!.baseUnitName})'),
                       );
                     }).toList(),
-                    onChanged: (u) => setState(() => _selectedUnit = u),
+                    onChanged: (u) {
+                      setState(() {
+                        _selectedUnit = u;
+                        if (u != null) {
+                          final currentCost = u.costPrice > 0 ? u.costPrice : ((_selectedProduct?.averageCost ?? 0.0) * u.conversionToBase);
+                          if (currentCost > 0) {
+                            _unitCostController.text = currentCost.toStringAsFixed(0);
+                          }
+                          if (u.sellingPrice > 0) {
+                            _sellingPriceController.text = u.sellingPrice.toStringAsFixed(0);
+                          }
+                        }
+                      });
+                    },
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -197,10 +223,13 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
                       child: TextFormField(
                         controller: _unitCostController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Unit Cost (₦) *',
                           hintText: 'e.g. 8500',
-                          border: OutlineInputBorder(),
+                          helperText: _selectedProduct != null && _selectedProduct!.averageCost > 0
+                              ? 'Current Avg: ${CurrencyFormatter.format(_selectedProduct!.averageCost * (_selectedUnit?.conversionToBase ?? 1.0))}'
+                              : null,
+                          border: const OutlineInputBorder(),
                         ),
                         onChanged: (_) {
                           setState(() {
@@ -213,6 +242,22 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 14),
+
+                // Optional Update Selling Price
+                TextFormField(
+                  controller: _sellingPriceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Selling Price (₦) (Optional)',
+                    hintText: 'Adjust selling price if supplier price increased',
+                    helperText: _selectedUnit != null && _selectedUnit!.sellingPrice > 0
+                        ? 'Current retail price: ${CurrencyFormatter.format(_selectedUnit!.sellingPrice)}'
+                        : 'Updates retail price in inventory',
+                    prefixIcon: const Icon(Icons.sell_outlined),
+                    border: const OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -265,6 +310,7 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
                     final quantity = double.parse(_qtyController.text);
                     final unitCost = double.parse(_unitCostController.text);
                     final paid = double.tryParse(_amountPaidController.text) ?? totalCost;
+                    final newSelling = double.tryParse(_sellingPriceController.text);
 
                     await provider.receivePurchase(
                       supplierId: _selectedSupplierId,
@@ -273,13 +319,14 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
                       quantity: quantity,
                       unitCost: unitCost,
                       amountPaid: paid,
+                      newSellingPrice: (newSelling != null && newSelling > 0) ? newSelling : null,
                       reference: _refController.text.trim(),
                     );
 
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Stock received successfully and inventory increased!'),
+                          content: Text('Stock received successfully and inventory prices updated!'),
                           backgroundColor: AppColors.primary,
                         ),
                       );

@@ -17,6 +17,12 @@ class PurchaseService:
         for item in items:
             unit = ProductUnit.objects.get(id=item["product_unit"], product__business=business)
             quantity, cost = Decimal(str(item["quantity"])), Decimal(str(item["unit_cost"]))
+            unit.cost_price = cost
+            update_fields = ["cost_price"]
+            if "selling_price" in item and item["selling_price"]:
+                unit.selling_price = Decimal(str(item["selling_price"]))
+                update_fields.append("selling_price")
+            unit.save(update_fields=update_fields)
             PurchaseItem.objects.create(purchase=purchase, product_unit=unit, quantity=quantity, unit_cost=cost)
             total += quantity * cost
             InventoryService.receive(business=business, product_unit=unit, quantity=quantity, unit_cost=cost, reason=InventoryMovement.Reason.PURCHASE, actor=actor, reference=str(purchase.id))

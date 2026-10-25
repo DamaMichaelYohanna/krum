@@ -214,13 +214,27 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 separatorBuilder: (context, index) => const Divider(height: 1),
                 itemBuilder: (context, i) {
                   final u = product.units[i];
+                  final unitCost = u.costPrice > 0 ? u.costPrice : (product.averageCost * u.conversionToBase);
                   return ListTile(
                     dense: true,
                     title: Text(u.unitName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Text('1 ${u.unitName} = ${CurrencyFormatter.formatQty(u.conversionToBase)} ${product.baseUnitName}'),
-                    trailing: Text(
-                      CurrencyFormatter.format(u.sellingPrice, currency: currency),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    subtitle: Text(
+                      '1 ${u.unitName} = ${CurrencyFormatter.formatQty(u.conversionToBase)} ${product.baseUnitName}\nCost: ${CurrencyFormatter.format(unitCost, currency: currency)}',
+                    ),
+                    isThreeLine: true,
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          CurrencyFormatter.format(u.sellingPrice, currency: currency),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        const Text(
+                          'Selling Price',
+                          style: TextStyle(fontSize: 10, color: Colors.black54),
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -453,7 +467,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                           ),
                           subtitle: Text(
-                            '${CurrencyFormatter.format(basePrice, currency: currency)} / ${product.baseUnitName} · Stock: ${CurrencyFormatter.formatQty(product.stockBase)}',
+                            'Sell: ${CurrencyFormatter.format(basePrice, currency: currency)} · Cost: ${CurrencyFormatter.format(product.averageCost, currency: currency)} · Stock: ${CurrencyFormatter.formatQty(product.stockBase)} ${product.baseUnitName}',
                             style: const TextStyle(fontSize: 12, color: Colors.black54),
                           ),
                           trailing: Row(

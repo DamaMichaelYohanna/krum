@@ -61,8 +61,8 @@ class ProductUnit {
   final int unitId;
   final String unitName;
   final double conversionToBase;
-  final double costPrice;
-  final double sellingPrice;
+  double costPrice;
+  double sellingPrice;
   final double minimumPrice;
 
   ProductUnit({

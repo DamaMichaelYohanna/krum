@@ -141,6 +141,7 @@ class SyncService extends ChangeNotifier {
     required double quantity,
     required double unitCost,
     required double amountPaid,
+    double? newSellingPrice,
     String reference = '',
   }) async {
     final clientTransactionId = _uuid.v4();
@@ -153,6 +154,8 @@ class SyncService extends ChangeNotifier {
           'product_unit': productUnitId,
           'quantity': quantity,
           'unit_cost': unitCost,
+          if (newSellingPrice != null && newSellingPrice > 0)
+            'selling_price': newSellingPrice,
         }
       ],
       'amount_paid': amountPaid,
@@ -162,10 +165,47 @@ class SyncService extends ChangeNotifier {
 
     _pendingPurchases.add(purchasePayload);
 
-    // Apply immediate local stock addition
-    final p = products.firstWhere((prod) => prod.id == productId, orElse: () => Product(id: productId, name: '', baseUnitId: 0, baseUnitName: '', units: []));
-    final u = p.units.firstWhere((unit) => unit.id == productUnitId, orElse: () => p.baseUnit);
-    p.stockBase += quantity * u.conversionToBase;
+    // Apply immediate local stock addition and cost price updates
+    final pIndex = products.indexWhere((prod) => prod.id == productId);
+    if (pIndex != -1) {
+      final p = products[pIndex];
+      final uIndex = p.units.indexWhere((unit) => unit.id == productUnitId);
+      final u = uIndex != -1 ? p.units[uIndex] : p.baseUnit;
+
+      final quantityBase = quantity * u.conversionToBase;
+      final costPerBase = u.conversionToBase > 0 ? (unitCost / u.conversionToBase) : unitCost;
+
+      // Moving weighted average cost calculation
+      if (p.stockBase > 0 && p.averageCost > 0) {
+        final oldValue = p.stockBase * p.averageCost;
+        final newValue = quantityBase * costPerBase;
+        final newStock = p.stockBase + quantityBase;
+        if (newStock > 0) {
+          p.averageCost = (oldValue + newValue) / newStock;
+        } else {
+          p.averageCost = costPerBase;
+        }
+      } else {
+        p.averageCost = costPerBase;
+      }
+
+      p.stockBase += quantityBase;
+
+      // Update costPrice for all units of this product
+      for (final unit in p.units) {
+        if (unit.id == productUnitId) {
+          unit.costPrice = unitCost;
+        } else {
+          unit.costPrice = p.averageCost * unit.conversionToBase;
+        }
+        if (newSellingPrice != null && newSellingPrice > 0 && unit.id == productUnitId) {
+          unit.sellingPrice = newSellingPrice;
+        }
+      }
+      if (uIndex == -1 && u.conversionToBase == 1.0) {
+        u.costPrice = p.averageCost;
+      }
+    }
 
     await _saveLocal();
     _updateStatus(SyncStatus.pending);
