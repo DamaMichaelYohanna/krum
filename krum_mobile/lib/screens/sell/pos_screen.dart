@@ -1048,27 +1048,32 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
     }).toList();
 
     if (_isLiveScannerOpen) {
-      return Column(
-        children: [
-          // Top Half: Live Continuous Camera Viewfinder
-          _buildLiveScannerView(context, provider, currency),
+      return SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Top Half: Live Continuous Camera Viewfinder
+            _buildLiveScannerView(context, provider, currency),
 
-          // Bottom Half: Live Cart Panel with Realtime Quantity Steppers
-          Expanded(
-            child: Container(
-              color: Colors.white,
-              child: _buildCartPanel(context, provider, currency),
+            // Bottom Half: Live Cart Panel with Realtime Quantity Steppers
+            Expanded(
+              child: Container(
+                color: Colors.white,
+                child: _buildCartPanel(context, provider, currency),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
     }
 
-    return Column(
-      children: [
-        // Top Search & Barcode Scan Bar (Section 30)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          // Top Search & Barcode Scan Bar (Section 30)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
           child: Row(
             children: [
               Expanded(
@@ -1275,7 +1280,8 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
               ],
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 

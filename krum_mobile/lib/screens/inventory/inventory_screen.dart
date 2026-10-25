@@ -362,11 +362,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
     }).toList();
 
     return Scaffold(
-      body: Column(
-        children: [
-          // Search & Filter Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Search & Filter Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
             child: Row(
               children: [
                 Expanded(
@@ -486,6 +488,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
           ),
         ],
       ),
+    ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
