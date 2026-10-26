@@ -10,12 +10,18 @@ class InventoryService:
     @staticmethod
     def receive(*, business, product_unit, quantity, unit_cost, reason, actor=None, reference=""):
         quantity_base = Decimal(str(quantity)) * product_unit.conversion_to_base
+        conv = product_unit.conversion_to_base if product_unit.conversion_to_base else Decimal("1")
+        cost_per_base = Decimal(str(unit_cost)) / conv
         with transaction.atomic():
             balance, _ = InventoryBalance.objects.select_for_update().get_or_create(product=product_unit.product)
-            old_value = balance.quantity_base * balance.average_cost
-            new_value = quantity_base * Decimal(str(unit_cost)) / product_unit.conversion_to_base
+            if balance.quantity_base > 0 and balance.average_cost > 0:
+                old_value = balance.quantity_base * balance.average_cost
+                new_value = quantity_base * cost_per_base
+                new_stock = balance.quantity_base + quantity_base
+                balance.average_cost = (old_value + new_value) / new_stock if new_stock > 0 else cost_per_base
+            else:
+                balance.average_cost = cost_per_base
             balance.quantity_base += quantity_base
-            balance.average_cost = (old_value + new_value) / balance.quantity_base if balance.quantity_base else Decimal("0")
             balance.save(update_fields=["quantity_base", "average_cost"])
             return InventoryMovement.objects.create(business=business, product=product_unit.product, quantity_base=quantity_base, unit_cost=unit_cost, reason=reason, actor=actor, reference=reference)
 

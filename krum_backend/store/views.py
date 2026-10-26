@@ -122,6 +122,9 @@ def _get_date_range(period, request):
         end_str = request.query_params.get('end_date')
         start = timezone.datetime.strptime(start_str, '%Y-%m-%d').date() if start_str else today
         end = timezone.datetime.strptime(end_str, '%Y-%m-%d').date() if end_str else today
+    elif period == 'all':
+        start = timezone.datetime(2000, 1, 1).date()
+        end = today + timedelta(days=3650)
     else:  # today
         start = today
         end = today
@@ -256,7 +259,7 @@ def business_me(request):
     role = membership.role if membership else 'sales'
 
     if request.method == 'PATCH':
-        require_role(request, 'owner')
+        require_role(request, 'owner', 'manager')
         serializer = BusinessSerializer(business, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -648,5 +651,15 @@ def export_report_csv(request):
             due = sum((sale.total - sale.amount_paid - sum((a.amount for a in sale.customer_payment_allocations.all()), Decimal('0')) for sale in customer.sale_set.filter(status=Sale.Status.COMPLETED)), Decimal('0'))
             if due > 0:
                 writer.writerow([customer.id, customer.name, customer.phone, due])
+
+    elif report_type == 'expenses':
+        writer.writerow(['Expense ID', 'Date', 'Category', 'Amount', 'Description'])
+        expenses = Expense.objects.filter(
+            business=business,
+            occurred_at__gte=start_date,
+            occurred_at__lte=end_date
+        ).order_by('-occurred_at', '-id')
+        for exp in expenses:
+            writer.writerow([exp.id, exp.occurred_at.strftime('%Y-%m-%d'), exp.category, exp.amount, exp.description])
 
     return response

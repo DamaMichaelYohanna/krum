@@ -140,7 +140,7 @@ class TransactionSerializer(serializers.Serializer):
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
-        fields = ['id', 'category', 'amount', 'description', 'occurred_at']
+        fields = ['id', 'client_transaction_id', 'category', 'amount', 'description', 'occurred_at', 'created_at']
 
 class CustomerPaymentSerializer(serializers.Serializer):
     customer = serializers.IntegerField()

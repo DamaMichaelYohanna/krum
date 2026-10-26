@@ -440,6 +440,20 @@ class SyncService extends ChangeNotifier {
           .map((s) => Supplier.fromJson(s as Map<String, dynamic>))
           .toList();
     }
+
+    if (data.containsKey('expenses')) {
+      final list = (data['expenses'] as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      mergeRemoteExpenses(list);
+    }
+
+    if (data.containsKey('sales')) {
+      final list = (data['sales'] as List<dynamic>)
+          .map((s) => s as Map<String, dynamic>)
+          .toList();
+      mergeRemoteSales(list);
+    }
   }
 
   void _updateStatus(SyncStatus newStatus) {

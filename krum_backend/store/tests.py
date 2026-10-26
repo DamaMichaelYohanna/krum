@@ -142,6 +142,7 @@ class SyncServiceTests(TestCase):
 
     def test_push_batch_and_idempotency(self):
         sale_cid = str(uuid.uuid4())
+        expense_cid = str(uuid.uuid4())
         payload = {
             'sales': [{
                 'client_transaction_id': sale_cid,
@@ -151,6 +152,7 @@ class SyncServiceTests(TestCase):
                 'discount': 0
             }],
             'expenses': [{
+                'client_transaction_id': expense_cid,
                 'category': 'Transport',
                 'amount': 1200,
                 'description': 'Market run'
@@ -164,8 +166,126 @@ class SyncServiceTests(TestCase):
         self.assertEqual(self.product.inventory.quantity_base, Decimal('46.000'))
         self.assertEqual(Expense.objects.filter(business=self.business).count(), 1)
 
-        # Re-sending the same sale_cid must not duplicate
+        # Re-sending the same sale_cid and expense_cid must not duplicate
         res2 = SyncService.push_batch(business=self.business, actor=self.user, payload=payload)
         self.assertEqual(res2['sales']['processed'], 1)
+        self.assertEqual(res2['expenses']['processed'], 1)
         self.product.refresh_from_db()
         self.assertEqual(self.product.inventory.quantity_base, Decimal('46.000'))
+        self.assertEqual(Expense.objects.filter(business=self.business).count(), 1)
+
+    def test_push_batch_allows_negative_stock_for_offline_sales(self):
+        # Physical shop sold 60 packs offline before recording incoming shipment
+        sale_cid = str(uuid.uuid4())
+        payload = {
+            'sales': [{
+                'client_transaction_id': sale_cid,
+                'customer_id': self.customer.id,
+                'items': [{'product_unit': self.pu.id, 'quantity': 60}],
+                'amount_paid': 30000,
+                'discount': 0
+            }]
+        }
+        res = SyncService.push_batch(business=self.business, actor=self.user, payload=payload)
+        self.assertEqual(res['sales']['processed'], 1)
+        self.product.refresh_from_db()
+        # 50 - 60 = -10
+        self.assertEqual(self.product.inventory.quantity_base, Decimal('-10.000'))
+
+    def test_pull_catalog_includes_recent_sales_and_expenses(self):
+        Expense.objects.create(
+            business=self.business,
+            client_transaction_id='exp-111',
+            category='Utilities',
+            amount=Decimal('4500.00'),
+            description='Electricity',
+            occurred_at='2026-10-25'
+        )
+        SalesService.complete(
+            business=self.business,
+            customer=self.customer,
+            items=[{'product_unit': self.pu.id, 'quantity': 2}],
+            amount_paid=Decimal('1000.00'),
+            discount=0,
+            client_transaction_id=str(uuid.uuid4()),
+            actor=self.user,
+            allow_negative=True
+        )
+        data = SyncService.pull_catalog(business=self.business)
+        self.assertIn('expenses', data)
+        self.assertIn('sales', data)
+        self.assertTrue(any(e['category'] == 'Utilities' for e in data['expenses']))
+        self.assertTrue(len(data['sales']) >= 1)
+        self.assertIn('items', data['sales'][0])
+
+
+class RestockingAndBusinessTests(TestCase):
+    def setUp(self):
+        from rest_framework.test import APIClient
+        self.client = APIClient()
+        self.user = User.objects.create_user('manager_user', password='password123')
+        self.business = Business.objects.create(name='Super Provision Store', currency='NGN', phone='08011112222')
+        Membership.objects.create(user=self.user, business=self.business, role='manager')
+        self.client.force_authenticate(user=self.user)
+
+        self.piece = Unit.objects.create(business=self.business, name='Piece')
+        self.carton = Unit.objects.create(business=self.business, name='Carton')
+        self.product = Product.objects.create(business=self.business, name='Biscuits', base_unit=self.piece)
+        self.pu_piece = ProductUnit.objects.create(
+            product=self.product, unit=self.piece, conversion_to_base=Decimal('1.000'),
+            cost_price=Decimal('100.00'), selling_price=Decimal('150.00')
+        )
+        self.pu_carton = ProductUnit.objects.create(
+            product=self.product, unit=self.carton, conversion_to_base=Decimal('10.000'),
+            cost_price=Decimal('1000.00'), selling_price=Decimal('1400.00')
+        )
+
+    def test_purchase_restock_updates_cost_prices_proportionally(self):
+        # Restock 5 cartons at new cost of 1200 each (120 per piece) with new selling price 1600
+        PurchaseService.complete(
+            business=self.business,
+            supplier=None,
+            items=[{
+                'product_unit': self.pu_carton.id,
+                'quantity': 5,
+                'unit_cost': 1200,
+                'selling_price': 1600
+            }],
+            amount_paid=6000,
+            client_transaction_id=str(uuid.uuid4()),
+            actor=self.user
+        )
+        self.pu_carton.refresh_from_db()
+        self.pu_piece.refresh_from_db()
+        self.product.refresh_from_db()
+
+        self.assertEqual(self.pu_carton.cost_price, Decimal('1200.00'))
+        self.assertEqual(self.pu_carton.selling_price, Decimal('1600.00'))
+        # Product average cost per base piece is 120.00
+        self.assertEqual(self.product.inventory.average_cost, Decimal('120.00'))
+        # Other unit (Piece) cost price was updated proportionally to 120.00
+        self.assertEqual(self.pu_piece.cost_price, Decimal('120.00'))
+
+    def test_business_profile_patch_and_export_csv(self):
+        # PATCH business name
+        res = self.client.patch('/api/business/me/', {'name': 'New Store Name', 'phone': '09099998888'}, format='json')
+        self.assertEqual(res.status_code, 200)
+        self.business.refresh_from_db()
+        self.assertEqual(self.business.name, 'New Store Name')
+        self.assertEqual(self.business.phone, '09099998888')
+
+        # Create expense and export CSV
+        Expense.objects.create(
+            business=self.business,
+            category='Rent',
+            amount=Decimal('50000.00'),
+            description='Shop rent',
+            occurred_at='2026-10-01'
+        )
+        csv_res = self.client.get('/api/reports/export/?type=expenses&period=all')
+        self.assertEqual(csv_res.status_code, 200)
+        self.assertIn('text/csv', csv_res['Content-Type'])
+        content = csv_res.content.decode('utf-8')
+        self.assertIn('Expense ID', content)
+        self.assertIn('Rent', content)
+        self.assertIn('50000.00', content)

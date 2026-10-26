@@ -69,6 +69,56 @@ class SyncService:
                 'units': p_units
             })
 
+        # Recent expenses
+        expenses = []
+        for exp in Expense.objects.filter(business=business).order_by('-occurred_at', '-id')[:200]:
+            expenses.append({
+                'id': exp.id,
+                'client_transaction_id': exp.client_transaction_id,
+                'category': exp.category,
+                'amount': float(exp.amount),
+                'description': exp.description,
+                'occurred_at': exp.occurred_at.isoformat(),
+                'created_at': exp.created_at.isoformat() if exp.created_at else exp.occurred_at.isoformat(),
+            })
+
+        # Recent sales
+        sales = []
+        sales_qs = Sale.objects.filter(
+            business=business,
+            status=Sale.Status.COMPLETED
+        ).select_related('customer').prefetch_related('items__product_unit__product', 'items__product_unit__unit').order_by('-completed_at')[:200]
+
+        for s in sales_qs:
+            items_list = []
+            for it in s.items.all():
+                items_list.append({
+                    'id': it.id,
+                    'product_unit': it.product_unit_id,
+                    'product_id': it.product_unit.product_id,
+                    'product_name': it.product_unit.product.name,
+                    'unit_name': it.product_unit.unit.name,
+                    'quantity': float(it.quantity),
+                    'unit_price': float(it.unit_price),
+                    'cogs': float(it.cogs),
+                    'total': float(it.quantity * it.unit_price)
+                })
+            sales.append({
+                'id': s.id,
+                'client_transaction_id': str(s.client_transaction_id),
+                'customer_id': s.customer_id,
+                'customer_name': s.customer.name if s.customer else None,
+                'subtotal': float(s.subtotal),
+                'discount': float(s.discount),
+                'total': float(s.total),
+                'total_amount': float(s.total),
+                'amount_paid': float(s.amount_paid),
+                'status': s.status,
+                'completed_at': s.completed_at.isoformat(),
+                'created_at': s.completed_at.isoformat(),
+                'items': items_list
+            })
+
         return {
             'business': {
                 'id': business.id,
@@ -81,6 +131,8 @@ class SyncService:
             'products': products,
             'customers': customers,
             'suppliers': suppliers,
+            'expenses': expenses,
+            'sales': sales,
             'server_time': timezone.now().isoformat()
         }
 
@@ -107,7 +159,9 @@ class SyncService:
                     amount_paid=Decimal(str(item.get('amount_paid', 0))),
                     discount=Decimal(str(item.get('discount', 0))),
                     client_transaction_id=cid,
-                    actor=actor
+                    actor=actor,
+                    allow_negative=True,
+                    allow_below_minimum=True
                 )
                 results['sales']['processed'] += 1
             except Exception as e:
@@ -171,9 +225,14 @@ class SyncService:
 
         # 5. Expenses
         for item in payload.get('expenses', []):
+            cid = item.get('client_transaction_id') or ''
             try:
+                if cid and Expense.objects.filter(business=business, client_transaction_id=cid).exists():
+                    results['expenses']['processed'] += 1
+                    continue
                 Expense.objects.create(
                     business=business,
+                    client_transaction_id=cid,
                     category=item.get('category', 'Other'),
                     amount=Decimal(str(item.get('amount', 0))),
                     description=item.get('description', ''),

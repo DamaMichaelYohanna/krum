@@ -7,7 +7,7 @@ from store.models import InventoryBalance, InventoryMovement, ProductUnit, Sale,
 class SalesService:
     @staticmethod
     @transaction.atomic
-    def complete(*, business, customer, items, amount_paid, discount, client_transaction_id, actor=None):
+    def complete(*, business, customer, items, amount_paid, discount, client_transaction_id, actor=None, allow_negative=False, allow_below_minimum=False):
         existing = Sale.objects.filter(business=business, client_transaction_id=client_transaction_id).first()
         if existing:
             return existing
@@ -26,11 +26,11 @@ class SalesService:
                 balances[prod_id] = bal
             balance = balances[prod_id]
 
-            if balance.quantity_base < required:
+            if not allow_negative and balance.quantity_base < required:
                 raise ValueError(f"You don't have enough {unit.product.name} in stock to complete this sale.")
 
             price = Decimal(str(item.get("unit_price", unit.selling_price)))
-            if price < unit.minimum_price:
+            if not allow_below_minimum and price < unit.minimum_price:
                 raise ValueError(f"{unit.product.name} cannot be sold below its minimum price.")
 
             # Decrement in-memory for subsequent items of the same product in this sale

@@ -26,6 +26,13 @@ class PurchaseService:
             PurchaseItem.objects.create(purchase=purchase, product_unit=unit, quantity=quantity, unit_cost=cost)
             total += quantity * cost
             InventoryService.receive(business=business, product_unit=unit, quantity=quantity, unit_cost=cost, reason=InventoryMovement.Reason.PURCHASE, actor=actor, reference=str(purchase.id))
+            # Keep other units of the same product proportionally updated with new moving average cost
+            from store.models import InventoryBalance
+            balance = InventoryBalance.objects.filter(product=unit.product).first()
+            if balance and balance.average_cost > 0:
+                for other_unit in unit.product.units.exclude(id=unit.id):
+                    other_unit.cost_price = (balance.average_cost * other_unit.conversion_to_base).quantize(Decimal("0.01"))
+                    other_unit.save(update_fields=["cost_price"])
         purchase.total = total
         purchase.save(update_fields=["total"])
         write_audit(business=business, actor=actor, action="purchase.completed", entity=purchase, metadata={"total": str(total)})
