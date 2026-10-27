@@ -35,6 +35,8 @@ class StoreProvider extends ChangeNotifier {
   String get errorMessage => _errorMessage;
   String get username => _username;
   String get userRole => _userRole;
+  bool get isOwner => _userRole == 'owner';
+  bool get isOwnerOrManager => _userRole == 'owner' || _userRole == 'manager';
   bool get isAuthenticated => api.isAuthenticated;
 
   // Sync delegations
@@ -748,9 +750,11 @@ class StoreProvider extends ChangeNotifier {
   Future<void> deleteExpense(Expense expense) async {
     await syncService.deleteExpense(
       id: expense.id,
+      clientTransactionId: expense.clientTransactionId,
       createdAt: expense.createdAt,
       occurredAt: expense.occurredAt,
       amount: expense.amount,
+      category: expense.category,
     );
     refreshDashboard();
     notifyListeners();
@@ -1572,6 +1576,84 @@ class StoreProvider extends ChangeNotifier {
     await syncService.sync();
     await refreshDashboard();
     _setLoading(false);
+  }
+
+  // --- Staff & Cashier Management ---
+  List<Map<String, dynamic>> _staff = [];
+  List<Map<String, dynamic>> get staff => _staff;
+
+  Future<void> loadStaff() async {
+    if (!isAuthenticated) return;
+    try {
+      final list = await api.getStaff();
+      _staff = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<bool> createStaff({
+    required String username,
+    required String password,
+    String role = 'sales',
+  }) async {
+    _isLoading = true;
+    _errorMessage = '';
+    notifyListeners();
+    try {
+      final newStaff = await api.createStaff(
+        username: username,
+        password: password,
+        role: role,
+      );
+      _staff.add(newStaff);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateStaffRole(int membershipId, String role) async {
+    _isLoading = true;
+    _errorMessage = '';
+    notifyListeners();
+    try {
+      final updated = await api.updateStaffRole(membershipId, role);
+      final idx = _staff.indexWhere((s) => s['id'] == membershipId);
+      if (idx != -1) {
+        _staff[idx] = updated;
+      }
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteStaff(int membershipId) async {
+    _isLoading = true;
+    _errorMessage = '';
+    notifyListeners();
+    try {
+      await api.deleteStaff(membershipId);
+      _staff.removeWhere((s) => s['id'] == membershipId);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
   }
 
   void _setLoading(bool val) {

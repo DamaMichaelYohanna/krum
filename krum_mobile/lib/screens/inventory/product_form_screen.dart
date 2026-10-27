@@ -380,36 +380,50 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 const SizedBox(height: 14),
 
                 // Cost Price and Selling Price
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _costPriceController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(
-                          labelText: 'Cost Price (₦)',
-                          hintText: 'e.g. 1000',
-                          border: OutlineInputBorder(),
+                if (provider.isOwnerOrManager)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _costPriceController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(
+                            labelText: 'Cost Price (₦)',
+                            hintText: 'e.g. 1000',
+                            border: OutlineInputBorder(),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _sellingPriceController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(
-                          labelText: 'Selling Price (₦) *',
-                          hintText: 'e.g. 1200',
-                          border: OutlineInputBorder(),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _sellingPriceController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(
+                            labelText: 'Selling Price (₦) *',
+                            hintText: 'e.g. 1200',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (val) => (val == null || double.tryParse(val) == null || double.parse(val) <= 0)
+                              ? 'Valid selling price required'
+                              : null,
                         ),
-                        validator: (val) => (val == null || double.tryParse(val) == null || double.parse(val) <= 0)
-                            ? 'Valid selling price required'
-                            : null,
                       ),
+                    ],
+                  )
+                else
+                  TextFormField(
+                    controller: _sellingPriceController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(
+                      labelText: 'Selling Price (₦) *',
+                      hintText: 'e.g. 1200',
+                      border: OutlineInputBorder(),
                     ),
-                  ],
-                ),
+                    validator: (val) => (val == null || double.tryParse(val) == null || double.parse(val) <= 0)
+                        ? 'Valid selling price required'
+                        : null,
+                  ),
                 const SizedBox(height: 14),
 
                 // Opening Stock & Reorder Level

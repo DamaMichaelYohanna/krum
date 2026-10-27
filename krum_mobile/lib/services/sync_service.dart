@@ -295,19 +295,30 @@ class SyncService extends ChangeNotifier {
     sync();
   }
 
-  Future<void> deleteExpense({int? id, String? createdAt, String? occurredAt, double? amount}) async {
-    _localExpenses.removeWhere((e) {
+  Future<void> deleteExpense({
+    int? id,
+    String? clientTransactionId,
+    String? createdAt,
+    String? occurredAt,
+    double? amount,
+    String? category,
+  }) async {
+    bool matches(Map<String, dynamic> e) {
       if (id != null && e['id'] == id) return true;
-      if (createdAt != null && e['created_at'] == createdAt) return true;
-      if (occurredAt != null && amount != null && e['occurred_at'] == occurredAt && (e['amount'] as num?)?.toDouble() == amount) return true;
+      if (clientTransactionId != null && clientTransactionId.isNotEmpty && e['client_transaction_id'] == clientTransactionId) return true;
+      if (category != null && occurredAt != null && amount != null &&
+          e['category'] == category && e['occurred_at'] == occurredAt &&
+          (e['amount'] as num?)?.toDouble() == amount) {
+        if (createdAt != null && e['created_at'] != null) {
+          return e['created_at'] == createdAt;
+        }
+        return true;
+      }
       return false;
-    });
-    _pendingExpenses.removeWhere((e) {
-      if (id != null && e['id'] == id) return true;
-      if (createdAt != null && e['created_at'] == createdAt) return true;
-      if (occurredAt != null && amount != null && e['occurred_at'] == occurredAt && (e['amount'] as num?)?.toDouble() == amount) return true;
-      return false;
-    });
+    }
+
+    _localExpenses.removeWhere(matches);
+    _pendingExpenses.removeWhere(matches);
     await _saveLocal();
     notifyListeners();
 
@@ -676,7 +687,8 @@ class SyncService extends ChangeNotifier {
       _localExpenses.addAll(rawExpenses.map((s) => jsonDecode(s) as Map<String, dynamic>));
     }
     for (final e in _pendingExpenses) {
-      if (!_localExpenses.contains(e)) {
+      final txId = e['client_transaction_id'];
+      if (txId == null || !_localExpenses.any((le) => le['client_transaction_id'] == txId)) {
         _localExpenses.add(e);
       }
     }

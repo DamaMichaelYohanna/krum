@@ -112,7 +112,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   void _showProductDetails(BuildContext context, Product product) {
-    final currency = context.read<StoreProvider>().business?.currency ?? 'NGN';
+    final provider = context.read<StoreProvider>();
+    final isOwnerOrManager = provider.isOwnerOrManager;
+    final currency = provider.business?.currency ?? 'NGN';
 
     showModalBottomSheet(
       context: context,
@@ -135,48 +137,50 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   ),
                 ),
                 _stockBadge(product),
-                const SizedBox(width: 4),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20),
-                  tooltip: 'Edit Product',
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => ProductFormScreen(product: product)),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                  tooltip: 'Delete Product',
-                  onPressed: () async {
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (dCtx) => AlertDialog(
-                        title: const Text('Delete Product'),
-                        content: Text('Are you sure you want to delete "${product.name}"?'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(dCtx, false), child: const Text('Cancel')),
-                          FilledButton(
-                            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                            onPressed: () => Navigator.pop(dCtx, true),
-                            child: const Text('Delete'),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (confirm == true && context.mounted) {
+                if (isOwnerOrManager) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: 'Edit Product',
+                    onPressed: () {
                       Navigator.pop(ctx);
-                      await context.read<StoreProvider>().deleteProduct(product.id);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Deleted "${product.name}"')),
-                        );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => ProductFormScreen(product: product)),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                    tooltip: 'Delete Product',
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (dCtx) => AlertDialog(
+                          title: const Text('Delete Product'),
+                          content: Text('Are you sure you want to delete "${product.name}"?'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(dCtx, false), child: const Text('Cancel')),
+                            FilledButton(
+                              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                              onPressed: () => Navigator.pop(dCtx, true),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirm == true && context.mounted) {
+                        Navigator.pop(ctx);
+                        await context.read<StoreProvider>().deleteProduct(product.id);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Deleted "${product.name}"')),
+                          );
+                        }
                       }
-                    }
-                  },
-                ),
+                    },
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 4),
@@ -192,7 +196,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
               children: [
                 _detailStat('Current Stock', '${CurrencyFormatter.formatQty(product.stockBase)} ${product.baseUnitName}'),
                 _detailStat('Reorder Level', '${CurrencyFormatter.formatQty(product.reorderLevel)} ${product.baseUnitName}'),
-                _detailStat('Avg Cost', CurrencyFormatter.format(product.averageCost, currency: currency)),
+                if (isOwnerOrManager)
+                  _detailStat('Avg Cost', CurrencyFormatter.format(product.averageCost, currency: currency))
+                else
+                  _detailStat('Base Price', CurrencyFormatter.format(product.baseUnit.sellingPrice, currency: currency)),
               ],
             ),
             const SizedBox(height: 18),
@@ -220,9 +227,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     dense: true,
                     title: Text(u.unitName, style: const TextStyle(fontWeight: FontWeight.w600)),
                     subtitle: Text(
-                      '1 ${u.unitName} = ${CurrencyFormatter.formatQty(u.conversionToBase)} ${product.baseUnitName}\nCost: ${CurrencyFormatter.format(unitCost, currency: currency)}',
+                      isOwnerOrManager
+                          ? '1 ${u.unitName} = ${CurrencyFormatter.formatQty(u.conversionToBase)} ${product.baseUnitName}\nCost: ${CurrencyFormatter.format(unitCost, currency: currency)}'
+                          : '1 ${u.unitName} = ${CurrencyFormatter.formatQty(u.conversionToBase)} ${product.baseUnitName}',
                     ),
-                    isThreeLine: true,
+                    isThreeLine: isOwnerOrManager,
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -246,20 +255,22 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      showDialog(
-                        context: context,
-                        builder: (_) => StockAdjustmentDialog(product: product),
-                      );
-                    },
-                    icon: const Icon(Icons.tune),
-                    label: const Text('Adjust Stock'),
+                if (isOwnerOrManager) ...[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        showDialog(
+                          context: context,
+                          builder: (_) => StockAdjustmentDialog(product: product),
+                        );
+                      },
+                      icon: const Icon(Icons.tune),
+                      label: const Text('Adjust Stock'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
+                  const SizedBox(width: 12),
+                ],
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: () {
@@ -524,17 +535,19 @@ class _InventoryScreenState extends State<InventoryScreen> {
         ],
       ),
     ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ProductFormScreen()),
-          );
-        },
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Add Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      ),
+      floatingActionButton: context.watch<StoreProvider>().isOwnerOrManager
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProductFormScreen()),
+                );
+              },
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text('Add Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            )
+          : null,
     );
   }
 

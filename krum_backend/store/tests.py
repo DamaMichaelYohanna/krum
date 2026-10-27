@@ -223,9 +223,9 @@ class RestockingAndBusinessTests(TestCase):
     def setUp(self):
         from rest_framework.test import APIClient
         self.client = APIClient()
-        self.user = User.objects.create_user('manager_user', password='password123')
+        self.user = User.objects.create_user('owner_user', password='password123')
         self.business = Business.objects.create(name='Super Provision Store', currency='NGN', phone='08011112222')
-        Membership.objects.create(user=self.user, business=self.business, role='manager')
+        Membership.objects.create(user=self.user, business=self.business, role='owner')
         self.client.force_authenticate(user=self.user)
 
         self.piece = Unit.objects.create(business=self.business, name='Piece')
@@ -313,3 +313,69 @@ class RestockingAndBusinessTests(TestCase):
         self.product.refresh_from_db()
         # Stock restored to 20
         self.assertEqual(self.product.inventory.quantity_base, Decimal('20.000'))
+
+    def test_staff_management_and_role_restrictions(self):
+        # 1. Owner creates a cashier (sales)
+        res = self.client.post('/api/staff/', {
+            'username': 'cashier_mary',
+            'password': 'password123',
+            'role': 'sales',
+        }, format='json')
+        self.assertEqual(res.status_code, 201)
+        cashier_id = res.data['id']
+        cashier_user_id = res.data['user_id']
+        self.assertEqual(res.data['role'], 'sales')
+
+        # 2. Owner lists staff members
+        list_res = self.client.get('/api/staff/')
+        self.assertEqual(list_res.status_code, 200)
+        self.assertEqual(len(list_res.data), 2)  # Owner + Cashier
+
+        # 3. Role restrictions: Switch to cashier
+        cashier_user = User.objects.get(id=cashier_user_id)
+        self.client.force_authenticate(user=cashier_user)
+
+        # Cashier is blocked from reports
+        rep_res = self.client.get('/api/reports/sales/')
+        self.assertEqual(rep_res.status_code, 403)
+
+        # Cashier is blocked from CSV export
+        exp_res = self.client.get('/api/reports/export/?type=sales')
+        self.assertEqual(exp_res.status_code, 403)
+
+        # Cashier is blocked from staff management
+        staff_res = self.client.get('/api/staff/')
+        self.assertEqual(staff_res.status_code, 403)
+
+        # 4. Owner updates cashier to manager
+        self.client.force_authenticate(user=self.user)
+        patch_res = self.client.patch(f'/api/staff/{cashier_id}/', {'role': 'manager'}, format='json')
+        self.assertEqual(patch_res.status_code, 200)
+        self.assertEqual(patch_res.data['role'], 'manager')
+
+        # 5. Manager can create sales cashier, but CANNOT create another manager
+        self.client.force_authenticate(user=cashier_user)
+        mgr_create_mgr = self.client.post('/api/staff/', {
+            'username': 'manager_two',
+            'password': 'password123',
+            'role': 'manager',
+        }, format='json')
+        self.assertEqual(mgr_create_mgr.status_code, 403)
+
+        mgr_create_sales = self.client.post('/api/staff/', {
+            'username': 'cashier_peter',
+            'password': 'password123',
+            'role': 'sales',
+        }, format='json')
+        self.assertEqual(mgr_create_sales.status_code, 201)
+        peter_membership_id = mgr_create_sales.data['id']
+
+        # 6. Owner deletes cashier and cannot delete self
+        self.client.force_authenticate(user=self.user)
+        owner_membership = Membership.objects.get(user=self.user, business=self.business)
+        del_self = self.client.delete(f'/api/staff/{owner_membership.id}/')
+        self.assertEqual(del_self.status_code, 400)
+
+        del_peter = self.client.delete(f'/api/staff/{peter_membership_id}/')
+        self.assertEqual(del_peter.status_code, 200)
+        self.assertFalse(Membership.objects.filter(id=peter_membership_id).exists())

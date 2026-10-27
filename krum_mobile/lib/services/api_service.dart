@@ -401,6 +401,60 @@ class ApiService {
     throw Exception(_parseError(response));
   }
 
+  Future<List<dynamic>> getStaff() async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/staff/'),
+      headers: _headers(),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    }
+    throw Exception(_parseError(response));
+  }
+
+  Future<Map<String, dynamic>> createStaff({
+    required String username,
+    required String password,
+    String role = 'sales',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/staff/'),
+      headers: _headers(),
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+        'role': role,
+      }),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(_parseError(response));
+  }
+
+  Future<Map<String, dynamic>> updateStaffRole(int membershipId, String role) async {
+    final response = await http.patch(
+      Uri.parse('$_baseUrl/staff/$membershipId/'),
+      headers: _headers(),
+      body: jsonEncode({'role': role}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(_parseError(response));
+  }
+
+  Future<void> deleteStaff(int membershipId) async {
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/staff/$membershipId/'),
+      headers: _headers(),
+    );
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      return;
+    }
+    throw Exception(_parseError(response));
+  }
+
 
   Future<Map<String, dynamic>?> lookupBarcode(String barcode) async {
     final response = await http.get(

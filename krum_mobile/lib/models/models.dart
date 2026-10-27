@@ -374,6 +374,7 @@ class Supplier {
 
 class Expense {
   final int? id;
+  final String? clientTransactionId;
   final String category;
   final double amount;
   final String description;
@@ -382,6 +383,7 @@ class Expense {
 
   Expense({
     this.id,
+    this.clientTransactionId,
     required this.category,
     required this.amount,
     this.description = '',
@@ -403,6 +405,7 @@ class Expense {
 
     return Expense(
       id: json['id'] as int?,
+      clientTransactionId: json['client_transaction_id'] as String?,
       category: json['category'] as String? ?? 'Other',
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       description: json['description'] as String? ?? '',
@@ -413,6 +416,7 @@ class Expense {
 
   Map<String, dynamic> toJson() => {
         if (id != null) 'id': id,
+        if (clientTransactionId != null) 'client_transaction_id': clientTransactionId,
         'category': category,
         'amount': amount,
         'description': description,

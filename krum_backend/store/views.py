@@ -1,6 +1,7 @@
 import csv
 from datetime import timedelta
 from decimal import Decimal
+from django.contrib.auth import get_user_model
 from django.db.models import F, Sum, Q
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
@@ -11,7 +12,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import (
-    Business, Category, Customer, CustomerPayment, Expense,
+    AuditLog, Business, Category, Customer, CustomerPayment, Expense,
     InventoryBalance, InventoryMovement, Membership, Product,
     ProductUnit, Purchase, PurchaseItem, Sale, SaleItem,
     Supplier, Unit
@@ -269,6 +270,138 @@ def business_me(request):
     data['role'] = role
     data['username'] = request.user.username
     return Response(data)
+
+# --- Staff & Cashier Management ---
+
+@api_view(['GET', 'POST'])
+@permission_classes([HasBusiness])
+def staff_list_create(request):
+    business = business_for(request)
+
+    if request.method == 'GET':
+        require_role(request, 'owner', 'manager')
+        memberships = Membership.objects.filter(business=business).select_related('user').order_by('id')
+        data = [
+            {
+                'id': m.id,
+                'user_id': m.user.id,
+                'username': m.user.username,
+                'role': m.role,
+                'date_joined': m.user.date_joined.isoformat() if m.user.date_joined else None,
+                'is_active': m.user.is_active,
+            }
+            for m in memberships
+        ]
+        return Response(data)
+
+    elif request.method == 'POST':
+        caller_membership = require_role(request, 'owner', 'manager')
+        username = (request.data.get('username') or '').strip()
+        password = (request.data.get('password') or '').strip()
+        role = (request.data.get('role') or 'sales').strip().lower()
+
+        if not username:
+            return Response({'detail': 'Username is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(password) < 6:
+            return Response({'detail': 'Password must be at least 6 characters long.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if role not in ['sales', 'manager']:
+            return Response({'detail': 'Role must be either "sales" or "manager".'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if caller_membership.role == 'manager' and role != 'sales':
+            return Response({'detail': 'Store managers can only create sales/cashier accounts.'}, status=status.HTTP_403_FORBIDDEN)
+
+        User = get_user_model()
+        if User.objects.filter(username__iexact=username).exists():
+            return Response({'detail': f'Username "{username}" is already in use. Please choose another.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(username=username, password=password)
+        membership = Membership.objects.create(business=business, user=user, role=role)
+        AuditLog.objects.create(
+            business=business,
+            actor=request.user,
+            action='staff.created',
+            entity_type='membership',
+            entity_id=str(membership.id),
+            metadata={'username': username, 'role': role}
+        )
+
+        return Response({
+            'id': membership.id,
+            'user_id': user.id,
+            'username': user.username,
+            'role': membership.role,
+            'date_joined': user.date_joined.isoformat() if user.date_joined else None,
+            'is_active': user.is_active,
+        }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['PATCH', 'DELETE'])
+@permission_classes([HasBusiness])
+def staff_detail(request, membership_id):
+    business = business_for(request)
+    membership = Membership.objects.filter(id=membership_id, business=business).select_related('user').first()
+    if not membership:
+        return Response({'detail': 'Staff member not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PATCH':
+        require_role(request, 'owner')
+        if membership.role == 'owner' and membership.user == request.user:
+            return Response({'detail': 'Cannot modify the store owner role.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        new_role = request.data.get('role')
+        if new_role is not None:
+            new_role = str(new_role).strip().lower()
+            if new_role not in ['sales', 'manager']:
+                return Response({'detail': 'Role must be either "sales" or "manager".'}, status=status.HTTP_400_BAD_REQUEST)
+            membership.role = new_role
+
+        if 'is_active' in request.data:
+            membership.user.is_active = bool(request.data['is_active'])
+            membership.user.save(update_fields=['is_active'])
+
+        membership.save(update_fields=['role'])
+        AuditLog.objects.create(
+            business=business,
+            actor=request.user,
+            action='staff.updated',
+            entity_type='membership',
+            entity_id=str(membership.id),
+            metadata={'role': membership.role, 'is_active': membership.user.is_active}
+        )
+
+        return Response({
+            'id': membership.id,
+            'user_id': membership.user.id,
+            'username': membership.user.username,
+            'role': membership.role,
+            'date_joined': membership.user.date_joined.isoformat() if membership.user.date_joined else None,
+            'is_active': membership.user.is_active,
+        })
+
+    elif request.method == 'DELETE':
+        require_role(request, 'owner')
+        if membership.user == request.user:
+            return Response({'detail': 'You cannot remove your own ownership account.'}, status=status.HTTP_400_BAD_REQUEST)
+        if membership.role == 'owner':
+            return Response({'detail': 'Cannot delete an owner account.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        staff_user = membership.user
+        staff_username = staff_user.username
+        membership.delete()
+        staff_user.is_active = False
+        staff_user.save(update_fields=['is_active'])
+
+        AuditLog.objects.create(
+            business=business,
+            actor=request.user,
+            action='staff.deleted',
+            entity_type='membership',
+            entity_id=str(membership_id),
+            metadata={'username': staff_username}
+        )
+
+        return Response({'detail': 'Staff member removed successfully.'}, status=status.HTTP_200_OK)
 
 # --- Sales ---
 

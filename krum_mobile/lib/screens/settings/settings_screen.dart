@@ -7,6 +7,7 @@ import '../expenses/expenses_screen.dart';
 import '../purchases/add_purchase_screen.dart';
 import '../reports/reports_screen.dart';
 import '../sales/sales_history_screen.dart';
+import '../staff/staff_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -356,11 +357,12 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Edit Store Details',
-                  icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
-                  onPressed: () => _showEditStoreDialog(context),
-                ),
+                if (provider.isOwnerOrManager)
+                  IconButton(
+                    tooltip: 'Edit Store Details',
+                    icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
+                    onPressed: () => _showEditStoreDialog(context),
+                  ),
               ],
             ),
           ),
@@ -378,24 +380,26 @@ class SettingsScreen extends StatelessWidget {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomersScreen()));
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.local_shipping_outlined, color: AppColors.primary),
-            title: const Text('Receive Stock / Supplier Purchases'),
-            subtitle: Text('${provider.suppliers.length} registered suppliers'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPurchaseScreen()));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.receipt_long_outlined, color: Colors.deepOrange),
-            title: const Text('Operating Expenses'),
-            subtitle: const Text('Track generator fuel, electricity, transport'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpensesScreen()));
-            },
-          ),
+          if (provider.isOwnerOrManager) ...[
+            ListTile(
+              leading: const Icon(Icons.local_shipping_outlined, color: AppColors.primary),
+              title: const Text('Receive Stock / Supplier Purchases'),
+              subtitle: Text('${provider.suppliers.length} registered suppliers'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPurchaseScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long_outlined, color: Colors.deepOrange),
+              title: const Text('Operating Expenses'),
+              subtitle: const Text('Track generator fuel, electricity, transport'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpensesScreen()));
+              },
+            ),
+          ],
           ListTile(
             leading: const Icon(Icons.receipt_long_outlined, color: AppColors.primary),
             title: const Text('Sales & Items Sold History'),
@@ -405,20 +409,31 @@ class SettingsScreen extends StatelessWidget {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen()));
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.bar_chart_outlined, color: Colors.indigo),
-            title: const Text('Business Reports & Profit/Loss'),
-            subtitle: const Text('Net profit, sales history, valuation'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()));
-            },
-          ),
+          if (provider.isOwnerOrManager)
+            ListTile(
+              leading: const Icon(Icons.bar_chart_outlined, color: Colors.indigo),
+              title: const Text('Business Reports & Profit/Loss'),
+              subtitle: const Text('Net profit, sales history, valuation'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()));
+              },
+            ),
 
           const Divider(),
 
-          // Store Configurations (Categories, Units & Sync)
+          // Store Configurations (Categories, Units, Staff & Sync)
           _sectionHeader('Store Configuration'),
+          if (provider.isOwnerOrManager)
+            ListTile(
+              leading: const Icon(Icons.badge_outlined, color: AppColors.primary),
+              title: const Text('Staff & Cashiers'),
+              subtitle: const Text('Manage cashiers, managers & store access'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const StaffScreen()));
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.category_outlined, color: AppColors.primary),
             title: const Text('Product Categories'),

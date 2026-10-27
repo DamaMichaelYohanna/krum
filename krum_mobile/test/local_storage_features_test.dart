@@ -924,6 +924,36 @@ void main() {
     expect(provider2.business?.name, 'Mama Chidi Provision Store');
     expect(provider2.business?.phone, '08012345678');
   });
+
+  test('Role permissions check isOwner and isOwnerOrManager correctly', () async {
+    SharedPreferences.setMockInitialValues({'user_role': 'owner'});
+    final api = ApiService();
+    final sync = SyncService(api: api);
+    final provider = StoreProvider(api: api, syncService: sync);
+    await provider.init();
+
+    expect(provider.userRole, 'owner');
+    expect(provider.isOwner, true);
+    expect(provider.isOwnerOrManager, true);
+
+    // Test manager role
+    SharedPreferences.setMockInitialValues({'user_role': 'manager'});
+    final providerMgr = StoreProvider(api: api, syncService: sync);
+    await providerMgr.init();
+
+    expect(providerMgr.userRole, 'manager');
+    expect(providerMgr.isOwner, false);
+    expect(providerMgr.isOwnerOrManager, true);
+
+    // Test sales (cashier) role
+    SharedPreferences.setMockInitialValues({'user_role': 'sales'});
+    final providerSales = StoreProvider(api: api, syncService: sync);
+    await providerSales.init();
+
+    expect(providerSales.userRole, 'sales');
+    expect(providerSales.isOwner, false);
+    expect(providerSales.isOwnerOrManager, false);
+  });
 }
 
 
