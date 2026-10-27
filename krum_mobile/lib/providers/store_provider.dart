@@ -864,6 +864,7 @@ class StoreProvider extends ChangeNotifier {
     final Map<String, _SoldItemAccumulator> map = {};
 
     for (final sale in filtered) {
+      if (sale['status'] == 'reversed') continue;
       final items = sale['items'] as List<dynamic>? ?? [];
       final Set<String> productsInThisSale = {};
 
@@ -941,6 +942,42 @@ class StoreProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> reverseSale(Map<String, dynamic> sale) async {
+    _setLoading(true);
+    try {
+      final success = await syncService.reverseSaleLocally(sale);
+      await refreshDashboard();
+      _setLoading(false);
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> updateBusinessProfile({
+    required String name,
+    String? phone,
+    String? currency,
+  }) async {
+    _setLoading(true);
+    try {
+      await syncService.updateBusinessLocally(
+        name: name,
+        phone: phone,
+        currency: currency,
+      );
+      await refreshDashboard();
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _setLoading(false);
+      return false;
+    }
+  }
+
   // --- Dashboard & Analytics ---
 
   Future<void> setDashboardPeriod(String period) async {
@@ -993,6 +1030,7 @@ class StoreProvider extends ChangeNotifier {
     final Map<int, _TopProductAccumulator> productSalesMap = {};
 
     for (final sale in filteredSales) {
+      if (sale['status'] == 'reversed') continue;
       double total = (sale['total_amount'] as num?)?.toDouble() ??
           (sale['total'] as num?)?.toDouble() ??
           (sale['amount'] as num?)?.toDouble() ??
@@ -1137,6 +1175,7 @@ class StoreProvider extends ChangeNotifier {
     double revenue = 0.0;
     double cogs = 0.0;
     for (final sale in filteredSales) {
+      if (sale['status'] == 'reversed') continue;
       final total = (sale['total_amount'] as num?)?.toDouble() ??
           (sale['total'] as num?)?.toDouble() ??
           0.0;
@@ -1192,6 +1231,7 @@ class StoreProvider extends ChangeNotifier {
     final Map<String, Map<String, dynamic>> itemMap = {};
 
     for (final sale in filteredSales) {
+      if (sale['status'] == 'reversed') continue;
       final items = sale['items'] as List<dynamic>? ?? [];
       for (final raw in items) {
         if (raw is Map<String, dynamic>) {

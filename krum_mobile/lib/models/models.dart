@@ -24,6 +24,20 @@ class Business {
         'currency': currency,
         'phone': phone,
       };
+
+  Business copyWith({
+    int? id,
+    String? name,
+    String? currency,
+    String? phone,
+  }) {
+    return Business(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      currency: currency ?? this.currency,
+      phone: phone ?? this.phone,
+    );
+  }
 }
 
 class Category {

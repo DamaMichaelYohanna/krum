@@ -829,6 +829,101 @@ void main() {
     expect(persistedCarton.costPrice, 16000.0);
     expect(persistedCarton.sellingPrice, 19000.0);
   });
+
+  test('Sale reversal restores stock, deducts customer debt, and marks receipt void offline', () async {
+    SharedPreferences.setMockInitialValues({});
+    final api = ApiService();
+    final sync = SyncService(api: api);
+    final provider = StoreProvider(api: api, syncService: sync);
+    await provider.init();
+
+    final pieceUnit = provider.units.firstWhere((u) => u.name == 'Piece');
+
+    // Create a product with 10 pieces
+    await provider.createProduct(
+      name: 'Cornflakes 350g',
+      baseUnitId: pieceUnit.id,
+      sellingPrice: 2500.0,
+      costPrice: 1800.0,
+      openingStock: 10.0,
+    );
+
+    // Create a customer
+    await provider.createCustomer('Bisi Adebayo', phone: '08055443322');
+    final customer = provider.customers.firstWhere((c) => c.name == 'Bisi Adebayo');
+
+    // 1. Credit sale: Sell 3 pieces (₦7,500), paid ₦2,500, owes ₦5,000
+    final product = provider.products.firstWhere((p) => p.name == 'Cornflakes 350g');
+    provider.addToCart(product, quantity: 3.0);
+    provider.setSelectedCustomer(customer);
+    await provider.checkoutSale(amountPaid: 2500.0);
+
+    // Verify stock dropped from 10 to 7
+    final pAfterSale = provider.products.firstWhere((p) => p.name == 'Cornflakes 350g');
+    expect(pAfterSale.stockBase, 7.0);
+
+    // Verify customer owes ₦5,000
+    final custAfterSale = provider.customers.firstWhere((c) => c.id == customer.id);
+    expect(custAfterSale.outstanding, 5000.0);
+
+    expect(provider.sales.length, 1);
+    final sale = provider.sales.first;
+    expect(sale['status'], isNot('reversed'));
+
+    // 2. Reverse this sale
+    final success = await provider.reverseSale(sale);
+    expect(success, true);
+
+    // Verify stock was restored to 10
+    final pAfterReverse = provider.products.firstWhere((p) => p.name == 'Cornflakes 350g');
+    expect(pAfterReverse.stockBase, 10.0);
+
+    // Verify customer debt was cleared back to 0
+    final custAfterReverse = provider.customers.firstWhere((c) => c.id == customer.id);
+    expect(custAfterReverse.outstanding, 0.0);
+
+    // Verify sale status is now 'reversed'
+    final reversedSale = provider.sales.firstWhere((s) => s['client_transaction_id'] == sale['client_transaction_id']);
+    expect(reversedSale['status'], 'reversed');
+
+    // 3. Verify persistence across a fresh provider instance
+    final sync2 = SyncService(api: api);
+    final provider2 = StoreProvider(api: api, syncService: sync2);
+    await provider2.init();
+
+    final reloadedProd = provider2.products.firstWhere((p) => p.name == 'Cornflakes 350g');
+    expect(reloadedProd.stockBase, 10.0);
+    final reloadedCust = provider2.customers.firstWhere((c) => c.id == customer.id);
+    expect(reloadedCust.outstanding, 0.0);
+  });
+
+  test('Update store profile name, phone, and currency persists offline and updates branding', () async {
+    SharedPreferences.setMockInitialValues({});
+    final api = ApiService();
+    final sync = SyncService(api: api);
+    final provider = StoreProvider(api: api, syncService: sync);
+    await provider.init();
+
+    expect(provider.business?.name, 'Krum Store');
+
+    // Update store profile
+    final updated = await provider.updateBusinessProfile(
+      name: 'Mama Chidi Provision Store',
+      phone: '08012345678',
+      currency: 'NGN',
+    );
+    expect(updated, true);
+    expect(provider.business?.name, 'Mama Chidi Provision Store');
+    expect(provider.business?.phone, '08012345678');
+
+    // Verify persistence across reload
+    final sync2 = SyncService(api: api);
+    final provider2 = StoreProvider(api: api, syncService: sync2);
+    await provider2.init();
+
+    expect(provider2.business?.name, 'Mama Chidi Provision Store');
+    expect(provider2.business?.phone, '08012345678');
+  });
 }
 
 

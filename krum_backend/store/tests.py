@@ -289,3 +289,27 @@ class RestockingAndBusinessTests(TestCase):
         self.assertIn('Expense ID', content)
         self.assertIn('Rent', content)
         self.assertIn('50000.00', content)
+
+    def test_reverse_sale_by_uuid_and_numeric_id(self):
+        sale_cid = str(uuid.uuid4())
+        InventoryService.adjust(business=self.business, product=self.product, quantity_delta=20, reason=InventoryMovement.Reason.OPENING, actor=self.user)
+        sale = SalesService.complete(
+            business=self.business,
+            customer=None,
+            items=[{'product_unit': self.pu_piece.id, 'quantity': 5}],
+            amount_paid=750,
+            discount=0,
+            client_transaction_id=sale_cid,
+            actor=self.user
+        )
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.inventory.quantity_base, Decimal('15.000'))
+
+        # Reverse via UUID string in URL
+        res = self.client.post(f'/api/sales/{sale_cid}/reverse/')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data['status'], 'reversed')
+
+        self.product.refresh_from_db()
+        # Stock restored to 20
+        self.assertEqual(self.product.inventory.quantity_base, Decimal('20.000'))

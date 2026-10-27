@@ -135,6 +135,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
     final discount = (sale['discount'] as num?)?.toDouble() ?? 0.0;
     final amountPaid = (sale['amount_paid'] as num?)?.toDouble() ?? total;
     final balance = (total - amountPaid).clamp(0.0, double.infinity);
+    final isReversed = sale['status'] == 'reversed';
 
     showModalBottomSheet(
       context: context,
@@ -187,6 +188,40 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (isReversed) ...[
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.cancel, color: Colors.red, size: 22),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'SALE REVERSED / VOID',
+                                    style: TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'This receipt has been voided. All items were returned to inventory stock.',
+                                    style: TextStyle(color: Colors.red, fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     // Receipt Number & Date
                     Center(
                       child: Column(
@@ -243,17 +278,23 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: balance == 0
-                                  ? AppColors.success.withValues(alpha: 0.12)
-                                  : Colors.orange.withValues(alpha: 0.12),
+                              color: isReversed
+                                  ? Colors.red.withValues(alpha: 0.12)
+                                  : (balance == 0
+                                      ? AppColors.success.withValues(alpha: 0.12)
+                                      : Colors.orange.withValues(alpha: 0.12)),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              balance == 0 ? 'PAID' : 'CREDIT / PARTIAL',
+                              isReversed
+                                  ? 'VOID / REVERSED'
+                                  : (balance == 0 ? 'PAID' : 'CREDIT / PARTIAL'),
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: balance == 0 ? AppColors.success : Colors.orange.shade800,
+                                color: isReversed
+                                    ? Colors.red.shade800
+                                    : (balance == 0 ? AppColors.success : Colors.orange.shade800),
                               ),
                             ),
                           ),
@@ -454,6 +495,63 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                         ),
                       ],
                     ),
+                    if (!isReversed) ...[
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red.shade700,
+                            side: BorderSide(color: Colors.red.shade300),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                          ),
+                          icon: const Icon(Icons.remove_shopping_cart_outlined, size: 16),
+                          label: const Text('Reverse Sale / Void Receipt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (c) => AlertDialog(
+                                title: const Text('Reverse This Sale?'),
+                                content: const Text(
+                                  'This will void the transaction, restore all purchased items back to your inventory stock, and deduct any recorded debt. Are you sure?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  FilledButton(
+                                    style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                                    onPressed: () => Navigator.pop(c, true),
+                                    child: const Text('Yes, Reverse Sale'),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true) {
+                              final provider = context.read<StoreProvider>();
+                              final success = await provider.reverseSale(sale);
+                              if (ctx.mounted) Navigator.pop(ctx);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                          ? 'Sale #$shortTx reversed! Items restored to inventory.'
+                                          : 'Failed to reverse sale.',
+                                    ),
+                                    backgroundColor: success ? AppColors.primary : Colors.red,
+                                  ),
+                                );
+                                _refreshSales();
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -487,9 +585,11 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
       0.0,
       (acc, s) =>
           acc +
-          ((s['total_amount'] as num?)?.toDouble() ??
-              (s['total'] as num?)?.toDouble() ??
-              0.0),
+          (s['status'] == 'reversed'
+              ? 0.0
+              : ((s['total_amount'] as num?)?.toDouble() ??
+                  (s['total'] as num?)?.toDouble() ??
+                  0.0)),
     );
 
     final totalUnitsSold = itemizedSummary.fold<double>(
@@ -802,6 +902,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
           final total = (sale['total_amount'] as num?)?.toDouble() ?? (sale['total'] as num?)?.toDouble() ?? 0.0;
           final amountPaid = (sale['amount_paid'] as num?)?.toDouble() ?? total;
           final isCredit = (total - amountPaid) > 0.01;
+          final isReversed = sale['status'] == 'reversed';
 
           // Item preview summary text
           final itemSummary = items.take(2).map((it) {
@@ -867,17 +968,21 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: isCredit
-                                  ? Colors.orange.withValues(alpha: 0.12)
-                                  : AppColors.success.withValues(alpha: 0.12),
+                              color: isReversed
+                                  ? Colors.red.withValues(alpha: 0.12)
+                                  : (isCredit
+                                      ? Colors.orange.withValues(alpha: 0.12)
+                                      : AppColors.success.withValues(alpha: 0.12)),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              isCredit ? 'CREDIT' : 'PAID',
+                              isReversed ? 'VOID / REVERSED' : (isCredit ? 'CREDIT' : 'PAID'),
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: isCredit ? Colors.orange.shade800 : AppColors.success,
+                                color: isReversed
+                                    ? Colors.red.shade800
+                                    : (isCredit ? Colors.orange.shade800 : AppColors.success),
                               ),
                             ),
                           ),
@@ -925,10 +1030,11 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                               const Text('Total: ', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
                               Text(
                                 CurrencyFormatter.format(total, currency: currency),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 16,
-                                  color: AppColors.primary,
+                                  color: isReversed ? Colors.grey : AppColors.primary,
+                                  decoration: isReversed ? TextDecoration.lineThrough : null,
                                 ),
                               ),
                             ],

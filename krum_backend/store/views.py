@@ -319,11 +319,16 @@ def sale_list(request):
 @permission_classes([HasBusiness])
 def reverse_sale(request, sale_id):
     require_role(request, 'owner', 'manager')
-    sale = Sale.objects.filter(id=sale_id, business=business_for(request)).first()
+    business = business_for(request)
+    sale = None
+    if str(sale_id).isdigit():
+        sale = Sale.objects.filter(id=int(sale_id), business=business).first()
+    if not sale:
+        sale = Sale.objects.filter(client_transaction_id=sale_id, business=business).first()
     if not sale:
         return Response({'detail': 'Sale not found.'}, status=status.HTTP_404_NOT_FOUND)
     SalesService.reverse(sale=sale, actor=request.user)
-    return Response({'id': sale.id, 'status': sale.status})
+    return Response({'id': sale.id, 'client_transaction_id': str(sale.client_transaction_id), 'status': sale.status})
 
 # --- Purchases ---
 

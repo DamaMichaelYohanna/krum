@@ -378,6 +378,28 @@ class ApiService {
     }
     throw Exception(_parseError(response));
   }
+  Future<Map<String, dynamic>> reverseSale(dynamic saleId) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/sales/$saleId/reverse/'),
+      headers: _headers(),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(_parseError(response));
+  }
+
+  Future<Map<String, dynamic>> updateBusinessProfile(Map<String, dynamic> data) async {
+    final response = await http.patch(
+      Uri.parse('$_baseUrl/business/me/'),
+      headers: _headers(),
+      body: jsonEncode(data),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(_parseError(response));
+  }
 
 
   Future<Map<String, dynamic>?> lookupBarcode(String barcode) async {

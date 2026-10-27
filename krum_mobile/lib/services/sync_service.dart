@@ -359,6 +359,113 @@ class SyncService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> reverseSaleLocally(Map<String, dynamic> sale) async {
+    final txId = sale['client_transaction_id']?.toString();
+    final saleId = sale['id'];
+    final lookupKey = saleId != null ? saleId.toString() : txId;
+
+    // 1. Mark status as reversed in _localSales
+    for (final s in _localSales) {
+      if ((txId != null && txId.isNotEmpty && s['client_transaction_id']?.toString() == txId) ||
+          (saleId != null && s['id'] == saleId)) {
+        s['status'] = 'reversed';
+      }
+    }
+
+    // 2. If it was pending in _pendingSales, remove it from queue so it's not pushed as completed
+    _pendingSales.removeWhere((s) {
+      if (txId != null && txId.isNotEmpty && s['client_transaction_id']?.toString() == txId) return true;
+      if (saleId != null && s['id'] == saleId) return true;
+      return false;
+    });
+
+    // 3. Restore product stock locally
+    final rawItems = sale['items'] as List<dynamic>? ?? [];
+    for (final it in rawItems) {
+      if (it is! Map) continue;
+      final m = it as Map<String, dynamic>;
+      final pId = m['product_id'] ?? (m['product'] is Map ? m['product']['id'] : m['product']);
+      final qty = (m['quantity'] as num?)?.toDouble() ?? 0.0;
+      final conv = (m['conversion_to_base'] as num?)?.toDouble() ?? 1.0;
+      final puId = m['product_unit'] is int ? m['product_unit'] as int : (m['product_unit'] is Map ? m['product_unit']['id'] as int? : null);
+
+      Product? targetProduct;
+      if (pId != null) {
+        targetProduct = products.firstWhere((prod) => prod.id == pId, orElse: () => Product(id: 0, name: '', baseUnitId: 0, baseUnitName: '', units: []));
+      }
+      if (targetProduct == null || targetProduct.id == 0) {
+        if (puId != null) {
+          for (final p in products) {
+            if (p.units.any((u) => u.id == puId) || p.baseUnitId == puId) {
+              targetProduct = p;
+              break;
+            }
+          }
+        }
+      }
+
+      if (targetProduct != null && targetProduct.id != 0) {
+        targetProduct.stockBase += (qty * conv);
+      }
+    }
+
+    // 4. If customer debt was created, deduct debt from customer locally
+    final customerId = sale['customer_id'] ?? (sale['customer'] is Map ? sale['customer']['id'] : sale['customer']);
+    final total = (sale['total_amount'] ?? sale['total'] as num?)?.toDouble() ?? 0.0;
+    final amountPaid = (sale['amount_paid'] as num?)?.toDouble() ?? 0.0;
+    final debt = total - amountPaid;
+    if (customerId != null && debt > 0) {
+      final cust = customers.firstWhere((c) => c.id == customerId, orElse: () => Customer(id: 0, name: ''));
+      if (cust.id != 0) {
+        cust.outstanding = (cust.outstanding - debt).clamp(0.0, double.infinity);
+      }
+    }
+
+    await _saveLocal();
+    notifyListeners();
+
+    // 5. If online, notify server
+    if (api.isAuthenticated && lookupKey != null) {
+      try {
+        await api.reverseSale(lookupKey);
+      } catch (_) {}
+    }
+
+    return true;
+  }
+
+  Future<void> updateBusinessLocally({required String name, String? phone, String? currency}) async {
+    if (currentBusiness != null) {
+      currentBusiness = currentBusiness!.copyWith(
+        name: name,
+        phone: phone ?? currentBusiness!.phone,
+        currency: currency ?? currentBusiness!.currency,
+      );
+    } else {
+      currentBusiness = Business(
+        id: 1,
+        name: name,
+        phone: phone ?? '',
+        currency: currency ?? 'NGN',
+      );
+    }
+    await _saveLocal();
+    notifyListeners();
+
+    if (api.isAuthenticated) {
+      try {
+        final res = await api.updateBusinessProfile({
+          'name': name,
+          if (phone != null) 'phone': phone,
+          if (currency != null) 'currency': currency,
+        });
+        currentBusiness = Business.fromJson(res);
+        await _saveLocal();
+        notifyListeners();
+      } catch (_) {}
+    }
+  }
+
   // --- Synchronization Engine ---
 
   Future<bool> sync() async {

@@ -201,6 +201,111 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  void _showEditStoreDialog(BuildContext context) {
+    final provider = context.read<StoreProvider>();
+    final business = provider.business;
+    final nameController = TextEditingController(text: business?.name ?? '');
+    final phoneController = TextEditingController(text: business?.phone ?? '');
+    String selectedCurrency = business?.currency ?? 'NGN';
+
+    final currencies = [
+      {'code': 'NGN', 'label': 'Nigerian Naira (₦)'},
+      {'code': 'USD', 'label': 'US Dollar (\$)'},
+      {'code': 'GHS', 'label': 'Ghanaian Cedi (₵)'},
+      {'code': 'KES', 'label': 'Kenyan Shilling (KSh)'},
+      {'code': 'ZAR', 'label': 'South African Rand (R)'},
+      {'code': 'EUR', 'label': 'Euro (€)'},
+      {'code': 'GBP', 'label': 'British Pound (£)'},
+    ];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Edit Store Profile'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nameController,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Store Name',
+                    hintText: 'e.g. Mama Chidi Supermarket',
+                    prefixIcon: Icon(Icons.storefront_outlined),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number (optional)',
+                    hintText: 'e.g. 08012345678',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                DropdownButtonFormField<String>(
+                  value: currencies.any((c) => c['code'] == selectedCurrency) ? selectedCurrency : 'NGN',
+                  decoration: const InputDecoration(
+                    labelText: 'Currency',
+                    prefixIcon: Icon(Icons.payments_outlined),
+                  ),
+                  items: currencies.map((c) {
+                    return DropdownMenuItem<String>(
+                      value: c['code'],
+                      child: Text(c['label']!),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      setDialogState(() => selectedCurrency = val);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final newName = nameController.text.trim();
+                if (newName.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Store name cannot be empty.')),
+                  );
+                  return;
+                }
+                Navigator.pop(ctx);
+                final success = await provider.updateBusinessProfile(
+                  name: newName,
+                  phone: phoneController.text.trim(),
+                  currency: selectedCurrency,
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success ? 'Store details updated!' : 'Failed to update store details.'),
+                      backgroundColor: success ? AppColors.primary : Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save Changes'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<StoreProvider>();
@@ -245,11 +350,16 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'User: $username (${role.toUpperCase()}) · Currency: ${business?.currency ?? "NGN"}',
+                        'User: $username (${role.toUpperCase()}) · Currency: ${business?.currency ?? "NGN"}${business?.phone.isNotEmpty == true ? " · ${business!.phone}" : ""}',
                         style: const TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                     ],
                   ),
+                ),
+                IconButton(
+                  tooltip: 'Edit Store Details',
+                  icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
+                  onPressed: () => _showEditStoreDialog(context),
                 ),
               ],
             ),
