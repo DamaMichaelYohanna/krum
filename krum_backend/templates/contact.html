@@ -312,6 +312,26 @@
         border-radius: 7px;
     }
 
+    .share-page {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 18px;
+        padding: 9px 13px;
+        border: 1px solid var(--border-light);
+        border-radius: 7px;
+        background: #FFFFFF;
+        color: var(--primary-dark);
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .share-page:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
     @media (max-width: 640px) {
         .page-hero {
             padding-top: 40px;
@@ -333,6 +353,10 @@
         <p class="page-subtitle">
             Ask a question, book a walkthrough, or get help choosing the right setup. We’ll keep the conversation practical and focused on your store.
         </p>
+        <button type="button" class="share-page" id="share-page">
+            <span>Share Krum</span>
+            <span aria-hidden="true">↗</span>
+        </button>
     </section>
 
     <!-- Content Layout -->
@@ -465,4 +489,30 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const shareButton = document.getElementById('share-page');
+    if (shareButton) {
+        shareButton.addEventListener('click', async () => {
+            const shareData = {
+                title: document.title,
+                text: 'Discover Krum, simple retail software for checkout and inventory.',
+                url: window.location.href
+            };
+
+            if (navigator.share) {
+                await navigator.share(shareData);
+                return;
+            }
+
+            await navigator.clipboard.writeText(window.location.href);
+            shareButton.querySelector('span').textContent = 'Link copied';
+            window.setTimeout(() => {
+                shareButton.querySelector('span').textContent = 'Share Krum';
+            }, 2000);
+        });
+    }
+</script>
 {% endblock %}

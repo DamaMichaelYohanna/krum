@@ -4,12 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Krum — Retail POS & Cloud Inventory Operating System{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}Discover high-velocity offline POS, multi-unit inventory engine, restock management, and cloud sync for supermarkets and retail stores.{% endblock %}">
+    <meta name="description" content="{% block meta_description %}Discover Krum, simple offline-first POS, inventory, low-stock monitoring, and cloud sync for supermarkets and retail stores.{% endblock %}">
     
     <!-- Open Graph / Meta -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="{% block og_title %}Krum — Retail POS & Cloud Inventory Operating System{% endblock %}">
-    <meta property="og:description" content="Offline-first point of sale, barcode scanning, multi-unit pack conversions, supplier restock hub, and cloud sync.">
+    <meta property="og:description" content="Krum is simple, offline-first retail software for checkout, inventory, and daily store operations.">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:site_name" content="Krum">
+    <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/4/45/A_market_man_selling_grocery_bags.jpg">
+    <meta property="og:image:alt" content="African market trader serving customers from a local shop">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}Krum — Retail POS & Cloud Inventory Operating System{% endblock %}">
+    <meta name="twitter:description" content="Simple, offline-first retail software for checkout, inventory, and daily store operations.">
+    <meta name="twitter:image" content="https://upload.wikimedia.org/wikipedia/commons/4/45/A_market_man_selling_grocery_bags.jpg">
     
     <!-- Google Fonts: Outfit, Plus Jakarta Sans, Newsreader/Playfair-style Editorial Serif & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -745,7 +753,7 @@
     <aside class="announcement">
         <div class="container announcement__inner">
             <span class="announcement__badge">Release v1.0.0</span>
-            <span>Now with 1-Tap WhatsApp Supplier Restock & Cash Drawer Discrepancy Auditing.</span>
+            <span>Now with low-stock monitoring & cash drawer discrepancy auditing.</span>
         </div>
     </aside>
 
@@ -780,7 +788,7 @@
                     <ul class="footer-links">
                         <li><a href="/about/#pos">Offline Barcode POS <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
                         <li><a href="/about/#multi-unit">Multi-Unit Conversions <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
-                        <li><a href="/about/#restock">1-Tap Restock Hub <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
+                        <li><a href="/about/#restock">Stock & Restock Tracking <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
                         <li><a href="/about/#cash-drawer">Cash Drawer Sessions <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
                         <li><a href="/about/#sync">Two-Way Delta Sync <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
                     </ul>
