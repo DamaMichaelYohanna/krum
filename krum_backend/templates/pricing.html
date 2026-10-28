@@ -238,6 +238,221 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* Minimal pricing system */
+    .page-hero {
+        max-width: 760px;
+        margin: 0;
+        padding: 64px 0 30px;
+        text-align: left;
+    }
+
+    .page-hero .page-subtitle {
+        margin: 0;
+        max-width: 620px;
+    }
+
+    .pricing-toggle-wrap {
+        justify-content: flex-end;
+        margin: 0 0 22px;
+        gap: 10px;
+    }
+
+    .pricing-toggle-wrap > span {
+        font-size: 12px !important;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: var(--text-muted) !important;
+    }
+
+    .toggle-pill {
+        padding: 3px;
+        border-radius: 8px;
+        box-shadow: none;
+        background: var(--bg-surface);
+    }
+
+    .toggle-opt {
+        padding: 7px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+    }
+
+    .toggle-opt.active {
+        box-shadow: none;
+    }
+
+    .pricing-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+        border: 1px solid var(--border-light);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 76px;
+        background: var(--bg-surface);
+    }
+
+    .price-card,
+    .price-card.featured {
+        border: 0;
+        border-right: 1px solid var(--border-light);
+        border-radius: 0;
+        padding: 30px 26px 26px;
+        box-shadow: none;
+        transform: none;
+    }
+
+    .price-card:last-child {
+        border-right: 0;
+    }
+
+    .price-card.featured {
+        background: #F1F8F9;
+        box-shadow: inset 0 3px 0 var(--primary);
+    }
+
+    .price-card:hover,
+    .price-card.featured:hover {
+        transform: none;
+        border-color: var(--border-light);
+        box-shadow: inset 0 3px 0 var(--primary);
+    }
+
+    .featured-badge {
+        position: static;
+        display: inline-flex;
+        align-self: flex-start;
+        transform: none;
+        margin-bottom: 18px;
+        padding: 5px 9px;
+        border-radius: 5px;
+        box-shadow: none;
+        font-size: 10px;
+        letter-spacing: .6px;
+    }
+
+    .price-card:not(.featured)::before {
+        content: " ";
+        display: block;
+        height: 24px;
+        margin-bottom: 18px;
+    }
+
+    .plan-name {
+        font-size: 20px;
+        margin-bottom: 7px;
+    }
+
+    .plan-desc {
+        min-height: 64px;
+        font-size: 13px;
+        margin-bottom: 22px;
+    }
+
+    .price-display {
+        margin-bottom: 22px;
+        padding-bottom: 20px;
+    }
+
+    .price-amount {
+        font-size: 38px;
+    }
+
+    .price-period {
+        font-size: 12px;
+    }
+
+    .plan-features-list {
+        gap: 11px;
+        margin-bottom: 28px;
+    }
+
+    .plan-feature-item {
+        gap: 8px;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .plan-feature-item[style*="text-muted"] {
+        opacity: .7;
+    }
+
+    .price-card .btn {
+        border-radius: 7px;
+        box-shadow: none;
+    }
+
+    .section-head {
+        margin-bottom: 22px;
+    }
+
+    .section-h2 {
+        font-family: 'Outfit', sans-serif;
+        font-size: clamp(24px, 3vw, 32px);
+        color: var(--primary-dark);
+        letter-spacing: -.3px;
+    }
+
+    .section-sub {
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .table-container {
+        border-radius: 12px;
+        box-shadow: none;
+    }
+
+    .compare-table th,
+    .compare-table td {
+        padding: 14px 16px;
+    }
+
+    .compare-table th {
+        background: var(--primary-dark);
+        color: #FFFFFF;
+        font-size: 11px;
+    }
+
+    .compare-table tr:hover td {
+        background: #F7FBFC;
+    }
+
+    .bundle-card {
+        border-radius: 12px;
+        padding: 26px;
+        box-shadow: none;
+    }
+
+    @media (max-width: 900px) {
+        .pricing-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .price-card,
+        .price-card.featured {
+            border-right: 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .price-card:last-child {
+            border-bottom: 0;
+        }
+
+        .price-card:not(.featured)::before {
+            display: none;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .page-hero {
+            padding-top: 40px;
+        }
+
+        .pricing-toggle-wrap {
+            justify-content: space-between;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -245,10 +460,10 @@
 <div class="container">
     <!-- Header -->
     <section class="page-hero">
-        <div class="badge-pill">Transparent Investment</div>
-        <h1 class="page-title">Honest, Predictable Pricing for Retail Growth</h1>
+        <div class="badge-pill">Plans that scale with you</div>
+        <h1 class="page-title">Simple pricing for every stage of retail.</h1>
         <p class="page-subtitle">
-            No hidden setup fees. No surprise per-transaction percentages. Choose the plan that fits your business stage, with 100% offline capability included on every tier.
+            Start free, add the tools you need, and move up when your store grows. Every plan includes reliable offline checkout.
         </p>
     </section>
 

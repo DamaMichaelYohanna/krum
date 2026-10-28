@@ -188,6 +188,139 @@
             padding: 24px 20px;
         }
     }
+
+    /* Minimal contact system */
+    .page-hero {
+        max-width: 760px;
+        margin: 0;
+        padding: 64px 0 30px;
+        text-align: left;
+    }
+
+    .page-hero .page-subtitle {
+        margin: 0;
+        max-width: 650px;
+    }
+
+    .contact-layout {
+        grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+        gap: 48px;
+        margin-bottom: 70px;
+    }
+
+    .form-card {
+        border-radius: 14px;
+        padding: 32px;
+        box-shadow: none;
+    }
+
+    .form-card h2 {
+        font-size: 22px;
+    }
+
+    .form-card p {
+        margin-bottom: 24px;
+    }
+
+    .input-field,
+    .select-field,
+    .textarea-field {
+        background: var(--bg-surface);
+        border-radius: 7px;
+        padding: 12px 14px;
+        font-size: 13.5px;
+    }
+
+    .input-field:focus,
+    .select-field:focus,
+    .textarea-field:focus {
+        box-shadow: 0 0 0 3px rgba(31, 131, 150, 0.1);
+    }
+
+    .textarea-field {
+        min-height: 132px;
+    }
+
+    .form-card .btn {
+        border-radius: 7px;
+        box-shadow: none;
+    }
+
+    .channels-column {
+        gap: 0;
+    }
+
+    .contact-visual {
+        margin: 0 0 18px;
+    }
+
+    .contact-visual img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .contact-visual figcaption {
+        color: var(--text-muted);
+        font-size: 11.5px;
+        margin-top: 8px;
+    }
+
+    .channel-card {
+        border: 0;
+        border-top: 1px solid var(--border-light);
+        border-radius: 0;
+        padding: 18px 0;
+        gap: 14px;
+        box-shadow: none;
+    }
+
+    .channel-card:hover {
+        border-color: var(--border-light);
+        transform: none;
+        box-shadow: none;
+    }
+
+    .channel-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        font-size: 18px;
+    }
+
+    .channel-content h4 {
+        font-size: 15px;
+        margin-bottom: 3px;
+    }
+
+    .channel-content p,
+    .channel-link {
+        font-size: 12.5px;
+    }
+
+    .contact-download {
+        margin-top: 18px;
+        padding: 22px !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+        text-align: left !important;
+    }
+
+    .contact-download .btn {
+        border-radius: 7px;
+    }
+
+    @media (max-width: 640px) {
+        .page-hero {
+            padding-top: 40px;
+        }
+
+        .form-card {
+            padding: 24px 20px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -195,10 +328,10 @@
 <div class="container">
     <!-- Header -->
     <section class="page-hero">
-        <div class="badge-pill">We're Here to Help</div>
-        <h1 class="page-title">Connect with Krum Retail Specialists</h1>
+        <div class="badge-pill">Talk to the Krum team</div>
+        <h1 class="page-title">Let’s make your store run better.</h1>
         <p class="page-subtitle">
-            Whether you need a full demonstration, hardware setup advice for your supermarket, or custom multi-branch pricing, our team is ready.
+            Ask a question, book a walkthrough, or get help choosing the right setup. We’ll keep the conversation practical and focused on your store.
         </p>
     </section>
 
@@ -272,6 +405,14 @@
 
         <!-- Direct Channels -->
         <div class="channels-column">
+            <figure class="contact-visual">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/A_market_man_selling_grocery_bags.jpg" alt="African market trader serving customers from a colorful local shop">
+                <figcaption>
+                    Practical support for the stores and people powering African retail.
+                    <a href="https://commons.wikimedia.org/wiki/File:A_market_man_selling_grocery_bags.jpg" target="_blank" rel="noopener">Photo: Wikimedia Commons</a>
+                </figcaption>
+            </figure>
+
             <!-- WhatsApp -->
             <div class="channel-card">
                 <div class="channel-icon icon-whatsapp">💬</div>
@@ -302,7 +443,7 @@
                 <div class="channel-icon icon-location">📍</div>
                 <div class="channel-content">
                     <h4>Engineering & Operations</h4>
-                    <p>Headquartered in Lagos, Nigeria.<br>Operating hours: Mon – Sat, 8:00 AM – 8:00 PM WAT.</p>
+                    <p>Based in Keffi, Nasarawa State.<br>Operating hours: Mon – Sat, 8:00 AM – 8:00 PM WAT.</p>
                     <div style="font-size: 12.5px; color: var(--success); font-weight: 700;">
                         ● Support Desk Active
                     </div>
@@ -310,7 +451,7 @@
             </div>
 
             <!-- Download Banner -->
-            <div style="background: var(--primary-light); border: 1px solid var(--primary-border); border-radius: 18px; padding: 24px; text-align: center; box-shadow: var(--shadow-sm);">
+            <div class="contact-download" style="background: var(--primary-light); border: 1px solid var(--primary-border); border-radius: 18px; padding: 24px; text-align: center; box-shadow: var(--shadow-sm);">
                 <div style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800; color: var(--primary-dark); margin-bottom: 6px;">
                     Want to Test Immediately?
                 </div>

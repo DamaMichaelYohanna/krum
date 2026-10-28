@@ -116,6 +116,107 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* Minimal legal document system */
+    .page-hero {
+        max-width: 780px;
+        margin: 0;
+        padding: 64px 0 30px;
+        text-align: left;
+    }
+
+    .page-hero .page-subtitle {
+        margin: 0;
+        max-width: 680px;
+    }
+
+    .legal-container {
+        max-width: 960px;
+        margin-bottom: 70px;
+        border-radius: 14px;
+        padding: 34px 42px 48px;
+        box-shadow: none;
+    }
+
+    .legal-meta-bar {
+        padding: 0 0 22px;
+        margin-bottom: 28px;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .legal-toc {
+        background: var(--bg-canvas);
+        border: 0;
+        border-left: 3px solid var(--primary);
+        border-radius: 0 8px 8px 0;
+        padding: 20px 22px;
+        margin-bottom: 42px;
+    }
+
+    .legal-toc h3 {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: 12px;
+    }
+
+    .toc-list {
+        gap: 8px 28px;
+    }
+
+    .toc-list a {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .legal-section {
+        margin-bottom: 0;
+        padding: 28px 0;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .legal-section h2 {
+        font-size: 20px;
+        margin-bottom: 12px;
+        padding-top: 0;
+    }
+
+    .legal-section p {
+        max-width: 760px;
+        font-size: 14.5px;
+        line-height: 1.75;
+    }
+
+    .legal-section ul {
+        max-width: 760px;
+        font-size: 14px;
+    }
+
+    .highlight-pill {
+        max-width: 760px;
+        border-left-width: 3px;
+        border-radius: 0 8px 8px 0;
+        padding: 14px 18px;
+        font-size: 13.5px;
+    }
+
+    @media (max-width: 640px) {
+        .page-hero {
+            padding-top: 40px;
+        }
+
+        .legal-container {
+            padding: 24px 20px 34px;
+        }
+
+        .legal-meta-bar {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 7px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -228,7 +329,7 @@
         <section class="legal-section" id="term-8">
             <h2>8. Intellectual Property</h2>
             <p>
-                The Krum brand, software codebase, database schemas, UI designs, algorithms, documentation, and logos are the proprietary intellectual property of Krum Technologies. You may not reverse-engineer, decompile, copy, or redistribute the software without express written authorization.
+                The Krum brand, software codebase, database schemas, UI designs, algorithms, documentation, and logos are the proprietary intellectual property of Dama Technologies LTD. You may not reverse-engineer, decompile, copy, or redistribute the software without express written authorization.
             </p>
         </section>
 
@@ -252,7 +353,7 @@
         <section class="legal-section" id="term-11">
             <h2>11. Governing Law & Dispute Resolution</h2>
             <p>
-                These Terms shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria. Any dispute arising under or in connection with these Terms shall first be submitted to good-faith mediation before formal arbitration in Lagos, Nigeria.
+                These Terms shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria. Any dispute arising under or in connection with these Terms shall first be submitted to good-faith mediation before formal arbitration in Keffi, Nasarawa State, Nigeria.
             </p>
         </section>
 

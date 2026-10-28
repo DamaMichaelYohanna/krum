@@ -610,6 +610,62 @@
                 display: none;
             }
         }
+
+        /* Keep the shared shell quiet so each page can lead with its purpose. */
+        .utility-bar,
+        .announcement {
+            display: none;
+        }
+
+        .brand-bar {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .brand-mark {
+            gap: 12px;
+        }
+
+        .brand-mark__logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            font-size: 22px;
+        }
+
+        .brand-mark__name strong {
+            font-size: 21px;
+        }
+
+        .brand-mark__name span {
+            font-size: 11px;
+        }
+
+        .main-navigation {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .desktop-nav a {
+            padding: 11px 15px;
+            font-size: 13px;
+        }
+
+        footer.site-footer {
+            margin-top: 40px;
+            padding: 48px 0 22px;
+            border-top-width: 2px;
+        }
+
+        @media (max-width: 640px) {
+            .brand-mark__name span,
+            .brand-bar__actions .text-action {
+                display: none;
+            }
+
+            .brand-mark__name strong {
+                font-size: 19px;
+            }
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -620,7 +676,7 @@
         <div class="container utility-bar__inner">
             <span class="utility-bar__location">
                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                Lagos, Nigeria · Offline-First Engine · Cloud Sync Active
+                Keffi, Nasarawa State · Offline-First Engine · Cloud Sync Active
             </span>
             <nav class="utility-links" aria-label="Quick links">
                 <a href="/api/"><span>API Specs</span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
@@ -637,8 +693,8 @@
             <a href="/" class="brand-mark" id="brand-link">
                 <span class="brand-mark__logo">K</span>
                 <span class="brand-mark__name">
-                    <strong>Krum Technologies</strong>
-                    <span>Precision & Resilience for Modern Retail</span>
+                    <strong>Krum</strong>
+                    <span>Powered by Dama Technologies LTD</span>
                 </span>
             </a>
             
@@ -706,8 +762,8 @@
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                         <span class="brand-mark__logo" style="width: 42px; height: 42px; font-size: 22px; background: rgba(255,255,255,0.12);">K</span>
                         <div>
-                            <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; color: #FFFFFF;">Krum Technologies</div>
-                            <div style="font-size: 12px; color: var(--color-gold);">Knowledge for resilient retail</div>
+                            <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; color: #FFFFFF;">Krum</div>
+                            <div style="font-size: 12px; color: var(--color-gold);">A Dama Technologies LTD product</div>
                         </div>
                     </div>
                     <p>
@@ -756,7 +812,7 @@
 
             <div class="footer-bottom">
                 <div>
-                    &copy; 2026 Krum POS & Inventory Technologies. Built for resilient retail commerce.
+                    &copy; 2026 Dama Technologies LTD. Krum is built for resilient retail commerce.
                 </div>
                 <div>
                     <a href="/privacy/">Privacy</a>

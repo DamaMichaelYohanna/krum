@@ -116,6 +116,107 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* Minimal legal document system */
+    .page-hero {
+        max-width: 780px;
+        margin: 0;
+        padding: 64px 0 30px;
+        text-align: left;
+    }
+
+    .page-hero .page-subtitle {
+        margin: 0;
+        max-width: 680px;
+    }
+
+    .legal-container {
+        max-width: 960px;
+        margin-bottom: 70px;
+        border-radius: 14px;
+        padding: 34px 42px 48px;
+        box-shadow: none;
+    }
+
+    .legal-meta-bar {
+        padding: 0 0 22px;
+        margin-bottom: 28px;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .legal-toc {
+        background: var(--bg-canvas);
+        border: 0;
+        border-left: 3px solid var(--primary);
+        border-radius: 0 8px 8px 0;
+        padding: 20px 22px;
+        margin-bottom: 42px;
+    }
+
+    .legal-toc h3 {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: 12px;
+    }
+
+    .toc-list {
+        gap: 8px 28px;
+    }
+
+    .toc-list a {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .legal-section {
+        margin-bottom: 0;
+        padding: 28px 0;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .legal-section h2 {
+        font-size: 20px;
+        margin-bottom: 12px;
+        padding-top: 0;
+    }
+
+    .legal-section p {
+        max-width: 760px;
+        font-size: 14.5px;
+        line-height: 1.75;
+    }
+
+    .legal-section ul {
+        max-width: 760px;
+        font-size: 14px;
+    }
+
+    .highlight-pill {
+        max-width: 760px;
+        border-left-width: 3px;
+        border-radius: 0 8px 8px 0;
+        padding: 14px 18px;
+        font-size: 13.5px;
+    }
+
+    @media (max-width: 640px) {
+        .page-hero {
+            padding-top: 40px;
+        }
+
+        .legal-container {
+            padding: 24px 20px 34px;
+        }
+
+        .legal-meta-bar {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 7px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -156,7 +257,7 @@
         <section class="legal-section" id="sec-1">
             <h2>1. Introduction & Scope</h2>
             <p>
-                Krum POS & Inventory Technologies ("Krum", "we", "us", or "our") provides an offline-first Point of Sale application, inventory management tools, and cloud synchronization platform designed for retail supermarkets, provision stores, and wholesale FMCG merchants.
+                Dama Technologies LTD ("Dama Technologies", "Krum", "we", "us", or "our") provides Krum, an offline-first Point of Sale application, inventory management tool, and cloud synchronization platform designed for retail supermarkets, provision stores, and wholesale FMCG merchants.
             </p>
             <p>
                 This Privacy Policy explains how information relating to you (the store owner, cashier, or staff member) and your retail store operations is collected, stored, processed, and safeguarded when using the Krum Android mobile application, the Krum cloud API backend, and related web services.
@@ -248,7 +349,7 @@
             </p>
             <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--primary-dark); background: var(--bg-subtle); padding: 18px; border-radius: 12px; border: 1px solid var(--border);">
                 Email: privacy@krum.app<br>
-                Postal: Krum Technologies Data Protection Desk, Lagos, Nigeria<br>
+                Postal: Dama Technologies LTD Data Protection Desk, Keffi, Nasarawa State, Nigeria<br>
                 WhatsApp Support Desk: +234 (0) 800-KRUM-POS
             </div>
         </section>
