@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+
+{% block title %}About Product — Krum POS & Inventory Architecture{% endblock %}
+{% block meta_description %}Learn how Krum was engineered to solve the toughest retail challenges in emerging markets: offline-first POS, multi-pack inventory, supplier restock hub, and till auditing.{% endblock %}
+
+{% block extra_head %}
+<style>
+    .about-story-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 50px;
+        align-items: center;
+        margin-bottom: 90px;
+    }
+
+    .story-content h2 {
+        font-family: 'Outfit', sans-serif;
+        font-size: clamp(28px, 4vw, 38px);
+        font-weight: 800;
+        margin-bottom: 18px;
+        color: #FFFFFF;
+        line-height: 1.2;
+    }
+
+    .story-content p {
+        color: var(--text-muted);
+        font-size: 15.5px;
+        line-height: 1.7;
+        margin-bottom: 18px;
+    }
+
+    .story-highlight-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 36px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .story-highlight-box::after {
+        content: '';
+        position: absolute;
+        top: -50px; right: -50px;
+        width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    /* Architecture Breakdown */
+    .arch-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+        margin-bottom: 90px;
+    }
+
+    .arch-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 18px;
+        padding: 30px;
+        transition: var(--transition-smooth);
+    }
+
+    .arch-card:hover {
+        border-color: var(--border-glow);
+        background: var(--bg-card-hover);
+        transform: translateY(-3px);
+    }
+
+    .arch-num {
+        font-family: 'Outfit', sans-serif;
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--cyan);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+    }
+
+    .arch-card h3 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 10px;
+    }
+
+    .arch-card p {
+        color: var(--text-muted);
+        font-size: 14.5px;
+        line-height: 1.6;
+    }
+
+    /* Hardware Ecosystem */
+    .hardware-section {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 24px;
+        padding: 48px;
+        margin-bottom: 90px;
+    }
+
+    .hardware-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        margin-top: 36px;
+    }
+
+    .hardware-item {
+        background: rgba(6, 8, 14, 0.6);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 22px;
+    }
+
+    .hardware-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+    }
+
+    .hardware-item h4 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 6px;
+    }
+
+    .hardware-item p {
+        color: var(--text-muted);
+        font-size: 13.5px;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+        .about-story-section {
+            grid-template-columns: 1fr;
+        }
+        .hardware-section {
+            padding: 30px 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <section class="page-hero">
+        <div class="badge-pill">Our Philosophy & Architecture</div>
+        <h1 class="page-title">Engineering Resilient Retail Technology</h1>
+        <p class="page-subtitle">
+            Krum was born out of real counter experiences in African retail: where internet cuts out during peak checkout rushes, stock gets broken down into loose pieces, and till leakages erode business margins.
+        </p>
+    </section>
+
+    <!-- The Krum Story & Mission -->
+    <section class="about-story-section">
+        <div class="story-content">
+            <h2>Why We Built Krum</h2>
+            <p>
+                In high-velocity supermarkets and provision stores, traditional cloud-only POS systems regularly freeze the moment mobile networks or broadband connections fluctuate. Cashiers are forced back to pen and paper, barcode scanners stop working, and sales data is lost or double-counted.
+            </p>
+            <p>
+                Furthermore, inventory in FMCG is uniquely dynamic: store owners purchase biscuits by the carton (e.g. 24 packs), sell by the pack (e.g. 10 pieces), and sell individual pieces across the counter. Without native multi-unit conversion math, inventory tracking becomes a nightmare.
+            </p>
+            <p>
+                <strong>Krum replaces this chaos with a robust, offline-first operating system.</strong> Your cashiers continue ringing up sales sub-second with zero lag, receipts print via Bluetooth, stock deducts accurately, and everything syncs effortlessly with the cloud when connection resumes.
+            </p>
+        </div>
+
+        <div class="story-highlight-box">
+            <div style="font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 800; color: #FFFFFF; margin-bottom: 18px;">
+                The 4 Core Tenets of Krum
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div style="display: flex; gap: 14px;">
+                    <div style="color: var(--cyan); font-weight: 800; font-size: 18px;">01</div>
+                    <div>
+                        <div style="font-weight: 700; color: #FFFFFF; font-size: 15px;">Zero Downtime Selling</div>
+                        <div style="color: var(--text-muted); font-size: 13.5px;">100% of sales and till operations execute on device in local SQLite. Internet outages never halt business.</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 14px;">
+                    <div style="color: var(--cyan); font-weight: 800; font-size: 18px;">02</div>
+                    <div>
+                        <div style="font-weight: 700; color: #FFFFFF; font-size: 15px;">Multi-Packaging Precision</div>
+                        <div style="color: var(--text-muted); font-size: 13.5px;">Native conversion ratios between base units, retail packs, cartons, and bulk bags.</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 14px;">
+                    <div style="color: var(--cyan); font-weight: 800; font-size: 18px;">03</div>
+                    <div>
+                        <div style="font-weight: 700; color: #FFFFFF; font-size: 15px;">Frictionless Restock Hub</div>
+                        <div style="color: var(--text-muted); font-size: 13.5px;">Instant supplier purchase orders sent through WhatsApp and SMS in 1 tap.</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 14px;">
+                    <div style="color: var(--cyan); font-weight: 800; font-size: 18px;">04</div>
+                    <div>
+                        <div style="font-weight: 700; color: #FFFFFF; font-size: 15px;">Strict Cashier Accountability</div>
+                        <div style="color: var(--text-muted); font-size: 13.5px;">Live till sessions, expected cash calculation, and variance audits at shift end.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Architecture Deep Dive -->
+    <section>
+        <div class="section-head">
+            <div class="badge-pill">Behind The Scenes</div>
+            <h2 class="section-h2">Architectural Superiority</h2>
+            <p class="section-sub">A look under the hood of Krum’s resilient data flow and engineering stack.</p>
+        </div>
+
+        <div class="arch-grid">
+            <div class="arch-card" id="pos">
+                <div class="arch-num">Layer 1</div>
+                <h3>Offline-First Mobile POS</h3>
+                <p>
+                    Built with Flutter and high-performance SQLite. Every barcode scan executes a fast indexed query. Camera scanners, laser USB/Bluetooth guns, and manual lookups resolve in under 200 milliseconds.
+                </p>
+            </div>
+
+            <div class="arch-card" id="multi-unit">
+                <div class="arch-num">Layer 2</div>
+                <h3>Atomic Unit Converter</h3>
+                <p>
+                    All product inventory balances are tracked in normalized base units (e.g., pieces or grams). When a cashier sells 1 carton of 24 pieces, exactly 24 base units are deducted atomically, preventing inventory drift.
+                </p>
+            </div>
+
+            <div class="arch-card" id="reports">
+                <div class="arch-num">Layer 3</div>
+                <h3>Weighted Cost (WACP) Engine</h3>
+                <p>
+                    Supplier prices shift constantly. Krum recalculates Weighted Average Cost Price on every restock receipt: `((OldStock × OldCost) + (NewQty × NewCost)) ÷ (OldStock + NewQty)`. Profit and gross margin figures are always accurate.
+                </p>
+            </div>
+
+            <div class="arch-card" id="restock">
+                <div class="arch-num">Layer 4</div>
+                <h3>1-Tap WhatsApp Requisition</h3>
+                <p>
+                    Krum continuously compares stock against user-configured reorder levels. When stock runs low, it auto-generates formatted purchase orders that can be dispatched immediately to supplier phone contacts via WhatsApp.
+                </p>
+            </div>
+
+            <div class="arch-card" id="cash-drawer">
+                <div class="arch-num">Layer 5</div>
+                <h3>Cash Till & Shift Auditing</h3>
+                <p>
+                    Every cashier shift begins with a recorded opening float. As cash, POS cards, and bank transfers are processed, the expected till balance is computed in real time. At shift closure, counted cash is reconciled and any discrepancy is flagged.
+                </p>
+            </div>
+
+            <div class="arch-card" id="sync">
+                <div class="arch-num">Layer 6</div>
+                <h3>Two-Way Conflict-Free Sync</h3>
+                <p>
+                    Client devices queue all mutations with unique client transaction UUIDs. When internet is available, delta batches are sent to the cloud Django + PostgreSQL backend, updating global analytics without race conditions.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hardware Compatibility -->
+    <section class="hardware-section">
+        <div style="text-align: center; max-width: 650px; margin: 0 auto;">
+            <div class="badge-pill">Hardware Ecosystem</div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; color: #FFFFFF; margin-bottom: 12px;">
+                Works with Hardware You Already Own
+            </h2>
+            <p style="color: var(--text-muted); font-size: 15px;">
+                Krum avoids expensive proprietary hardware lock-in. Use standard Android devices and plug-and-play retail accessories.
+            </p>
+        </div>
+
+        <div class="hardware-grid">
+            <div class="hardware-item">
+                <div class="hardware-icon">📱</div>
+                <h4>Android Phones & Tablets</h4>
+                <p>Runs on any Android device running Android 7.0 (Nougat) or newer. Works great on budget phones up to high-end counter tablets.</p>
+            </div>
+
+            <div class="hardware-item">
+                <div class="hardware-icon">🖨️</div>
+                <h4>Thermal Receipt Printers</h4>
+                <p>Full support for 58mm and 80mm ESC/POS thermal printers via Bluetooth, USB OTG, or network IP.</p>
+            </div>
+
+            <div class="hardware-item">
+                <div class="hardware-icon">🔫</div>
+                <h4>Barcode Scanners</h4>
+                <p>Compatible with handheld USB barcode scanners, wireless Bluetooth ring scanners, or device built-in autofocus camera.</p>
+            </div>
+
+            <div class="hardware-item">
+                <div class="hardware-icon">📟</div>
+                <h4>All-In-One POS Terminals</h4>
+                <p>Tested and verified on dedicated commercial Android POS terminals (Sunmi V2/T2, Telpo, and PAX devices).</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section style="text-align: center; padding: 40px 0 20px;">
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; color: #FFFFFF; margin-bottom: 16px;">
+            Ready to upgrade your store's infrastructure?
+        </h2>
+        <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+            <a href="/pricing/" class="btn btn-primary" style="padding: 14px 28px;">
+                View Pricing & Plans
+            </a>
+            <a href="/download/krum.apk" class="btn btn-emerald" style="padding: 14px 28px;">
+                Download Android APK
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}

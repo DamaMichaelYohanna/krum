@@ -1,0 +1,579 @@
+{% extends 'base.html' %}
+
+{% block title %}Pricing Plans — Krum POS & Cloud Sync{% endblock %}
+{% block meta_description %}Simple, transparent pricing for growing supermarkets, provision stores, and retail chains. Choose from our Free Starter, Pro Supermarket, or Multi-Branch Enterprise plans.{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Currency Switcher */
+    .pricing-toggle-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 48px;
+    }
+
+    .toggle-pill {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 9999px;
+        padding: 4px;
+        display: flex;
+        gap: 4px;
+    }
+
+    .toggle-opt {
+        padding: 8px 20px;
+        border-radius: 9999px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        color: var(--text-muted);
+    }
+
+    .toggle-opt.active {
+        background: var(--gradient-brand);
+        color: #FFFFFF;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+    }
+
+    /* Pricing Cards Grid */
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 28px;
+        margin-bottom: 80px;
+        align-items: stretch;
+    }
+
+    .price-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 24px;
+        padding: 38px 30px;
+        display: flex;
+        flex-direction: column;
+        transition: var(--transition-smooth);
+        position: relative;
+    }
+
+    .price-card.featured {
+        background: linear-gradient(145deg, rgba(23, 34, 60, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+        border: 1px solid var(--border-glow);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 35px rgba(99, 102, 241, 0.25);
+        transform: translateY(-6px);
+    }
+
+    .price-card:hover {
+        border-color: var(--border-glow);
+        transform: translateY(-8px);
+    }
+
+    .featured-badge {
+        position: absolute;
+        top: -14px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--gradient-brand);
+        color: #FFFFFF;
+        font-size: 11.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 5px 16px;
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.5);
+    }
+
+    .plan-name {
+        font-family: 'Outfit', sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        color: #FFFFFF;
+        margin-bottom: 8px;
+    }
+
+    .plan-desc {
+        color: var(--text-muted);
+        font-size: 14px;
+        min-height: 44px;
+        line-height: 1.5;
+        margin-bottom: 24px;
+    }
+
+    .price-display {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .price-amount {
+        font-family: 'Outfit', sans-serif;
+        font-size: 44px;
+        font-weight: 800;
+        color: #FFFFFF;
+        line-height: 1;
+    }
+
+    .price-period {
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    .plan-features-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-bottom: 32px;
+        flex: 1;
+    }
+
+    .plan-feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 14px;
+        color: var(--text-main);
+    }
+
+    .feature-check {
+        color: #10B981;
+        font-weight: 800;
+        font-size: 15px;
+        line-height: 1.2;
+    }
+
+    /* Comparison Table */
+    .compare-section {
+        margin-bottom: 90px;
+    }
+
+    .table-container {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        overflow-x: auto;
+    }
+
+    .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .compare-table th,
+    .compare-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .compare-table th {
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text-dim);
+        font-weight: 700;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .compare-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .check-yes {
+        color: #10B981;
+        font-weight: 800;
+        font-size: 16px;
+    }
+
+    .check-no {
+        color: var(--text-dim);
+        font-size: 14px;
+    }
+
+    /* Hardware Bundles */
+    .bundles-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        margin-bottom: 80px;
+    }
+
+    .bundle-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        padding: 30px;
+    }
+
+    .bundle-card h3 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 10px;
+    }
+
+    .bundle-card p {
+        color: var(--text-muted);
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+
+    @media (max-width: 860px) {
+        .bundles-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <section class="page-hero">
+        <div class="badge-pill">Transparent Investment</div>
+        <h1 class="page-title">Honest, Predictable Pricing for Retail Growth</h1>
+        <p class="page-subtitle">
+            No hidden setup fees. No surprise per-transaction percentages. Choose the plan that fits your business stage, with 100% offline capability included on every tier.
+        </p>
+    </section>
+
+    <!-- Currency Selector -->
+    <div class="pricing-toggle-wrap">
+        <span style="font-size: 14px; font-weight: 600; color: var(--text-muted);">Currency:</span>
+        <div class="toggle-pill">
+            <div class="toggle-opt active" id="btn-curr-ngn" onclick="setCurrency('NGN')">₦ NGN (Naira)</div>
+            <div class="toggle-opt" id="btn-curr-usd" onclick="setCurrency('USD')">$ USD (Dollars)</div>
+        </div>
+    </div>
+
+    <!-- Pricing Cards Grid -->
+    <div class="pricing-grid">
+        <!-- Starter Tier -->
+        <div class="price-card">
+            <div class="plan-name">Starter Solo</div>
+            <div class="plan-desc">Essential point-of-sale for small provision shops and single-counter kiosks.</div>
+            
+            <div class="price-display">
+                <span class="price-amount" id="starter-price">₦0</span>
+                <span class="price-period">/ forever free</span>
+            </div>
+
+            <ul class="plan-features-list">
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>1 Dedicated Cashier & Device</span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>100% Offline POS & Barcode Lookup</span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Multi-Unit Packaging (Pcs, Packs, Cartons)</span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Thermal Bluetooth Receipt Printing</span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Local SQLite Database & Offline Storage</span>
+                </li>
+                <li class="plan-feature-item" style="color: var(--text-dim);">
+                    <span>✕</span>
+                    <span>Cloud Sync & Web Dashboard</span>
+                </li>
+                <li class="plan-feature-item" style="color: var(--text-dim);">
+                    <span>✕</span>
+                    <span>Automated WhatsApp Supplier Restock</span>
+                </li>
+            </ul>
+
+            <a href="/download/krum.apk" class="btn btn-outline" style="width: 100%; padding: 13px;">
+                Download Free APK
+            </a>
+        </div>
+
+        <!-- Pro Tier (Featured) -->
+        <div class="price-card featured">
+            <div class="featured-badge">Most Popular for Supermarkets</div>
+            <div class="plan-name">Pro Supermarket</div>
+            <div class="plan-desc">For established supermarkets, pharmacies, and high-volume retail stores.</div>
+            
+            <div class="price-display">
+                <span class="price-amount" id="pro-price" style="color: #34D399;">₦15,000</span>
+                <span class="price-period">/ month per store</span>
+            </div>
+
+            <ul class="plan-features-list">
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span><strong>Up to 5 Cashiers & Staff Tills</strong></span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span><strong>Continuous Cloud Delta Sync Engine</strong></span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span><strong>Low-Stock Hub & 1-Tap WhatsApp PO Orders</strong></span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span><strong>Cash Drawer & Shift Handover Reconciliation</strong></span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span><strong>Customer Debtors Ledger & Reminders</strong></span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span><strong>Moving Weighted Average (WACP) P&L Reports</strong></span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Priority WhatsApp & Telephone Support</span>
+                </li>
+            </ul>
+
+            <a href="/contact/?plan=pro" class="btn btn-emerald" style="width: 100%; padding: 13px;">
+                Get Started with Pro
+            </a>
+        </div>
+
+        <!-- Enterprise Tier -->
+        <div class="price-card">
+            <div class="plan-name">Enterprise Multi-Store</div>
+            <div class="plan-desc">For multi-branch supermarket chains, wholesale FMCG distributors, and depots.</div>
+            
+            <div class="price-display">
+                <span class="price-amount" id="ent-price">₦45,000</span>
+                <span class="price-period">/ month (3 branches)</span>
+            </div>
+
+            <ul class="plan-features-list">
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span><strong>Unlimited Cashiers & Devices</strong></span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Centralized Multi-Branch Inventory Consolidation</span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Manager Role Permissions & Void Authorizations</span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>REST API Access & Webhook Integrations</span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Automated Cloud Backups & Zero-Loss Guarantee</span>
+                </li>
+                <li class="plan-feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Dedicated Account Manager & On-Site Setup</span>
+                </li>
+            </ul>
+
+            <a href="/contact/?plan=enterprise" class="btn btn-primary" style="width: 100%; padding: 13px;">
+                Contact Enterprise Sales
+            </a>
+        </div>
+    </div>
+
+    <!-- Feature Comparison Table -->
+    <section class="compare-section">
+        <div class="section-head">
+            <h2 class="section-h2">Compare Plan Features</h2>
+            <p class="section-sub">A side-by-side view of all functional capabilities across our tiers.</p>
+        </div>
+
+        <div class="table-container">
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Core Feature</th>
+                        <th style="width: 20%;">Starter Solo</th>
+                        <th style="width: 20%;">Pro Supermarket</th>
+                        <th style="width: 20%;">Enterprise Multi-Store</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Offline-First POS Terminal</strong></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Multi-Unit Pack Conversions</strong> (Pcs, Packs, Cartons)</td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Thermal Receipt Printing</strong> (58mm/80mm Bluetooth & USB)</td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sub-Second Barcode Scanning & SKU Search</strong></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Max Active Cashiers / Devices</strong></td>
+                        <td>1 Device</td>
+                        <td>5 Devices</td>
+                        <td>Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Two-Way Cloud Delta Synchronization</strong></td>
+                        <td><span class="check-no">—</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Low Stock Alerts & 1-Tap WhatsApp Restock POs</strong></td>
+                        <td><span class="check-no">—</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cash Drawer Sessions & Shift Handover Reconciliation</strong></td>
+                        <td><span class="check-no">—</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Customer Debtors Ledger & WhatsApp Statements</strong></td>
+                        <td><span class="check-no">—</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Weighted Average Cost (WACP) Valuation</strong></td>
+                        <td><span class="check-no">—</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Centralized Multi-Store Management</strong></td>
+                        <td><span class="check-no">—</span></td>
+                        <td><span class="check-no">—</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Direct Developer REST API & Webhooks</strong></td>
+                        <td><span class="check-no">—</span></td>
+                        <td><span class="check-no">—</span></td>
+                        <td><span class="check-yes">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Technical Support Level</strong></td>
+                        <td>Community</td>
+                        <td>Priority WhatsApp / Phone</td>
+                        <td>Dedicated Account Manager</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Recommended Hardware Bundles -->
+    <section>
+        <div class="section-head">
+            <div class="badge-pill">Turnkey Deployment</div>
+            <h2 class="section-h2">Hardware Bundle Recommendations</h2>
+            <p class="section-sub">Simple, plug-and-play hardware combinations compatible with Krum.</p>
+        </div>
+
+        <div class="bundles-grid">
+            <div class="bundle-card">
+                <div style="font-size: 28px; margin-bottom: 12px;">📱</div>
+                <h3>Mobile Handheld Setup</h3>
+                <p>
+                    Perfect for small provision stores, pop-up kiosks, or floor stock-checkers who need mobility.
+                </p>
+                <ul class="plan-features-list" style="margin-bottom: 0;">
+                    <li class="plan-feature-item">✓ Any Android Phone (Android 7.0+)</li>
+                    <li class="plan-feature-item">✓ Portable 58mm Bluetooth Thermal Printer (~₦25,000)</li>
+                    <li class="plan-feature-item">✓ Phone Camera for Barcode Scanning</li>
+                </ul>
+            </div>
+
+            <div class="bundle-card">
+                <div style="font-size: 28px; margin-bottom: 12px;">🏪</div>
+                <h3>Full Countertop Supermarket Setup</h3>
+                <p>
+                    Built for high-volume retail checkout counters requiring durability and speed.
+                </p>
+                <ul class="plan-features-list" style="margin-bottom: 0;">
+                    <li class="plan-feature-item">✓ 10-inch Android Tablet with Counter Stand</li>
+                    <li class="plan-feature-item">✓ Heavy-Duty 80mm Auto-Cutter Thermal Printer</li>
+                    <li class="plan-feature-item">✓ Hands-Free Omnidirectional Laser Barcode Scanner</li>
+                    <li class="plan-feature-item">✓ RJ11 Automatic Electronic Cash Drawer</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="cta-banner">
+        <h2>Start Modernizing Your Store Today</h2>
+        <p>No credit card required to test. Download the Android APK and experience sub-second retail checkout.</p>
+        <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+            <a href="/download/krum.apk" class="btn btn-emerald" style="padding: 14px 28px;">
+                Download Free APK
+            </a>
+            <a href="/contact/" class="btn btn-outline" style="padding: 14px 28px;">
+                Speak with Sales
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentCurrency = 'NGN';
+
+    const prices = {
+        NGN: {
+            starter: '₦0',
+            pro: '₦15,000',
+            ent: '₦45,000'
+        },
+        USD: {
+            starter: '$0',
+            pro: '$19',
+            ent: '$59'
+        }
+    };
+
+    function setCurrency(curr) {
+        currentCurrency = curr;
+        document.getElementById('btn-curr-ngn').classList.toggle('active', curr === 'NGN');
+        document.getElementById('btn-curr-usd').classList.toggle('active', curr === 'USD');
+
+        document.getElementById('starter-price').textContent = prices[curr].starter;
+        document.getElementById('pro-price').textContent = prices[curr].pro;
+        document.getElementById('ent-price').textContent = prices[curr].ent;
+    }
+</script>
+{% endblock %}

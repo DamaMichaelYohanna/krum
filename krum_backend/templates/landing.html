@@ -1,0 +1,838 @@
+{% extends 'base.html' %}
+
+{% block title %}Krum — Smart POS, Multi-Unit Inventory & Cloud Sync{% endblock %}
+{% block meta_description %}The complete retail operating system for supermarkets, provision stores, and FMCG retailers. Offline-first barcode POS, multi-unit conversions, 1-tap supplier restock orders, and cloud sync.{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Hero */
+    .landing-hero {
+        padding: 70px 0 50px;
+        text-align: center;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .hero-h1 {
+        font-family: 'Outfit', sans-serif;
+        font-size: clamp(38px, 6vw, 62px);
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -1.8px;
+        margin-bottom: 22px;
+        background: linear-gradient(135deg, #FFFFFF 20%, #E2E8F0 60%, #818CF8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-lead {
+        font-size: clamp(17px, 2.2vw, 20px);
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin-bottom: 38px;
+        max-width: 760px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 50px;
+    }
+
+    /* Live Interactive POS Till Mockup */
+    .pos-preview-container {
+        margin: 20px auto 70px;
+        max-width: 1040px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(79, 70, 229, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pos-preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--border-subtle);
+        margin-bottom: 20px;
+    }
+
+    .pos-brand-indicator {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .pos-layout {
+        display: grid;
+        grid-template-columns: 1.6fr 1.2fr;
+        gap: 20px;
+    }
+
+    /* Products Grid in Mockup */
+    .mock-catalog-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+    }
+
+    .mock-items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 12px;
+    }
+
+    .mock-item-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 14px;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        text-align: left;
+    }
+
+    .mock-item-card:hover {
+        background: rgba(99, 102, 241, 0.12);
+        border-color: var(--border-glow);
+        transform: translateY(-2px);
+    }
+
+    .mock-item-name {
+        font-weight: 600;
+        font-size: 13.5px;
+        color: #FFFFFF;
+        margin-bottom: 4px;
+    }
+
+    .mock-item-unit {
+        font-size: 11.5px;
+        color: var(--cyan);
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .mock-item-price {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        font-size: 14px;
+        color: #34D399;
+    }
+
+    /* Cart in Mockup */
+    .mock-cart {
+        background: rgba(6, 8, 14, 0.7);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mock-cart-header {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        color: #FFFFFF;
+    }
+
+    .mock-cart-list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 140px;
+    }
+
+    .mock-cart-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .mock-cart-totals {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .mock-total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .mock-grand-total {
+        font-size: 17px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-top: 8px;
+    }
+
+    /* Trust Stats Ribbon */
+    .trust-ribbon {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 16px;
+        margin-bottom: 80px;
+    }
+
+    .trust-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 18px;
+        padding: 24px;
+        text-align: center;
+        backdrop-filter: blur(12px);
+    }
+
+    .trust-val {
+        font-family: 'Outfit', sans-serif;
+        font-size: 36px;
+        font-weight: 800;
+        background: var(--gradient-brand);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1.1;
+        margin-bottom: 6px;
+    }
+
+    .trust-label {
+        font-weight: 700;
+        font-size: 14px;
+        color: #FFFFFF;
+        margin-bottom: 4px;
+    }
+
+    .trust-sub {
+        font-size: 12.5px;
+        color: var(--text-muted);
+    }
+
+    /* Pillars */
+    .pillar-section {
+        margin-bottom: 90px;
+    }
+
+    .section-head {
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto 48px;
+    }
+
+    .section-h2 {
+        font-family: 'Outfit', sans-serif;
+        font-size: clamp(28px, 4vw, 42px);
+        font-weight: 800;
+        letter-spacing: -1px;
+        margin-bottom: 14px;
+        color: #FFFFFF;
+    }
+
+    .section-sub {
+        font-size: 16px;
+        color: var(--text-muted);
+    }
+
+    .pillars-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 24px;
+    }
+
+    .pillar-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        padding: 32px;
+        transition: var(--transition-smooth);
+        position: relative;
+    }
+
+    .pillar-card:hover {
+        background: var(--bg-card-hover);
+        border-color: var(--border-glow);
+        transform: translateY(-4px);
+    }
+
+    .pillar-icon {
+        width: 52px;
+        height: 52px;
+        background: rgba(99, 102, 241, 0.12);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        margin-bottom: 22px;
+    }
+
+    .pillar-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: #FFFFFF;
+    }
+
+    .pillar-desc {
+        color: var(--text-muted);
+        font-size: 14.5px;
+        line-height: 1.6;
+    }
+
+    /* Interactive Savings Calculator */
+    .calc-card {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(11, 16, 29, 0.95) 100%);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 40px;
+        margin-bottom: 90px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        align-items: center;
+    }
+
+    .calc-slider-group {
+        margin-bottom: 24px;
+    }
+
+    .calc-label-row {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    input[type=range] {
+        width: 100%;
+        accent-color: #6366F1;
+        cursor: pointer;
+    }
+
+    .calc-results {
+        background: rgba(6, 8, 14, 0.7);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .calc-res-val {
+        font-family: 'Outfit', sans-serif;
+        font-size: 44px;
+        font-weight: 800;
+        color: #34D399;
+        line-height: 1.1;
+        margin-bottom: 8px;
+    }
+
+    /* FAQ Section */
+    .faq-container {
+        max-width: 800px;
+        margin: 0 auto 90px;
+    }
+
+    .faq-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 14px;
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+
+    .faq-question {
+        padding: 20px 24px;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        font-size: 17px;
+        color: #FFFFFF;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .faq-answer {
+        padding: 0 24px 20px;
+        color: var(--text-muted);
+        font-size: 14.5px;
+        line-height: 1.6;
+        display: none;
+    }
+
+    .faq-item.active .faq-answer {
+        display: block;
+    }
+
+    .faq-item.active .faq-icon {
+        transform: rotate(180deg);
+    }
+
+    /* Bottom CTA Banner */
+    .cta-banner {
+        background: linear-gradient(135deg, #1E1B4B 0%, #0F172A 50%, #064E3B 100%);
+        border: 1px solid var(--border-glow);
+        border-radius: 28px;
+        padding: 60px 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-banner h2 {
+        font-family: 'Outfit', sans-serif;
+        font-size: clamp(30px, 4.5vw, 44px);
+        font-weight: 800;
+        margin-bottom: 16px;
+        color: #FFFFFF;
+    }
+
+    .cta-banner p {
+        font-size: 17px;
+        color: #CBD5E1;
+        max-width: 650px;
+        margin: 0 auto 36px;
+    }
+
+    @media (max-width: 860px) {
+        .pos-layout, .calc-card {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <section class="landing-hero">
+        <div class="badge-pill">
+            <span style="color: var(--cyan);">⚡</span> Next-Gen Offline-First POS & Cloud Sync
+        </div>
+        <h1 class="hero-h1">The Complete Operating System for Fast-Paced Retail & Supermarkets</h1>
+        <p class="hero-lead">
+            Never lose a sale when the network is down. Experience sub-second barcode checkout, flexible multi-unit pack conversions, 1-tap WhatsApp supplier restocking, and conflict-free cloud sync.
+        </p>
+
+        <div class="hero-btn-group">
+            <a href="/download/krum.apk" class="btn btn-primary" id="hero-cta-apk">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Download Android APK</span>
+                <span style="font-size: 11px; opacity: 0.85; background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 6px;">v1.0.0</span>
+            </a>
+
+            <a href="/pricing/" class="btn btn-outline" id="hero-cta-pricing">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                <span>View Pricing Plans</span>
+            </a>
+
+            <a href="/admin/" class="btn btn-outline" id="hero-cta-admin">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Store Admin Portal</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Interactive Live POS Simulation Showcase -->
+    <section class="pos-preview-container">
+        <div class="pos-preview-header">
+            <div class="pos-brand-indicator">
+                <div class="brand-icon" style="width: 32px; height: 32px; font-size: 16px;">K</div>
+                <div>
+                    <span>Krum Terminal Simulator</span>
+                    <span style="font-size: 12px; color: #10B981; font-weight: 600; margin-left: 8px;">● Live Till Active</span>
+                </div>
+            </div>
+            <div style="font-size: 13px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">
+                Click any product below to simulate instant checkout
+            </div>
+        </div>
+
+        <div class="pos-layout">
+            <!-- Catalog Mockup -->
+            <div>
+                <div class="mock-catalog-title">Tap to Add to Till:</div>
+                <div class="mock-items-grid">
+                    <div class="mock-item-card" onclick="addToCart('Golden Penny Spaghetti', 'Carton (20 Pcs)', 18500)">
+                        <div class="mock-item-name">Golden Penny Pasta</div>
+                        <div class="mock-item-unit">Carton (20 Pcs)</div>
+                        <div class="mock-item-price">₦18,500</div>
+                    </div>
+
+                    <div class="mock-item-card" onclick="addToCart('Golden Penny Spaghetti', 'Piece (1 Single)', 950)">
+                        <div class="mock-item-name">Golden Penny Pasta</div>
+                        <div class="mock-item-unit">Piece (Single)</div>
+                        <div class="mock-item-price">₦950</div>
+                    </div>
+
+                    <div class="mock-item-card" onclick="addToCart('Peak Milk Evap 160g', 'Pack (24 Tins)', 14200)">
+                        <div class="mock-item-name">Peak Evap Milk</div>
+                        <div class="mock-item-unit">Pack (24 Tins)</div>
+                        <div class="mock-item-price">₦14,200</div>
+                    </div>
+
+                    <div class="mock-item-card" onclick="addToCart('Milo Cocoa Tin 500g', 'Tin', 3800)">
+                        <div class="mock-item-name">Milo 500g Tin</div>
+                        <div class="mock-item-unit">Single Unit</div>
+                        <div class="mock-item-price">₦3,800</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cart Mockup -->
+            <div class="mock-cart">
+                <div class="mock-cart-header">
+                    <span>Current Cart</span>
+                    <span style="color: var(--cyan); cursor: pointer; font-size: 13px;" onclick="clearCart()">Clear</span>
+                </div>
+
+                <div class="mock-cart-list" id="mock-cart-items">
+                    <div class="mock-cart-item">
+                        <div>
+                            <div style="font-weight: 600;">Golden Penny Pasta</div>
+                            <div style="font-size: 11px; color: var(--text-dim);">1 × Carton (20 Pcs)</div>
+                        </div>
+                        <div style="font-family: monospace; font-weight: 700; color: #34D399;">₦18,500</div>
+                    </div>
+                </div>
+
+                <div class="mock-cart-totals">
+                    <div class="mock-total-row">
+                        <span>Subtotal</span>
+                        <span id="mock-subtotal" style="font-family: monospace;">₦18,500</span>
+                    </div>
+                    <div class="mock-total-row">
+                        <span>Tax / VAT (0%)</span>
+                        <span style="font-family: monospace;">₦0.00</span>
+                    </div>
+                    <div class="mock-total-row mock-grand-total">
+                        <span>Total Due</span>
+                        <span id="mock-total" style="color: #34D399; font-family: monospace;">₦18,500</span>
+                    </div>
+
+                    <button class="btn btn-emerald" style="width: 100%; margin-top: 14px; padding: 12px;" onclick="checkoutSim()">
+                        ⚡ Complete Sale (Cash/POS)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Stats Ribbon -->
+    <section class="trust-ribbon">
+        <div class="trust-card">
+            <div class="trust-val">&lt; 0.2s</div>
+            <div class="trust-label">Sub-Second Barcode Scan</div>
+            <div class="trust-sub">Zero cashier checkout friction</div>
+        </div>
+        <div class="trust-card">
+            <div class="trust-val">100%</div>
+            <div class="trust-label">Offline Resilience</div>
+            <div class="trust-sub">Keeps selling during network outages</div>
+        </div>
+        <div class="trust-card">
+            <div class="trust-val">3x</div>
+            <div class="trust-label">Faster Restocking</div>
+            <div class="trust-sub">Instant WhatsApp PO text generation</div>
+        </div>
+        <div class="trust-card">
+            <div class="trust-val">Zero</div>
+            <div class="trust-label">Till Leakages</div>
+            <div class="trust-sub">Shift handover cash audits</div>
+        </div>
+    </section>
+
+    <!-- 6 Core Engineering Pillars -->
+    <section class="pillar-section" id="features">
+        <div class="section-head">
+            <div class="badge-pill">Architected for Heavy Retail</div>
+            <h2 class="section-h2">Designed to Solve African & Emerging Retail Realities</h2>
+            <p class="section-sub">From intermittent network down-times to multi-pack unit inventory chaos, Krum delivers stability and profit clarity.</p>
+        </div>
+
+        <div class="pillars-grid">
+            <div class="pillar-card">
+                <div class="pillar-icon">📦</div>
+                <h3 class="pillar-title">Multi-Pack Unit Conversions</h3>
+                <p class="pillar-desc">
+                    Sell items seamlessly by single piece, half-dozen pack, carton, or crate. Stock is automatically converted and deducted from the base unit without manual inventory reconciliations.
+                </p>
+            </div>
+
+            <div class="pillar-card">
+                <div class="pillar-icon">⚡</div>
+                <h3 class="pillar-title">Low Stock Hub & 1-Tap Restock</h3>
+                <p class="pillar-desc">
+                    Live reorder level triggers calculate stock deficits and suggested reorder quantities. Generate pre-filled, itemized purchase orders sent directly to preferred suppliers via WhatsApp or SMS.
+                </p>
+            </div>
+
+            <div class="pillar-card">
+                <div class="pillar-icon">💼</div>
+                <h3 class="pillar-title">Cash Drawer & Shift Auditing</h3>
+                <p class="pillar-desc">
+                    Prevent till discrepancies. Track cashier opening float, cash sales, drop-ins, and petty payouts. Perform formal end-of-shift cash counts with automatic variance discrepancy auditing.
+                </p>
+            </div>
+
+            <div class="pillar-card">
+                <div class="pillar-icon">👥</div>
+                <h3 class="pillar-title">Customer Debtors Ledger</h3>
+                <p class="pillar-desc">
+                    Keep credit customers accountable. Track outstanding balances, record partial repayments, and share instant formatted account statements and payment reminders on WhatsApp.
+                </p>
+            </div>
+
+            <div class="pillar-card">
+                <div class="pillar-icon">📈</div>
+                <h3 class="pillar-title">Moving Weighted Average Cost</h3>
+                <p class="pillar-desc">
+                    As purchase prices fluctuate with inflation, Krum automatically recalculates Weighted Average Cost Price (WACP) on purchase receipt, giving you true gross margins and net profit.
+                </p>
+            </div>
+
+            <div class="pillar-card">
+                <div class="pillar-icon">🔄</div>
+                <h3 class="pillar-title">Dual Offline SQLite + Cloud</h3>
+                <p class="pillar-desc">
+                    Your sales floor never stops. All data is persisted instantly into local high-performance SQLite on your Android device and transparently delta-synced with the cloud backend.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive ROI / Savings Calculator -->
+    <section class="calc-card">
+        <div>
+            <div class="badge-pill" style="margin-bottom: 12px;">Interactive Estimation</div>
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 30px; font-weight: 800; color: #FFFFFF; margin-bottom: 14px;">
+                Calculate Your Store's Annual Savings with Krum
+            </h3>
+            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 28px;">
+                Adjust the sliders to estimate how much cash leakages and hours Krum helps eliminate through automated shift audits, stock deficit tracking, and barcode accuracy.
+            </p>
+
+            <div class="calc-slider-group">
+                <div class="calc-label-row">
+                    <span>Average Daily Store Sales</span>
+                    <span id="lbl-daily" style="color: var(--cyan); font-family: monospace;">₦350,000</span>
+                </div>
+                <input type="range" id="rng-daily" min="50000" max="2500000" step="25000" value="350000" oninput="recalcSavings()">
+            </div>
+
+            <div class="calc-slider-group">
+                <div class="calc-label-row">
+                    <span>Estimated Cash & Stock Discrepancy Rate</span>
+                    <span id="lbl-shrink" style="color: var(--amber); font-family: monospace;">2.5%</span>
+                </div>
+                <input type="range" id="rng-shrink" min="0.5" max="8.0" step="0.5" value="2.5" oninput="recalcSavings()">
+            </div>
+        </div>
+
+        <div class="calc-results">
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;">
+                Estimated Annual Losses Prevented
+            </div>
+            <div class="calc-res-val" id="res-savings">₦3,150,000</div>
+            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">
+                Plus ~<strong>180 hours</strong> of manual paper stocktaking saved per year.
+            </div>
+            <a href="/pricing/" class="btn btn-primary" style="width: 100%; padding: 14px;">
+                Start Saving with Krum Today
+            </a>
+        </div>
+    </section>
+
+    <!-- Frequently Asked Questions -->
+    <section class="faq-container">
+        <div class="section-head">
+            <h2 class="section-h2">Frequently Asked Questions</h2>
+            <p class="section-sub">Everything you need to know about setting up and running Krum.</p>
+        </div>
+
+        <div class="faq-item active">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Does Krum require 24/7 internet connection to sell?</span>
+                <span class="faq-icon">▾</span>
+            </div>
+            <div class="faq-answer">
+                No. Krum is built offline-first. Cashiers can ring up sales, print receipts, adjust stock, and reconcile shifts completely offline. All records are stored locally in SQLite and automatically synchronized to the cloud when internet connection is restored.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>What hardware peripherals can I use with Krum?</span>
+                <span class="faq-icon">▾</span>
+            </div>
+            <div class="faq-answer">
+                Krum runs on standard Android phones, tablets, and POS terminals (such as Sunmi). It natively supports USB and Bluetooth thermal receipt printers (58mm and 80mm), handheld laser barcode scanners, and camera-based barcode scanning.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>How does multi-unit pack conversion work?</span>
+                <span class="faq-icon">▾</span>
+            </div>
+            <div class="faq-answer">
+                You configure your base unit (e.g. 1 Piece) and packaging tiers (e.g. 1 Pack = 12 Pieces, 1 Carton = 24 Pieces) with distinct cost and selling prices. When you sell a carton, Krum automatically deducts 24 units from base stock while recording the carton selling price.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>How do WhatsApp supplier purchase orders work?</span>
+                <span class="faq-icon">▾</span>
+            </div>
+            <div class="faq-answer">
+                In the Restock Hub, Krum flags all products at or below their reorder levels and computes suggested reorder quantities. With 1 tap, Krum formats a structured WhatsApp purchase order listing product names, quantities, unit costs, and total amount, opening directly in your supplier's WhatsApp chat.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Can multiple cashiers use Krum simultaneously?</span>
+                <span class="faq-icon">▾</span>
+            </div>
+            <div class="faq-answer">
+                Yes. Under our Pro and Enterprise tiers, you can create multiple cashier and manager accounts. Each cashier opens and closes their own independent shift session with distinct cash drawer reconciliation.
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom CTA Banner -->
+    <section class="cta-banner">
+        <h2>Modernize Your Supermarket or Retail Store</h2>
+        <p>
+            Download the Android application or connect your team to experience resilient, offline-first retail operations.
+        </p>
+        <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+            <a href="/download/krum.apk" class="btn btn-emerald" style="padding: 14px 28px; font-size: 15px;">
+                Download Android App (APK)
+            </a>
+            <a href="/contact/" class="btn btn-outline" style="padding: 14px 28px; font-size: 15px;">
+                Request Store Demo
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let cart = [
+        { name: 'Golden Penny Pasta', unit: 'Carton (20 Pcs)', price: 18500 }
+    ];
+
+    function renderCart() {
+        const list = document.getElementById('mock-cart-items');
+        list.innerHTML = '';
+        let total = 0;
+        cart.forEach((item, idx) => {
+            total += item.price;
+            const row = document.createElement('div');
+            row.className = 'mock-cart-item';
+            row.innerHTML = `
+                <div>
+                    <div style="font-weight: 600;">${item.name}</div>
+                    <div style="font-size: 11px; color: var(--text-dim);">${item.unit}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-family: monospace; font-weight: 700; color: #34D399;">₦${item.price.toLocaleString()}</span>
+                    <span style="cursor: pointer; color: var(--rose); font-size: 13px;" onclick="removeItem(${idx})">✕</span>
+                </div>
+            `;
+            list.appendChild(row);
+        });
+
+        document.getElementById('mock-subtotal').textContent = '₦' + total.toLocaleString();
+        document.getElementById('mock-total').textContent = '₦' + total.toLocaleString();
+    }
+
+    function addToCart(name, unit, price) {
+        cart.push({ name, unit, price });
+        renderCart();
+    }
+
+    function removeItem(idx) {
+        cart.splice(idx, 1);
+        renderCart();
+    }
+
+    function clearCart() {
+        cart = [];
+        renderCart();
+    }
+
+    function checkoutSim() {
+        if (cart.length === 0) {
+            alert('Your simulated cart is empty. Click a product above to add items.');
+            return;
+        }
+        let total = cart.reduce((acc, i) => acc + i.price, 0);
+        alert(`✅ Sale Completed Successfully!\nTotal: ₦${total.toLocaleString()}\n• Stock Deducted Offline\n• Receipt Printed\n• Till Session Updated`);
+        cart = [];
+        renderCart();
+    }
+
+    function recalcSavings() {
+        const daily = parseFloat(document.getElementById('rng-daily').value);
+        const shrink = parseFloat(document.getElementById('rng-shrink').value) / 100.0;
+        
+        document.getElementById('lbl-daily').textContent = '₦' + daily.toLocaleString();
+        document.getElementById('lbl-shrink').textContent = (shrink * 100).toFixed(1) + '%';
+
+        // Annual sales = daily * 360 days. Krum typically eliminates ~70% of shrink leakages
+        const annualLeak = daily * 360 * shrink;
+        const saved = annualLeak * 0.70;
+
+        document.getElementById('res-savings').textContent = '₦' + Math.round(saved).toLocaleString();
+    }
+
+    function toggleFaq(el) {
+        const item = el.parentElement;
+        item.classList.toggle('active');
+    }
+</script>
+{% endblock %}

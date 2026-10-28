@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Krum — Smart POS & Cloud Inventory Management{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Next-generation offline-first Point of Sale, multi-unit inventory engine, restock management, and cloud sync for supermarkets and retail stores.{% endblock %}">
+    
+    <!-- Open Graph / Meta -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}Krum — Retail POS & Cloud Inventory Operating System{% endblock %}">
+    <meta property="og:description" content="Offline-first point of sale, barcode scanning, multi-unit pack conversions, supplier restock hub, and cloud sync.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-base: #06080E;
+            --bg-surface: #0B101D;
+            --bg-card: rgba(15, 23, 42, 0.72);
+            --bg-card-hover: rgba(23, 34, 60, 0.85);
+            --border-subtle: rgba(255, 255, 255, 0.07);
+            --border-glow: rgba(99, 102, 241, 0.45);
+            --primary: #4F46E5;
+            --primary-light: #6366F1;
+            --primary-hover: #4338CA;
+            --cyan: #06B6D4;
+            --emerald: #10B981;
+            --amber: #F59E0B;
+            --rose: #F43F5E;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --text-dim: #64748B;
+            --gradient-brand: linear-gradient(135deg, #4F46E5 0%, #06B6D4 100%);
+            --gradient-accent: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+            --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.25);
+            --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(79, 70, 229, 0.14) 0%, transparent 40%),
+                radial-gradient(circle at 90% 60%, rgba(6, 182, 212, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 50% 95%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+        }
+
+        /* Subtle grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-size: 48px 48px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Top Navigation Header */
+        header.site-header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background: rgba(6, 8, 14, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-subtle);
+            z-index: 100;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 76px;
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--gradient-brand);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 22px;
+            color: #FFFFFF;
+            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.45);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 23px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #FFFFFF;
+            line-height: 1.1;
+        }
+
+        .brand-tag {
+            font-size: 11px;
+            color: var(--cyan);
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        /* Nav menu */
+        nav.nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        nav.nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14.5px;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+            position: relative;
+            padding: 6px 0;
+        }
+
+        nav.nav-links a:hover,
+        nav.nav-links a.active {
+            color: #FFFFFF;
+        }
+
+        nav.nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-brand);
+            border-radius: 2px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 13px;
+            border-radius: 8px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-brand);
+            color: #FFFFFF;
+            box-shadow: 0 4px 18px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(79, 70, 229, 0.55);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--border-subtle);
+            color: var(--text-main);
+            backdrop-filter: blur(8px);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+
+        .btn-emerald {
+            background: var(--gradient-accent);
+            color: #FFFFFF;
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-emerald:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Mobile Hamburger */
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 6px;
+        }
+
+        /* Mobile Drawer */
+        .mobile-drawer {
+            display: none;
+            position: fixed;
+            top: 76px;
+            left: 0;
+            right: 0;
+            background: rgba(11, 16, 29, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 24px;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 99;
+        }
+
+        .mobile-drawer.open {
+            display: flex;
+        }
+
+        .mobile-drawer a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        /* Main Content */
+        main.site-main {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Footer */
+        footer.site-footer {
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-subtle);
+            margin-top: 80px;
+            padding: 70px 0 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr repeat(3, 1fr);
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand p {
+            color: var(--text-muted);
+            font-size: 14.5px;
+            margin: 16px 0 24px;
+            max-width: 320px;
+            line-height: 1.6;
+        }
+
+        .footer-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #34D399;
+        }
+
+        .footer-status .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10B981;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .footer-col h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 20px;
+            letter-spacing: -0.2px;
+        }
+
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--transition-smooth);
+        }
+
+        .footer-links a:hover {
+            color: #FFFFFF;
+            transform: translateX(3px);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-subtle);
+            color: var(--text-dim);
+            font-size: 13.5px;
+        }
+
+        .footer-bottom-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-bottom-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: var(--transition-smooth);
+        }
+
+        .footer-bottom-links a:hover {
+            color: var(--text-muted);
+        }
+
+        /* Common Page Header */
+        .page-hero {
+            padding: 60px 0 40px;
+            text-align: center;
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            color: #A5B4FC;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            margin-bottom: 18px;
+        }
+
+        .page-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -1.2px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #FFFFFF 30%, #CBD5E1 70%, #A5B4FC 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-subtitle {
+            font-size: clamp(16px, 1.8vw, 18px);
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            nav.nav-links, .nav-actions .btn-outline {
+                display: none;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+            .nav-actions .btn-primary span {
+                display: none;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="site-header">
+        <div class="container">
+            <div class="nav-inner">
+                <a href="/" class="brand-link" id="nav-brand">
+                    <div class="brand-icon">K</div>
+                    <div class="brand-text">
+                        <span class="brand-title">Krum</span>
+                        <span class="brand-tag">Retail POS & Cloud</span>
+                    </div>
+                </a>
+
+                <nav class="nav-links">
+                    <a href="/" class="{% if request.path == '/' %}active{% endif %}" id="nav-home">Home</a>
+                    <a href="/about/" class="{% if request.path == '/about/' %}active{% endif %}" id="nav-about">About Product</a>
+                    <a href="/pricing/" class="{% if request.path == '/pricing/' %}active{% endif %}" id="nav-pricing">Pricing</a>
+                    <a href="/contact/" class="{% if request.path == '/contact/' %}active{% endif %}" id="nav-contact">Contact Us</a>
+                    <a href="/privacy/" class="{% if request.path == '/privacy/' %}active{% endif %}" id="nav-privacy">Privacy</a>
+                    <a href="/terms/" class="{% if request.path == '/terms/' %}active{% endif %}" id="nav-terms">Terms</a>
+                </nav>
+
+                <div class="nav-actions">
+                    <a href="/admin/" class="btn btn-outline btn-sm" id="nav-admin">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <span>Store Admin</span>
+                    </a>
+
+                    <a href="/download/krum.apk" class="btn btn-primary btn-sm" id="nav-download-apk">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Get App (APK)</span>
+                    </a>
+
+                    <button class="mobile-menu-btn" id="mobile-toggle" aria-label="Toggle Navigation">
+                        ☰
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div class="mobile-drawer" id="mobile-drawer">
+            <a href="/" id="m-home">Home</a>
+            <a href="/about/" id="m-about">About Product</a>
+            <a href="/pricing/" id="m-pricing">Pricing</a>
+            <a href="/contact/" id="m-contact">Contact Us</a>
+            <a href="/privacy/" id="m-privacy">Privacy Policy</a>
+            <a href="/terms/" id="m-terms">Terms & Conditions</a>
+            <a href="/admin/" id="m-admin">Store Admin Portal</a>
+            <a href="/download/krum.apk" class="btn btn-primary" id="m-apk">Download Android APK</a>
+        </div>
+    </header>
+
+    <!-- Main Content Injection -->
+    <main class="site-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="brand-link" style="margin-bottom: 12px;">
+                        <div class="brand-icon">K</div>
+                        <div class="brand-text">
+                            <span class="brand-title">Krum</span>
+                            <span class="brand-tag">Cloud Sync Engine</span>
+                        </div>
+                    </a>
+                    <p>
+                        High-velocity, offline-first Point of Sale & Inventory management for supermarkets, provision stores, and retail chains.
+                    </p>
+                    <div class="footer-status">
+                        <span class="pulse-dot"></span>
+                        <span>Cloud Engine Operational</span>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Core Capabilities</h4>
+                    <ul class="footer-links">
+                        <li><a href="/about/#pos">Offline Barcode POS</a></li>
+                        <li><a href="/about/#multi-unit">Multi-Unit Conversions</a></li>
+                        <li><a href="/about/#restock">1-Tap Restock Hub</a></li>
+                        <li><a href="/about/#cash-drawer">Cash Drawer Sessions</a></li>
+                        <li><a href="/about/#sync">Two-Way Delta Sync</a></li>
+                        <li><a href="/about/#reports">WACP Profit & Loss</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <ul class="footer-links">
+                        <li><a href="/about/">About Product</a></li>
+                        <li><a href="/pricing/">Pricing Plans</a></li>
+                        <li><a href="/contact/">Contact Sales & Support</a></li>
+                        <li><a href="/health/">API System Health</a></li>
+                        <li><a href="/api/">API Documentation</a></li>
+                        <li><a href="/admin/">Django Admin Portal</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Legal & Trust</h4>
+                    <ul class="footer-links">
+                        <li><a href="/privacy/">Privacy Policy</a></li>
+                        <li><a href="/terms/">Terms of Service</a></li>
+                        <li><a href="/privacy/#data-protection">Data Protection</a></li>
+                        <li><a href="/terms/#licensing">Software Licensing</a></li>
+                        <li><a href="/download/krum.apk">Download Android APK</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div>
+                    &copy; 2026 Krum POS & Inventory Technologies. Built for resilient retail operations.
+                </div>
+                <div class="footer-bottom-links">
+                    <a href="/privacy/">Privacy</a>
+                    <a href="/terms/">Terms</a>
+                    <a href="/contact/">Support</a>
+                    <a href="/health/">Status</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const toggleBtn = document.getElementById('mobile-toggle');
+        const drawer = document.getElementById('mobile-drawer');
+        if (toggleBtn && drawer) {
+            toggleBtn.addEventListener('click', () => {
+                drawer.classList.toggle('open');
+                toggleBtn.textContent = drawer.classList.contains('open') ? '✕' : '☰';
+            });
+        }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

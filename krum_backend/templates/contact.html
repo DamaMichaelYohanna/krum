@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us & Sales — Krum Retail POS{% endblock %}
+{% block meta_description %}Speak with our retail solutions team. Request a live store demonstration, hardware bundle setup, or get technical support for Krum POS.{% endblock %}
+
+{% block extra_head %}
+<style>
+    .contact-layout {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 50px;
+        align-items: start;
+        margin-bottom: 90px;
+    }
+
+    .form-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .form-card h2 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        color: #FFFFFF;
+        margin-bottom: 8px;
+    }
+
+    .form-card p {
+        color: var(--text-muted);
+        font-size: 14.5px;
+        margin-bottom: 28px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #CBD5E1;
+        margin-bottom: 8px;
+    }
+
+    .input-field,
+    .select-field,
+    .textarea-field {
+        width: 100%;
+        background: rgba(6, 8, 14, 0.7);
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+        padding: 12px 16px;
+        color: #FFFFFF;
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: var(--transition-smooth);
+    }
+
+    .input-field:focus,
+    .select-field:focus,
+    .textarea-field:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .textarea-field {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    /* Channel Cards */
+    .channels-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .channel-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 18px;
+        padding: 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        transition: var(--transition-smooth);
+    }
+
+    .channel-card:hover {
+        border-color: var(--border-glow);
+        transform: translateY(-2px);
+    }
+
+    .channel-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .icon-whatsapp {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10B981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .icon-email {
+        background: rgba(99, 102, 241, 0.15);
+        color: #818CF8;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .icon-location {
+        background: rgba(6, 182, 212, 0.15);
+        color: #06B6D4;
+        border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .channel-content h4 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 4px;
+    }
+
+    .channel-content p {
+        color: var(--text-muted);
+        font-size: 13.5px;
+        margin-bottom: 6px;
+    }
+
+    .channel-link {
+        color: var(--cyan);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .channel-link:hover {
+        text-decoration: underline;
+    }
+
+    /* Success Banner */
+    .success-alert {
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        border-radius: 14px;
+        padding: 18px 22px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: #34D399;
+    }
+
+    @media (max-width: 860px) {
+        .contact-layout {
+            grid-template-columns: 1fr;
+        }
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        .form-card {
+            padding: 24px 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <section class="page-hero">
+        <div class="badge-pill">We're Here to Help</div>
+        <h1 class="page-title">Connect with Krum Retail Specialists</h1>
+        <p class="page-subtitle">
+            Whether you need a full demonstration, hardware setup advice for your supermarket, or custom multi-branch pricing, our team is ready.
+        </p>
+    </section>
+
+    <!-- Content Layout -->
+    <div class="contact-layout">
+        <!-- Contact Form -->
+        <div class="form-card">
+            <h2>Send Us a Message</h2>
+            <p>Fill out the form below and a retail solutions engineer will reply within 4 business hours.</p>
+
+            {% if success_message %}
+            <div class="success-alert" id="inquiry-success-box">
+                <div style="font-size: 24px;">✅</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 15px;">Inquiry Received Successfully!</div>
+                    <div style="font-size: 13.5px; opacity: 0.9;">
+                        Ticket Reference: <strong style="font-family: monospace;">{{ ticket_id }}</strong>. We have logged your request and our team will contact you shortly.
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="/contact/" id="contact-form">
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contact-name">Your Full Name *</label>
+                        <input type="text" id="contact-name" name="name" class="input-field" placeholder="e.g. Chukwuma Adebayo" required value="{{ form_data.name|default:'' }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact-email">Email Address *</label>
+                        <input type="email" id="contact-email" name="email" class="input-field" placeholder="e.g. chukwuma@store.com" required value="{{ form_data.email|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contact-phone">Phone / WhatsApp Number</label>
+                        <input type="tel" id="contact-phone" name="phone" class="input-field" placeholder="e.g. +234 803 123 4567" value="{{ form_data.phone|default:'' }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact-store">Store / Business Name</label>
+                        <input type="text" id="contact-store" name="store_name" class="input-field" placeholder="e.g. Apex Supermarket" value="{{ form_data.store_name|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="contact-subject">Inquiry Subject</label>
+                    <select id="contact-subject" name="subject" class="select-field">
+                        <option value="General Inquiry" {% if request.GET.plan != 'pro' and request.GET.plan != 'enterprise' %}selected{% endif %}>General Inquiry & Questions</option>
+                        <option value="Pro Supermarket Plan" {% if request.GET.plan == 'pro' %}selected{% endif %}>Pro Plan Subscription & Setup</option>
+                        <option value="Enterprise Multi-Store" {% if request.GET.plan == 'enterprise' %}selected{% endif %}>Enterprise Multi-Store Consultation</option>
+                        <option value="Hardware Peripherals" >Hardware Bundle Setup (Scanners/Printers)</option>
+                        <option value="Technical Support" >Technical & Sync Support</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="contact-message">How can we help your store? *</label>
+                    <textarea id="contact-message" name="message" class="textarea-field" placeholder="Tell us about your current store setup, number of cashiers, and any questions you have..." required>{{ form_data.message|default:'' }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btn-submit-contact" style="width: 100%; padding: 14px; font-size: 15px;">
+                    Submit Inquiry
+                </button>
+            </form>
+        </div>
+
+        <!-- Direct Channels -->
+        <div class="channels-column">
+            <!-- WhatsApp -->
+            <div class="channel-card">
+                <div class="channel-icon icon-whatsapp">💬</div>
+                <div class="channel-content">
+                    <h4>WhatsApp Direct Line</h4>
+                    <p>Instant chat with our onboarding and technical support specialists.</p>
+                    <a href="https://wa.me/2348000000000?text=Hello%20Krum%20Team,%20I%20would%20like%20to%20learn%20more%20about%20the%20POS%20system." target="_blank" class="channel-link">
+                        <span>Chat on WhatsApp</span> →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="channel-card">
+                <div class="channel-icon icon-email">✉️</div>
+                <div class="channel-content">
+                    <h4>Email Support</h4>
+                    <p>Send documentation, inquiries, and billing requests to our team.</p>
+                    <div style="font-size: 13.5px; color: #CBD5E1; font-family: monospace;">
+                        support@krum.app<br>
+                        sales@krum.app
+                    </div>
+                </div>
+            </div>
+
+            <!-- Office & Hours -->
+            <div class="channel-card">
+                <div class="channel-icon icon-location">📍</div>
+                <div class="channel-content">
+                    <h4>Engineering & Operations</h4>
+                    <p>Headquartered in Lagos, Nigeria.<br>Operating hours: Mon – Sat, 8:00 AM – 8:00 PM WAT.</p>
+                    <div style="font-size: 12.5px; color: var(--accent-emerald); font-weight: 600;">
+                        ● Support Desk Active
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Banner -->
+            <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%); border: 1px solid var(--border-glow); border-radius: 18px; padding: 24px; text-align: center;">
+                <div style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">
+                    Want to Test Immediately?
+                </div>
+                <p style="color: var(--text-muted); font-size: 13.5px; margin-bottom: 16px;">
+                    Download the compiled APK directly onto your Android phone or tablet to start ringing up sales offline.
+                </p>
+                <a href="/download/krum.apk" class="btn btn-emerald" style="width: 100%; padding: 10px;">
+                    Download Android APK
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

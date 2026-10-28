@@ -513,7 +513,7 @@ class LandingAndRootViewsTests(TestCase):
         self.assertIn('text/html', res['Content-Type'])
         content = res.content.decode('utf-8')
         self.assertIn('Krum', content)
-        self.assertIn('API Operational', content)
+        self.assertIn('Operational', content)
         self.assertIn('/download/krum.apk', content)
 
     def test_root_landing_page_json(self):
@@ -544,5 +544,68 @@ class LandingAndRootViewsTests(TestCase):
         res = self.client.get('/download/krum.apk')
         # Either 200 (file stream) or 302 (redirect to github raw)
         self.assertIn(res.status_code, [200, 302])
+
+    def test_about_page_html(self):
+        res = self.client.get('/about/')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('text/html', res['Content-Type'])
+        content = res.content.decode('utf-8')
+        self.assertIn('Engineering Resilient Retail Technology', content)
+        self.assertIn('Offline-First Mobile POS', content)
+
+    def test_pricing_page_html(self):
+        res = self.client.get('/pricing/')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('text/html', res['Content-Type'])
+        content = res.content.decode('utf-8')
+        self.assertIn('Starter Solo', content)
+        self.assertIn('Pro Supermarket', content)
+        self.assertIn('Enterprise Multi-Store', content)
+
+    def test_contact_page_get(self):
+        res = self.client.get('/contact/')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('text/html', res['Content-Type'])
+        content = res.content.decode('utf-8')
+        self.assertIn('Connect with Krum Retail Specialists', content)
+        self.assertIn('Send Us a Message', content)
+
+    def test_contact_page_post_submission(self):
+        from apps.core.models import ContactInquiry
+        initial_count = ContactInquiry.objects.count()
+
+        payload = {
+            'name': 'Emeka Obi',
+            'email': 'emeka@superstore.ng',
+            'phone': '+2348012345678',
+            'store_name': 'Emeka Grand Supermarket',
+            'subject': 'Pro Supermarket Plan',
+            'message': 'We have 4 cashiers and need barcode scanners and cloud sync setup.'
+        }
+        res = self.client.post('/contact/', data=payload)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(ContactInquiry.objects.count(), initial_count + 1)
+        inquiry = ContactInquiry.objects.first()
+        self.assertEqual(inquiry.name, 'Emeka Obi')
+        self.assertEqual(inquiry.store_name, 'Emeka Grand Supermarket')
+        content = res.content.decode('utf-8')
+        self.assertIn('Inquiry Received Successfully', content)
+        self.assertIn(f'KRM-INQ-{inquiry.id:04d}', content)
+
+    def test_privacy_page_html(self):
+        res = self.client.get('/privacy/')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('text/html', res['Content-Type'])
+        content = res.content.decode('utf-8')
+        self.assertIn('Privacy Policy', content)
+        self.assertIn('Offline-First Storage Principles', content)
+
+    def test_terms_page_html(self):
+        res = self.client.get('/terms/')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('text/html', res['Content-Type'])
+        content = res.content.decode('utf-8')
+        self.assertIn('Terms & Conditions', content)
+        self.assertIn('Software License', content)
 
 

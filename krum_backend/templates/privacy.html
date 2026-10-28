@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy — Krum Retail POS & Cloud Platform{% endblock %}
+{% block meta_description %}Read Krum's Privacy Policy. Learn how your store records, sales transactions, cashier shifts, and customer debt data are stored securely offline and synchronized safely.{% endblock %}
+
+{% block extra_head %}
+<style>
+    .legal-container {
+        max-width: 880px;
+        margin: 0 auto 90px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 24px;
+        padding: 50px 40px;
+    }
+
+    .legal-meta-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-subtle);
+        margin-bottom: 36px;
+        font-size: 13.5px;
+        color: var(--text-dim);
+    }
+
+    .legal-toc {
+        background: rgba(6, 8, 14, 0.6);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 40px;
+    }
+
+    .legal-toc h3 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 14px;
+    }
+
+    .toc-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        list-style: none;
+    }
+
+    .toc-list a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 13.5px;
+        transition: var(--transition-smooth);
+    }
+
+    .toc-list a:hover {
+        color: var(--cyan);
+        transform: translateX(3px);
+    }
+
+    .legal-section {
+        margin-bottom: 36px;
+    }
+
+    .legal-section h2 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 14px;
+        padding-top: 10px;
+    }
+
+    .legal-section p {
+        color: var(--text-muted);
+        font-size: 15px;
+        line-height: 1.7;
+        margin-bottom: 14px;
+    }
+
+    .legal-section ul {
+        list-style: disc;
+        margin-left: 20px;
+        margin-bottom: 16px;
+        color: var(--text-muted);
+        font-size: 14.5px;
+        line-height: 1.6;
+    }
+
+    .legal-section li {
+        margin-bottom: 8px;
+    }
+
+    .highlight-pill {
+        background: rgba(99, 102, 241, 0.12);
+        border-left: 3px solid var(--primary-light);
+        padding: 14px 18px;
+        border-radius: 0 10px 10px 0;
+        margin: 18px 0;
+        font-size: 14px;
+        color: #CBD5E1;
+    }
+
+    @media (max-width: 640px) {
+        .legal-container {
+            padding: 30px 20px;
+        }
+        .toc-list {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="page-hero">
+        <div class="badge-pill">Legal & Compliance</div>
+        <h1 class="page-title">Privacy Policy</h1>
+        <p class="page-subtitle">
+            How we protect, store, and synchronize your store data, sales history, customer records, and cashier operations.
+        </p>
+    </section>
+
+    <div class="legal-container">
+        <div class="legal-meta-bar">
+            <span>Last Updated: October 2026</span>
+            <span>Version: 2.1 (GDPR & NDPR Aligned)</span>
+            <span>Applicable to: Mobile App & Cloud API</span>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="legal-toc">
+            <h3>Table of Contents</h3>
+            <ul class="toc-list">
+                <li><a href="#sec-1">1. Introduction & Scope</a></li>
+                <li><a href="#sec-2">2. Data We Collect</a></li>
+                <li><a href="#sec-3">3. Offline-First Storage Principles</a></li>
+                <li><a href="#sec-4">4. Cloud Synchronization & Encryption</a></li>
+                <li><a href="#sec-5">5. How We Use Collected Data</a></li>
+                <li><a href="#sec-6">6. Zero Data Brokering Policy</a></li>
+                <li><a href="#sec-7">7. Merchant Ownership & CSV Export</a></li>
+                <li><a href="#sec-8">8. Cashier & Till Session Data</a></li>
+                <li><a href="#sec-9">9. Data Security & Storage Location</a></li>
+                <li><a href="#sec-10">10. Contacting Our Data Officer</a></li>
+            </ul>
+        </div>
+
+        <section class="legal-section" id="sec-1">
+            <h2>1. Introduction & Scope</h2>
+            <p>
+                Krum POS & Inventory Technologies ("Krum", "we", "us", or "our") provides an offline-first Point of Sale application, inventory management tools, and cloud synchronization platform designed for retail supermarkets, provision stores, and wholesale FMCG merchants.
+            </p>
+            <p>
+                This Privacy Policy explains how information relating to you (the store owner, cashier, or staff member) and your retail store operations is collected, stored, processed, and safeguarded when using the Krum Android mobile application, the Krum cloud API backend, and related web services.
+            </p>
+        </section>
+
+        <section class="legal-section" id="sec-2">
+            <h2>2. Data We Collect</h2>
+            <p>To deliver resilient retail point of sale functionality, Krum collects the following categories of data:</p>
+            <ul>
+                <li><strong>Account & Business Information:</strong> Store name, registered phone number, email address, physical address, business currency (e.g. NGN, USD), and owner/cashier login credentials.</li>
+                <li><strong>Store Catalog & Inventory:</strong> Product names, barcodes, SKUs, categories, units of measurement, packaging conversion ratios (pieces per pack/carton), cost prices, and retail selling prices.</li>
+                <li><strong>Sales & Checkout Transactions:</strong> Date and timestamp of sales, itemized products purchased, quantities, unit prices applied, discounts, payment tender (Cash, POS Card, Bank Transfer, Debt), and void/reversal audit logs.</li>
+                <li><strong>Customer & Debt Records:</strong> Customer names, phone numbers, transaction histories, credit ledger balances, and payment repayments recorded by store cashiers.</li>
+                <li><strong>Cashier Shift & Till Data:</strong> Opening float amounts, cash drops, petty payouts, counted physical cash at closing, and recorded discrepancy explanations.</li>
+                <li><strong>Device & Hardware Telemetry:</strong> Device model, Android OS version, Bluetooth printer connection status, and local sync queue state to troubleshoot offline hardware integration.</li>
+            </ul>
+        </section>
+
+        <section class="legal-section" id="sec-3">
+            <h2>3. Offline-First Storage Principles</h2>
+            <div class="highlight-pill">
+                <strong>Our Core Promise:</strong> Your store operations never stop. Sales, stock receipts, and customer repayments are recorded immediately into your device's local encrypted SQLite database.
+            </div>
+            <p>
+                Unlike web-only POS software that sends every keystroke across public networks, Krum functions independently of active internet connectivity. All primary business records reside directly on the device you control. Local data is protected by device-level sandboxing and operating system security controls.
+            </p>
+        </section>
+
+        <section class="legal-section" id="sec-4">
+            <h2>4. Cloud Synchronization & Encryption</h2>
+            <p>
+                When your device establishes an internet connection, Krum’s delta sync engine securely transmits queued local mutations to our cloud infrastructure:
+            </p>
+            <ul>
+                <li><strong>In-Transit Security:</strong> All API communication between the mobile device and Krum Cloud uses HTTPS with TLS 1.3 encryption. Unencrypted plain-text transmission is strictly disallowed.</li>
+                <li><strong>Authentication:</strong> Sync transactions are authorized via JSON Web Tokens (JWT) signed with secure cryptographic keys.</li>
+                <li><strong>Tenant Isolation:</strong> Every store’s data is strictly partitioned by business tenant IDs in our relational PostgreSQL database, ensuring zero cross-tenant data exposure.</li>
+            </ul>
+        </section>
+
+        <section class="legal-section" id="sec-5">
+            <h2>5. How We Use Collected Data</h2>
+            <p>We process your store data exclusively for operational retail functionality:</p>
+            <ul>
+                <li>To maintain your store catalog, calculate moving weighted average costs (WACP), and trigger low-stock alerts.</li>
+                <li>To format itemized purchase orders for your preferred suppliers via WhatsApp or SMS.</li>
+                <li>To generate printable PDF receipts and customer account statements.</li>
+                <li>To audit cashier shifts and identify cash drawer discrepancies.</li>
+                <li>To deliver periodic Profit & Loss, sales breakdown, and inventory valuation analytics.</li>
+            </ul>
+        </section>
+
+        <section class="legal-section" id="sec-6">
+            <h2>6. Zero Data Brokering Policy</h2>
+            <div class="highlight-pill">
+                <strong>We do not sell, rent, or trade your retail store data, supplier pricing, customer lists, or sales figures to any third-party advertisers or data brokers.</strong>
+            </div>
+            <p>
+                Your margins, customer debts, and sales numbers are strictly confidential to your business. We will never monetize your store data or expose your sales patterns to external competitors.
+            </p>
+        </section>
+
+        <section class="legal-section" id="sec-7">
+            <h2>7. Merchant Ownership & CSV Export</h2>
+            <p>
+                You retain complete, unabridged ownership of all catalog items, sales receipts, customer records, and financial reports entered into Krum. You have the right to export your entire business transaction history in standard CSV spreadsheet format at any time directly through the app or the cloud dashboard.
+            </p>
+        </section>
+
+        <section class="legal-section" id="sec-8">
+            <h2>8. Cashier & Till Session Data</h2>
+            <p>
+                For stores with multiple cashiers, Krum tracks audit actions (such as voided receipts, stock recounts, and cash drawer reconciliations) attributed to specific staff user accounts. This audit logging is designed to protect both the store owner and honest cashiers by maintaining a verifiable operational record.
+            </p>
+        </section>
+
+        <section class="legal-section" id="sec-9">
+            <h2>9. Data Security & Storage Location</h2>
+            <p>
+                Cloud database records are hosted on ISO 27001 and SOC 2 certified cloud server facilities with automated daily snapshot backups, automated failover, and strict firewall protection. Access to production database clusters is restricted to authorized systems engineers under strict multi-factor authentication protocols.
+            </p>
+        </section>
+
+        <section class="legal-section" id="sec-10">
+            <h2>10. Contacting Our Data Officer</h2>
+            <p>
+                If you have questions regarding this Privacy Policy, wish to exercise your data rights (including data export or complete account deletion), please contact our Data Protection Team:
+            </p>
+            <div style="font-family: monospace; font-size: 14px; color: #CBD5E1; background: rgba(0,0,0,0.4); padding: 16px; border-radius: 10px;">
+                Email: privacy@krum.app<br>
+                Postal: Krum Technologies Data Protection Desk, Lagos, Nigeria<br>
+                WhatsApp Support Desk: +234 (0) 800-KRUM-POS
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms & Conditions — Krum POS & Cloud Sync{% endblock %}
+{% block meta_description %}Review the terms and conditions governing the use of the Krum POS software, cloud sync services, and mobile application for retail store owners and operators.{% endblock %}
+
+{% block extra_head %}
+<style>
+    .legal-container {
+        max-width: 880px;
+        margin: 0 auto 90px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 24px;
+        padding: 50px 40px;
+    }
+
+    .legal-meta-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-subtle);
+        margin-bottom: 36px;
+        font-size: 13.5px;
+        color: var(--text-dim);
+    }
+
+    .legal-toc {
+        background: rgba(6, 8, 14, 0.6);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 40px;
+    }
+
+    .legal-toc h3 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 14px;
+    }
+
+    .toc-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        list-style: none;
+    }
+
+    .toc-list a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 13.5px;
+        transition: var(--transition-smooth);
+    }
+
+    .toc-list a:hover {
+        color: var(--cyan);
+        transform: translateX(3px);
+    }
+
+    .legal-section {
+        margin-bottom: 36px;
+    }
+
+    .legal-section h2 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 14px;
+        padding-top: 10px;
+    }
+
+    .legal-section p {
+        color: var(--text-muted);
+        font-size: 15px;
+        line-height: 1.7;
+        margin-bottom: 14px;
+    }
+
+    .legal-section ul {
+        list-style: disc;
+        margin-left: 20px;
+        margin-bottom: 16px;
+        color: var(--text-muted);
+        font-size: 14.5px;
+        line-height: 1.6;
+    }
+
+    .legal-section li {
+        margin-bottom: 8px;
+    }
+
+    .highlight-pill {
+        background: rgba(99, 102, 241, 0.12);
+        border-left: 3px solid var(--primary-light);
+        padding: 14px 18px;
+        border-radius: 0 10px 10px 0;
+        margin: 18px 0;
+        font-size: 14px;
+        color: #CBD5E1;
+    }
+
+    @media (max-width: 640px) {
+        .legal-container {
+            padding: 30px 20px;
+        }
+        .toc-list {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="page-hero">
+        <div class="badge-pill">Legal & Service Agreement</div>
+        <h1 class="page-title">Terms & Conditions</h1>
+        <p class="page-subtitle">
+            The legal agreement governing your use of Krum POS software, offline execution services, and cloud synchronization tools.
+        </p>
+    </section>
+
+    <div class="legal-container">
+        <div class="legal-meta-bar">
+            <span>Last Revised: October 2026</span>
+            <span>Document ID: KRM-TOS-2026-V1</span>
+            <span>Governing Jurisdiction: Federal Republic of Nigeria</span>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="legal-toc">
+            <h3>Table of Contents</h3>
+            <ul class="toc-list">
+                <li><a href="#term-1">1. Acceptance of Terms</a></li>
+                <li><a href="#term-2">2. Software License & Service Scope</a></li>
+                <li><a href="#term-3">3. Store Accounts & Staff Access</a></li>
+                <li><a href="#term-4">4. Merchant Operational Responsibilities</a></li>
+                <li><a href="#term-5">5. Offline Sync & Transaction Reconciliation</a></li>
+                <li><a href="#term-6">6. Subscriptions, Fees & Billing</a></li>
+                <li><a href="#term-7">7. Hardware & Peripherals Compatibility</a></li>
+                <li><a href="#term-8">8. Intellectual Property</a></li>
+                <li><a href="#term-9">9. Warranties & Limitations of Liability</a></li>
+                <li><a href="#term-10">10. Suspension & Termination</a></li>
+                <li><a href="#term-11">11. Governing Law & Dispute Resolution</a></li>
+                <li><a href="#term-12">12. Modifications to Agreement</a></li>
+            </ul>
+        </div>
+
+        <section class="legal-section" id="term-1">
+            <h2>1. Acceptance of Terms</h2>
+            <p>
+                By downloading, installing, accessing, or using the Krum mobile application, the Krum cloud API, or the administrative web portal, you ("Merchant", "Store Owner", or "User") agree to be legally bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, you must immediately discontinue use of the software and uninstall the application from your devices.
+            </p>
+        </section>
+
+        <section class="legal-section" id="term-2">
+            <h2>2. Software License & Service Scope</h2>
+            <p>
+                Subject to compliance with these Terms, Krum grants you a revocable, non-exclusive, non-transferable, limited license to install and execute the Krum software on compatible Android devices owned or controlled by your business entity.
+            </p>
+            <p>
+                Krum provides offline retail Point of Sale processing, multi-unit inventory calculation, purchase restock coordination, cash drawer session management, and optional cloud delta sync capabilities.
+            </p>
+        </section>
+
+        <section class="legal-section" id="term-3">
+            <h2>3. Store Accounts & Staff Access</h2>
+            <p>
+                As the registered store owner, you are responsible for maintaining the confidentiality of administrative credentials, cashier login PINs, and manager override authorizations. You agree to:
+            </p>
+            <ul>
+                <li>Provide accurate, current business registration and contact information.</li>
+                <li>Promptly revoke or reassign cashier access when an employee departs your retail organization.</li>
+                <li>Accept full responsibility for all retail transactions, stock adjustments, voided receipts, and cash drawer actions conducted under authorized user accounts.</li>
+            </ul>
+        </section>
+
+        <section class="legal-section" id="term-4">
+            <h2>4. Merchant Operational Responsibilities</h2>
+            <p>
+                The Merchant is solely responsible for verifying the accuracy of product barcode configurations, package conversion ratios, price tags, and cash drawer reconciliations. Krum provides computational tools (such as Moving Weighted Average Cost and Deficit Reorder suggestions), but ultimate retail operational decisions remain with the store management.
+            </p>
+            <div class="highlight-pill">
+                <strong>Tax & Regulatory Compliance:</strong> The Merchant is solely responsible for configuring applicable Value Added Tax (VAT), sales tax rates, and complying with all local commercial, trade, and consumer protection laws.
+            </div>
+        </section>
+
+        <section class="legal-section" id="term-5">
+            <h2>5. Offline Sync & Transaction Reconciliation</h2>
+            <p>
+                Krum is engineered with an offline-first architecture to allow uninterrupted sales during telecommunications failures. The Merchant understands that:
+            </p>
+            <ul>
+                <li>Local transactions are stored in client-side SQLite storage until network connectivity is established.</li>
+                <li>Merchants must ensure devices connect periodically to the internet to complete cloud delta synchronization and backup.</li>
+                <li>In multi-device setups, temporary inventory discrepancies between unconnected tills will be reconciled automatically upon synchronization based on timestamp ordering.</li>
+            </ul>
+        </section>
+
+        <section class="legal-section" id="term-6">
+            <h2>6. Subscriptions, Fees & Billing</h2>
+            <p>
+                Certain advanced features (such as multi-device cloud synchronization, automated WhatsApp supplier purchase orders, and multi-branch consolidation) require an active paid subscription tier:
+            </p>
+            <ul>
+                <li>Subscription fees are billed on a recurring monthly or annual basis in accordance with published pricing schedules.</li>
+                <li>All subscription fees are non-refundable once the billing period has commenced, except where mandated by applicable consumer protection statutes.</li>
+                <li>Failure to maintain an active paid subscription may restrict cloud backup and sync features, but will not destroy local device-stored transactional data.</li>
+            </ul>
+        </section>
+
+        <section class="legal-section" id="term-7">
+            <h2>7. Hardware & Peripherals Compatibility</h2>
+            <p>
+                While Krum is tested across standard Android phones, tablets, Sunmi terminals, and Bluetooth ESC/POS printers, Krum does not manufacture physical hardware. We do not warrant that all third-party unbranded thermal printers or laser barcode scanners will function without driver or firmware compatibility issues.
+            </p>
+        </section>
+
+        <section class="legal-section" id="term-8">
+            <h2>8. Intellectual Property</h2>
+            <p>
+                The Krum brand, software codebase, database schemas, UI designs, algorithms, documentation, and logos are the proprietary intellectual property of Krum Technologies. You may not reverse-engineer, decompile, copy, or redistribute the software without express written authorization.
+            </p>
+        </section>
+
+        <section class="legal-section" id="term-9">
+            <h2>9. Warranties & Limitations of Liability</h2>
+            <p>
+                The software is provided on an "AS IS" and "AS AVAILABLE" basis. To the maximum extent permitted by applicable law, Krum expressly disclaims all warranties, whether express or implied, including warranties of merchantability, fitness for a particular retail purpose, and non-infringement.
+            </p>
+            <p>
+                Under no circumstances shall Krum be liable for any indirect, incidental, special, punitive, or consequential damages—including loss of retail profits, cashier theft, physical inventory shrinkage, or business interruption—arising out of the use of or inability to use the software.
+            </p>
+        </section>
+
+        <section class="legal-section" id="term-10">
+            <h2>10. Suspension & Termination</h2>
+            <p>
+                Krum reserves the right to suspend or terminate cloud synchronization access if an account is engaged in fraudulent activities, attempts to compromise API security, or violates these Terms. Merchants may cancel their account and export all store records via CSV at any time.
+            </p>
+        </section>
+
+        <section class="legal-section" id="term-11">
+            <h2>11. Governing Law & Dispute Resolution</h2>
+            <p>
+                These Terms shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria. Any dispute arising under or in connection with these Terms shall first be submitted to good-faith mediation before formal arbitration in Lagos, Nigeria.
+            </p>
+        </section>
+
+        <section class="legal-section" id="term-12">
+            <h2>12. Modifications to Agreement</h2>
+            <p>
+                We may revise these Terms periodically to reflect new features, statutory updates, or security requirements. Continued use of the software following the publication of revised Terms constitutes acceptance of the modified agreement.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}
