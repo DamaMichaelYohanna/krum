@@ -954,6 +954,122 @@ void main() {
     expect(providerSales.isOwner, false);
     expect(providerSales.isOwnerOrManager, false);
   });
+
+  test('Cash drawer shift session start, live till metrics calculation, sales, and closing reconciliation offline', () async {
+    SharedPreferences.setMockInitialValues({});
+    final api = ApiService();
+    final sync = SyncService(api: api);
+    final provider = StoreProvider(api: api, syncService: sync);
+    await provider.init();
+
+    // 1. Initial drawer state: No active session
+    expect(provider.isShiftActive, false);
+    expect(provider.currentCashSession, isNull);
+    expect(provider.currentDrawerMetrics['expectedCash'], 0.0);
+
+    // 2. Start shift with opening float of 10,000 NGN
+    final started = await provider.startShift(
+      openingFloat: 10000.0,
+      openingNotes: 'Morning shift opening float',
+    );
+    expect(started, true);
+    expect(provider.isShiftActive, true);
+    expect(provider.currentCashSession, isNotNull);
+    expect(provider.currentCashSession?['opening_float'], 10000.0);
+    expect(provider.currentDrawerMetrics['openingFloat'], 10000.0);
+    expect(provider.currentDrawerMetrics['expectedCash'], 10000.0);
+
+    // 3. Create a product and perform a cash sale of 5,000 NGN
+    final prodCreated = await provider.createProduct(
+      name: 'Milo 500g Refill',
+      barcode: '9988776655',
+      sku: 'MILO-500',
+      sellingPrice: 5000.0,
+      costPrice: 4000.0,
+      openingStock: 20.0,
+      baseUnitId: 1,
+    );
+    expect(prodCreated, true);
+    final product = provider.products.firstWhere((p) => p.name == 'Milo 500g Refill');
+
+    provider.setPaymentMethod('cash');
+    provider.addToCart(product, quantity: 1.0);
+    expect(provider.cartTotal, 5000.0);
+
+    final txId = await provider.checkoutSale(amountPaid: 5000.0);
+    expect(txId.isNotEmpty, true);
+
+    // 4. Record a cash expense of 2,000 NGN (e.g., Shop cleaner / fuel)
+    await provider.recordExpense(
+      category: 'Cleaning',
+      amount: 2000.0,
+      description: 'Morning sweeping and detergent',
+    );
+
+    // 5. Create a customer with debt and record a cash debt payment of 1,500 NGN
+    final customer = await provider.createCustomer(
+      'Madam Ngozi',
+      phone: '08055556666',
+      initialDebt: 3000.0,
+    );
+    expect(customer, isNotNull);
+
+    await provider.recordCustomerPayment(
+      customerId: customer!.id,
+      amount: 1500.0,
+      method: 'cash',
+    );
+
+    // 6. Verify live drawer metrics calculation:
+    // Expected Cash = Opening Float (10,000) + Cash Sales (5,000) + Debt Payments (1,500) - Expenses (2,000) = 14,500
+    final liveMetrics = provider.currentDrawerMetrics;
+    expect(liveMetrics['openingFloat'], 10000.0);
+    expect(liveMetrics['cashSales'], 5000.0);
+    expect(liveMetrics['cashDebtPayments'], 1500.0);
+    expect(liveMetrics['cashExpenses'], 2000.0);
+    expect(liveMetrics['expectedCash'], 14500.0);
+
+    // 7. Test persistence across app reload
+    final sync2 = SyncService(api: api);
+    final provider2 = StoreProvider(api: api, syncService: sync2);
+    await provider2.init();
+
+    expect(provider2.isShiftActive, true);
+    expect(provider2.currentCashSession, isNotNull);
+    final reloadedMetrics = provider2.currentDrawerMetrics;
+    expect(reloadedMetrics['openingFloat'], 10000.0);
+    expect(reloadedMetrics['cashSales'], 5000.0);
+    expect(reloadedMetrics['cashDebtPayments'], 1500.0);
+    expect(reloadedMetrics['cashExpenses'], 2000.0);
+    expect(reloadedMetrics['expectedCash'], 14500.0);
+
+    // 8. Close shift with actual counted cash = 14,000 NGN (shortage of 500 NGN)
+    final closeResult = await provider2.closeShift(
+      closingCashActual: 14000.0,
+      closingNotes: 'End of morning shift with 500 shortage',
+    );
+    expect(closeResult, isNotNull);
+    expect(closeResult?['status'], 'closed');
+    expect(closeResult?['expected_cash'], 14500.0);
+    expect(closeResult?['closing_cash_actual'], 14000.0);
+    expect(closeResult?['difference'], -500.0);
+
+    // 9. Verify provider state after closing
+    expect(provider2.isShiftActive, false);
+    expect(provider2.currentCashSession, isNull);
+    expect(provider2.cashSessions.length, 1);
+    expect(provider2.cashSessions.first['difference'], -500.0);
+
+    // 10. Verify history persistence across reload
+    final sync3 = SyncService(api: api);
+    final provider3 = StoreProvider(api: api, syncService: sync3);
+    await provider3.init();
+
+    expect(provider3.isShiftActive, false);
+    expect(provider3.cashSessions.length, 1);
+    expect(provider3.cashSessions.first['difference'], -500.0);
+    expect(provider3.cashSessions.first['status'], 'closed');
+  });
 }
 
 

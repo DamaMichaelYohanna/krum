@@ -7,7 +7,7 @@ from store.models import InventoryBalance, InventoryMovement, ProductUnit, Sale,
 class SalesService:
     @staticmethod
     @transaction.atomic
-    def complete(*, business, customer, items, amount_paid, discount, client_transaction_id, actor=None, allow_negative=False, allow_below_minimum=False):
+    def complete(*, business, customer, items, amount_paid, discount, client_transaction_id, actor=None, allow_negative=False, allow_below_minimum=False, payment_method="cash"):
         existing = Sale.objects.filter(business=business, client_transaction_id=client_transaction_id).first()
         if existing:
             return existing
@@ -71,7 +71,7 @@ class SalesService:
             balance.save(update_fields=["quantity_base"])
 
         if amount_paid:
-            SalePayment.objects.create(sale=sale, amount=amount_paid, method="cash")
+            SalePayment.objects.create(sale=sale, amount=amount_paid, method=payment_method or "cash")
 
         write_audit(business=business, actor=actor, action="sale.completed", entity=sale, metadata={"total": str(total)})
         return sale

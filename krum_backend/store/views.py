@@ -13,8 +13,8 @@ from rest_framework.response import Response
 
 from .models import (
     AuditLog, Business, Category, Customer, CustomerPayment, Expense,
-    InventoryBalance, InventoryMovement, Membership, Product,
-    ProductUnit, Purchase, PurchaseItem, Sale, SaleItem,
+    CashSession, InventoryBalance, InventoryMovement, Membership, Product,
+    ProductUnit, Purchase, PurchaseItem, Sale, SaleItem, SalePayment,
     Supplier, Unit
 )
 from .permissions import HasBusiness, business_for, require_role
@@ -801,3 +801,236 @@ def export_report_csv(request):
             writer.writerow([exp.id, exp.occurred_at.strftime('%Y-%m-%d'), exp.category, exp.amount, exp.description])
 
     return response
+
+# --- Cash Drawer & Shift Sessions ---
+
+@api_view(['GET'])
+@permission_classes([HasBusiness])
+def current_cash_session(request):
+    business = business_for(request)
+    session = CashSession.objects.filter(
+        business=business,
+        user=request.user,
+        status=CashSession.Status.OPEN
+    ).first()
+
+    if not session:
+        return Response({'session': None})
+
+    cash_sales = SalePayment.objects.filter(
+        sale__business=business,
+        sale__status=Sale.Status.COMPLETED,
+        sale__completed_at__gte=session.opened_at,
+        method='cash'
+    ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+
+    other_sales = SalePayment.objects.filter(
+        sale__business=business,
+        sale__status=Sale.Status.COMPLETED,
+        sale__completed_at__gte=session.opened_at,
+    ).exclude(method='cash').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+
+    cash_debt_payments = CustomerPayment.objects.filter(
+        business=business,
+        method='cash',
+        created_at__gte=session.opened_at
+    ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+
+    cash_expenses = Expense.objects.filter(
+        business=business,
+        created_at__gte=session.opened_at
+    ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+
+    expected_cash = session.opening_float + cash_sales + cash_debt_payments - cash_expenses
+
+    return Response({
+        'session': {
+            'id': session.id,
+            'client_session_id': session.client_session_id,
+            'user_id': session.user.id,
+            'cashier_name': session.user.username,
+            'opened_at': session.opened_at.isoformat(),
+            'opening_float': float(session.opening_float),
+            'opening_notes': session.opening_notes,
+            'status': session.status,
+            'cash_sales': float(cash_sales),
+            'other_sales': float(other_sales),
+            'total_sales': float(cash_sales + other_sales),
+            'cash_debt_payments': float(cash_debt_payments),
+            'cash_expenses': float(cash_expenses),
+            'expected_cash': float(expected_cash),
+        }
+    })
+
+@api_view(['POST'])
+@permission_classes([HasBusiness])
+def start_cash_session(request):
+    business = business_for(request)
+    existing = CashSession.objects.filter(
+        business=business,
+        user=request.user,
+        status=CashSession.Status.OPEN
+    ).first()
+    if existing:
+        return Response({'detail': 'An active shift session is already open for this user.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    opening_float = Decimal(str(request.data.get('opening_float') or '0'))
+    opening_notes = (request.data.get('opening_notes') or '').strip()
+    client_session_id = (request.data.get('client_session_id') or '').strip()
+
+    session = CashSession.objects.create(
+        business=business,
+        user=request.user,
+        opening_float=opening_float,
+        opening_notes=opening_notes,
+        client_session_id=client_session_id,
+        status=CashSession.Status.OPEN
+    )
+
+    AuditLog.objects.create(
+        business=business,
+        actor=request.user,
+        action='cash_session.started',
+        entity_type='cash_session',
+        entity_id=str(session.id),
+        metadata={'opening_float': str(opening_float)}
+    )
+
+    return Response({
+        'id': session.id,
+        'client_session_id': session.client_session_id,
+        'user_id': session.user.id,
+        'cashier_name': session.user.username,
+        'opened_at': session.opened_at.isoformat(),
+        'opening_float': float(session.opening_float),
+        'opening_notes': session.opening_notes,
+        'status': session.status,
+        'cash_sales': 0.0,
+        'other_sales': 0.0,
+        'total_sales': 0.0,
+        'cash_debt_payments': 0.0,
+        'cash_expenses': 0.0,
+        'expected_cash': float(session.opening_float),
+    }, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+@permission_classes([HasBusiness])
+def close_cash_session(request, session_id):
+    business = business_for(request)
+    session = CashSession.objects.filter(
+        Q(id__exact=session_id if str(session_id).isdigit() else -1) | Q(client_session_id=session_id),
+        business=business
+    ).first()
+
+    if not session:
+        return Response({'detail': 'Cash session not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if session.status == CashSession.Status.CLOSED:
+        return Response({'detail': 'This cash session is already closed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if 'closing_cash_actual' not in request.data:
+        return Response({'detail': 'Actual counted cash amount is required to close shift.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    closing_cash_actual = Decimal(str(request.data['closing_cash_actual']))
+    closing_notes = (request.data.get('closing_notes') or '').strip()
+
+    cash_sales = SalePayment.objects.filter(
+        sale__business=business,
+        sale__status=Sale.Status.COMPLETED,
+        sale__completed_at__gte=session.opened_at,
+        method='cash'
+    ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+
+    other_sales = SalePayment.objects.filter(
+        sale__business=business,
+        sale__status=Sale.Status.COMPLETED,
+        sale__completed_at__gte=session.opened_at,
+    ).exclude(method='cash').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+
+    cash_debt_payments = CustomerPayment.objects.filter(
+        business=business,
+        method='cash',
+        created_at__gte=session.opened_at
+    ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+
+    cash_expenses = Expense.objects.filter(
+        business=business,
+        created_at__gte=session.opened_at
+    ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+
+    expected_cash = session.opening_float + cash_sales + cash_debt_payments - cash_expenses
+    difference = closing_cash_actual - expected_cash
+
+    session.cash_sales = cash_sales
+    session.cash_debt_payments = cash_debt_payments
+    session.cash_expenses = cash_expenses
+    session.expected_cash = expected_cash
+    session.closing_cash_actual = closing_cash_actual
+    session.difference = difference
+    session.closed_at = timezone.now()
+    session.status = CashSession.Status.CLOSED
+    session.closing_notes = closing_notes
+    session.save()
+
+    AuditLog.objects.create(
+        business=business,
+        actor=request.user,
+        action='cash_session.closed',
+        entity_type='cash_session',
+        entity_id=str(session.id),
+        metadata={
+            'expected_cash': str(expected_cash),
+            'closing_cash_actual': str(closing_cash_actual),
+            'difference': str(difference),
+        }
+    )
+
+    return Response({
+        'id': session.id,
+        'client_session_id': session.client_session_id,
+        'user_id': session.user.id,
+        'cashier_name': session.user.username,
+        'opened_at': session.opened_at.isoformat(),
+        'closed_at': session.closed_at.isoformat(),
+        'opening_float': float(session.opening_float),
+        'cash_sales': float(session.cash_sales),
+        'other_sales': float(other_sales),
+        'total_sales': float(cash_sales + other_sales),
+        'cash_debt_payments': float(session.cash_debt_payments),
+        'cash_expenses': float(session.cash_expenses),
+        'expected_cash': float(session.expected_cash),
+        'closing_cash_actual': float(session.closing_cash_actual),
+        'difference': float(session.difference),
+        'status': session.status,
+        'opening_notes': session.opening_notes,
+        'closing_notes': session.closing_notes,
+    })
+
+@api_view(['GET'])
+@permission_classes([HasBusiness])
+def list_cash_sessions(request):
+    business = business_for(request)
+    sessions = CashSession.objects.filter(business=business).select_related('user').order_by('-opened_at')[:50]
+    data = [
+        {
+            'id': s.id,
+            'client_session_id': s.client_session_id,
+            'user_id': s.user.id,
+            'cashier_name': s.user.username,
+            'opened_at': s.opened_at.isoformat(),
+            'closed_at': s.closed_at.isoformat() if s.closed_at else None,
+            'opening_float': float(s.opening_float),
+            'cash_sales': float(s.cash_sales),
+            'cash_debt_payments': float(s.cash_debt_payments),
+            'cash_expenses': float(s.cash_expenses),
+            'expected_cash': float(s.expected_cash),
+            'closing_cash_actual': float(s.closing_cash_actual) if s.closing_cash_actual is not None else None,
+            'difference': float(s.difference),
+            'status': s.status,
+            'opening_notes': s.opening_notes,
+            'closing_notes': s.closing_notes,
+        }
+        for s in sessions
+    ]
+    return Response(data)
+

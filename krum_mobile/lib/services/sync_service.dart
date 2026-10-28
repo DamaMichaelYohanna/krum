@@ -33,6 +33,11 @@ class SyncService extends ChangeNotifier {
   // Local history for offline dashboard & analytics
   final List<Map<String, dynamic>> _localSales = [];
   final List<Map<String, dynamic>> _localExpenses = [];
+  final List<Map<String, dynamic>> _localPayments = [];
+
+  // Cash Drawer & Shift Sessions
+  Map<String, dynamic>? _currentCashSession;
+  final List<Map<String, dynamic>> _cashSessions = [];
 
   SyncService({required this.api});
 
@@ -43,6 +48,10 @@ class SyncService extends ChangeNotifier {
   List<Map<String, dynamic>> get localSales => _localSales;
   List<Map<String, dynamic>> get pendingExpenses => _pendingExpenses;
   List<Map<String, dynamic>> get localExpenses => _localExpenses;
+  List<Map<String, dynamic>> get pendingPayments => _pendingPayments;
+  List<Map<String, dynamic>> get localPayments => _localPayments;
+  Map<String, dynamic>? get currentCashSession => _currentCashSession;
+  List<Map<String, dynamic>> get cashSessions => _cashSessions;
   int get pendingCount =>
       _pendingSales.length +
       _pendingPurchases.length +
@@ -221,7 +230,9 @@ class SyncService extends ChangeNotifier {
     String method = 'cash',
     String reference = '',
   }) async {
+    final clientTransactionId = 'pay_${DateTime.now().millisecondsSinceEpoch}_${const Uuid().v4().substring(0, 8)}';
     final paymentPayload = {
+      'client_transaction_id': clientTransactionId,
       'customer_id': customerId,
       'amount': amount,
       'method': method,
@@ -230,6 +241,7 @@ class SyncService extends ChangeNotifier {
     };
 
     _pendingPayments.add(paymentPayload);
+    _localPayments.insert(0, paymentPayload);
 
     // Immediately decrease customer outstanding balance locally
     final cust = customers.firstWhere((c) => c.id == customerId, orElse: () => Customer(id: customerId, name: ''));
@@ -477,6 +489,122 @@ class SyncService extends ChangeNotifier {
     }
   }
 
+  // --- Cash Drawer & Shift Handover Sessions ---
+
+  Future<Map<String, dynamic>> startCashSessionLocally({
+    required double openingFloat,
+    String openingNotes = '',
+  }) async {
+    final clientSessionId = _uuid.v4();
+    final now = DateTime.now().toIso8601String();
+    _currentCashSession = {
+      'client_session_id': clientSessionId,
+      'opened_at': now,
+      'opening_float': openingFloat,
+      'opening_notes': openingNotes,
+      'status': 'open',
+      'cash_sales': 0.0,
+      'other_sales': 0.0,
+      'total_sales': 0.0,
+      'cash_debt_payments': 0.0,
+      'cash_expenses': 0.0,
+      'expected_cash': openingFloat,
+    };
+    await _saveLocal();
+    notifyListeners();
+
+    if (api.isAuthenticated) {
+      try {
+        final remote = await api.startCashSession(
+          openingFloat: openingFloat,
+          openingNotes: openingNotes,
+          clientSessionId: clientSessionId,
+        );
+        _currentCashSession = remote;
+        await _saveLocal();
+        notifyListeners();
+      } catch (_) {}
+    }
+    return _currentCashSession!;
+  }
+
+  Future<Map<String, dynamic>> closeCashSessionLocally({
+    required double closingCashActual,
+    String closingNotes = '',
+    required double cashSales,
+    required double otherSales,
+    required double cashDebtPayments,
+    required double cashExpenses,
+  }) async {
+    if (_currentCashSession == null) throw Exception('No active cash session open.');
+    final openFloat = (_currentCashSession!['opening_float'] as num?)?.toDouble() ?? 0.0;
+    final expectedCash = openFloat + cashSales + cashDebtPayments - cashExpenses;
+    final diff = closingCashActual - expectedCash;
+    final closedAt = DateTime.now().toIso8601String();
+
+    final closedSession = Map<String, dynamic>.from(_currentCashSession!);
+    closedSession['status'] = 'closed';
+    closedSession['closed_at'] = closedAt;
+    closedSession['cash_sales'] = cashSales;
+    closedSession['other_sales'] = otherSales;
+    closedSession['total_sales'] = cashSales + otherSales;
+    closedSession['cash_debt_payments'] = cashDebtPayments;
+    closedSession['cash_expenses'] = cashExpenses;
+    closedSession['expected_cash'] = expectedCash;
+    closedSession['closing_cash_actual'] = closingCashActual;
+    closedSession['difference'] = diff;
+    closedSession['closing_notes'] = closingNotes;
+
+    _cashSessions.insert(0, closedSession);
+    final closedRef = _currentCashSession;
+    _currentCashSession = null;
+    await _saveLocal();
+    notifyListeners();
+
+    if (api.isAuthenticated) {
+      final lookupId = closedRef?['id'] ?? closedRef?['client_session_id'];
+      if (lookupId != null) {
+        try {
+          final remote = await api.closeCashSession(
+            sessionId: lookupId,
+            closingCashActual: closingCashActual,
+            closingNotes: closingNotes,
+          );
+          final idx = _cashSessions.indexWhere((s) => s['client_session_id'] == closedRef?['client_session_id']);
+          if (idx != -1) {
+            _cashSessions[idx] = remote;
+          }
+          await _saveLocal();
+          notifyListeners();
+          return remote;
+        } catch (_) {}
+      }
+    }
+    return closedSession;
+  }
+
+  Future<void> syncCashSessionsWithRemote() async {
+    if (!api.isAuthenticated) return;
+    try {
+      final curr = await api.getCurrentCashSession();
+      if (curr != null) {
+        _currentCashSession = curr;
+      }
+      final history = await api.getCashSessions();
+      final List<Map<String, dynamic>> remoteList = history.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      final Set<dynamic> existingIds = _cashSessions.map((s) => s['id'] ?? s['client_session_id']).toSet();
+      for (final r in remoteList) {
+        final id = r['id'] ?? r['client_session_id'];
+        if (!existingIds.contains(id)) {
+          _cashSessions.add(r);
+          existingIds.add(id);
+        }
+      }
+      await _saveLocal();
+      notifyListeners();
+    } catch (_) {}
+  }
+
   // --- Synchronization Engine ---
 
   Future<bool> sync() async {
@@ -602,6 +730,15 @@ class SyncService extends ChangeNotifier {
     // Local History
     await prefs.setStringList('local_sales_history', _localSales.map(jsonEncode).toList());
     await prefs.setStringList('local_expenses_history', _localExpenses.map(jsonEncode).toList());
+    await prefs.setStringList('local_payments_history', _localPayments.map(jsonEncode).toList());
+
+    // Cash Sessions
+    if (_currentCashSession != null) {
+      await prefs.setString('cached_current_cash_session', jsonEncode(_currentCashSession));
+    } else {
+      await prefs.remove('cached_current_cash_session');
+    }
+    await prefs.setStringList('cached_cash_sessions_history', _cashSessions.map(jsonEncode).toList());
   }
 
   Future<void> _loadFromLocal() async {
@@ -691,6 +828,35 @@ class SyncService extends ChangeNotifier {
       if (txId == null || !_localExpenses.any((le) => le['client_transaction_id'] == txId)) {
         _localExpenses.add(e);
       }
+    }
+
+    _localPayments.clear();
+    final rawPayments = prefs.getStringList('local_payments_history');
+    if (rawPayments != null) {
+      _localPayments.addAll(rawPayments.map((s) => jsonDecode(s) as Map<String, dynamic>));
+    }
+    for (final p in _pendingPayments) {
+      final txId = p['client_transaction_id'];
+      if (txId == null || !_localPayments.any((lp) => lp['client_transaction_id'] == txId)) {
+        _localPayments.add(p);
+      }
+    }
+
+    final rawCurrentSession = prefs.getString('cached_current_cash_session');
+    if (rawCurrentSession != null) {
+      try {
+        _currentCashSession = jsonDecode(rawCurrentSession) as Map<String, dynamic>;
+      } catch (_) {
+        _currentCashSession = null;
+      }
+    } else {
+      _currentCashSession = null;
+    }
+
+    final rawHistorySessions = prefs.getStringList('cached_cash_sessions_history');
+    if (rawHistorySessions != null) {
+      _cashSessions.clear();
+      _cashSessions.addAll(rawHistorySessions.map((s) => jsonDecode(s) as Map<String, dynamic>));
     }
 
     if (pendingCount > 0) {

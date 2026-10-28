@@ -455,6 +455,68 @@ class ApiService {
     throw Exception(_parseError(response));
   }
 
+  Future<Map<String, dynamic>?> getCurrentCashSession() async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/cash-sessions/current/'),
+      headers: _headers(),
+    );
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      return decoded['session'] as Map<String, dynamic>?;
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>> startCashSession({
+    required double openingFloat,
+    String openingNotes = '',
+    String? clientSessionId,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/cash-sessions/start/'),
+      headers: _headers(),
+      body: jsonEncode({
+        'opening_float': openingFloat,
+        'opening_notes': openingNotes,
+        if (clientSessionId != null) 'client_session_id': clientSessionId,
+      }),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(_parseError(response));
+  }
+
+  Future<Map<String, dynamic>> closeCashSession({
+    required dynamic sessionId,
+    required double closingCashActual,
+    String closingNotes = '',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/cash-sessions/$sessionId/close/'),
+      headers: _headers(),
+      body: jsonEncode({
+        'closing_cash_actual': closingCashActual,
+        'closing_notes': closingNotes,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(_parseError(response));
+  }
+
+  Future<List<dynamic>> getCashSessions() async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/cash-sessions/'),
+      headers: _headers(),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    }
+    throw Exception(_parseError(response));
+  }
+
 
   Future<Map<String, dynamic>?> lookupBarcode(String barcode) async {
     final response = await http.get(

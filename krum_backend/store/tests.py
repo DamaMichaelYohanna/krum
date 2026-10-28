@@ -2,7 +2,10 @@ from decimal import Decimal
 import uuid
 from django.contrib.auth.models import User
 from django.test import TestCase
-from .models import AuditLog, Business, Customer, Expense, Membership, Product, ProductUnit, Sale, Supplier, Unit, InventoryMovement
+from .models import (
+    AuditLog, Business, CashSession, Customer, Expense, Membership, Product,
+    ProductUnit, Sale, Supplier, Unit, InventoryMovement
+)
 from apps.inventory.services import InventoryService
 from apps.customers.services import DebtService
 from apps.purchasing.services import PurchaseService
@@ -379,3 +382,71 @@ class RestockingAndBusinessTests(TestCase):
         del_peter = self.client.delete(f'/api/staff/{peter_membership_id}/')
         self.assertEqual(del_peter.status_code, 200)
         self.assertFalse(Membership.objects.filter(id=peter_membership_id).exists())
+
+    def test_cash_session_lifecycle_and_reconciliation(self):
+        # 1. Initially no session is active
+        curr = self.client.get('/api/cash-sessions/current/')
+        self.assertEqual(curr.status_code, 200)
+        self.assertIsNone(curr.data['session'])
+
+        # 2. Start shift with 5000 opening float
+        start_res = self.client.post('/api/cash-sessions/start/', {
+            'opening_float': 5000,
+            'opening_notes': 'Morning shift float',
+        }, format='json')
+        self.assertEqual(start_res.status_code, 201)
+        session_id = start_res.data['id']
+        self.assertEqual(start_res.data['status'], 'open')
+        self.assertEqual(start_res.data['expected_cash'], 5000.0)
+
+        # 3. Cannot start another session while open
+        dup_res = self.client.post('/api/cash-sessions/start/', {'opening_float': 1000}, format='json')
+        self.assertEqual(dup_res.status_code, 400)
+
+        # 4. Make a cash sale of 1500 (10 pieces of Biscuits)
+        InventoryService.adjust(business=self.business, product=self.product, quantity_delta=50, reason=InventoryMovement.Reason.OPENING, actor=self.user)
+        SalesService.complete(
+            business=self.business,
+            customer=None,
+            items=[{'product_unit': self.pu_piece.id, 'quantity': 10}],
+            amount_paid=1500,
+            discount=0,
+            client_transaction_id=str(uuid.uuid4()),
+            actor=self.user,
+            payment_method='cash',
+        )
+
+        # 5. Record an expense of 500
+        Expense.objects.create(
+            business=self.business,
+            category='Fuel',
+            amount=Decimal('500.00'),
+            description='Generator fuel for shift',
+            occurred_at='2026-10-27',
+        )
+
+        # 6. Check live session metrics: expected = 5000 float + 1500 sale - 500 exp = 6000
+        live_res = self.client.get('/api/cash-sessions/current/')
+        self.assertEqual(live_res.status_code, 200)
+        s_data = live_res.data['session']
+        self.assertEqual(s_data['cash_sales'], 1500.0)
+        self.assertEqual(s_data['cash_expenses'], 500.0)
+        self.assertEqual(s_data['expected_cash'], 6000.0)
+
+        # 7. Close session with actual counted cash = 5800 (200 shortage)
+        close_res = self.client.post(f'/api/cash-sessions/{session_id}/close/', {
+            'closing_cash_actual': 5800,
+            'closing_notes': '200 short due to change shortage',
+        }, format='json')
+        self.assertEqual(close_res.status_code, 200)
+        self.assertEqual(close_res.data['status'], 'closed')
+        self.assertEqual(close_res.data['expected_cash'], 6000.0)
+        self.assertEqual(close_res.data['closing_cash_actual'], 5800.0)
+        self.assertEqual(close_res.data['difference'], -200.0)
+
+        # 8. Listing sessions includes this closed session
+        list_res = self.client.get('/api/cash-sessions/')
+        self.assertEqual(list_res.status_code, 200)
+        self.assertEqual(len(list_res.data), 1)
+        self.assertEqual(list_res.data[0]['id'], session_id)
+        self.assertEqual(list_res.data[0]['difference'], -200.0)

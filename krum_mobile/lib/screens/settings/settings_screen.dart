@@ -8,6 +8,8 @@ import '../purchases/add_purchase_screen.dart';
 import '../reports/reports_screen.dart';
 import '../sales/sales_history_screen.dart';
 import '../staff/staff_screen.dart';
+import '../cash_drawer/cash_drawer_screen.dart';
+import '../../utils/formatters.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -371,6 +373,19 @@ class SettingsScreen extends StatelessWidget {
 
           // Business Operations Group
           _sectionHeader('Business Operations'),
+          ListTile(
+            leading: const Icon(Icons.point_of_sale_outlined, color: Colors.teal),
+            title: const Text('Cash Drawer & Shift Sessions'),
+            subtitle: Text(
+              provider.isShiftActive
+                  ? 'Shift active · Till: ${CurrencyFormatter.format(provider.currentDrawerMetrics["expectedCash"] ?? 0, currency: provider.business?.currency ?? "NGN")}'
+                  : 'Drawer closed · Tap to open shift',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const CashDrawerScreen()));
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.people_outline, color: AppColors.primary),
             title: const Text('Customers & Debtors'),

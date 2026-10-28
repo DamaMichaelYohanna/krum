@@ -13,6 +13,7 @@ import '../inventory/product_form_screen.dart';
 import '../sales/sales_history_screen.dart';
 import '../../utils/pdf_receipt_helper.dart';
 import '../../widgets/app_search_bar.dart';
+import '../cash_drawer/cash_drawer_screen.dart';
 
 class PosScreen extends StatefulWidget {
   final VoidCallback onOpenProductCreate;
@@ -1165,6 +1166,97 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
               ],
             ),
           ),
+
+          // Cash Drawer & Shift Handover Till Bar
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CashDrawerScreen()),
+              );
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: provider.isShiftActive
+                    ? const Color(0xFFECFDF5)
+                    : const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: provider.isShiftActive
+                      ? const Color(0xFFA7F3D0)
+                      : const Color(0xFFFDE68A),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: provider.isShiftActive
+                          ? const Color(0xFF059669)
+                          : const Color(0xFFD97706),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    provider.isShiftActive ? 'Cash Drawer Active' : 'No Active Shift',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: provider.isShiftActive
+                          ? const Color(0xFF065F46)
+                          : const Color(0xFF92400E),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (provider.isShiftActive) ...[
+                    Text(
+                      'Expected: ',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    Text(
+                      CurrencyFormatter.format(
+                        provider.currentDrawerMetrics['expectedCash'] ?? 0.0,
+                        currency: currency,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF065F46),
+                      ),
+                    ),
+                  ] else ...[
+                    const Text(
+                      'Tap to Open Till',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFD97706),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 16,
+                    color: provider.isShiftActive
+                        ? const Color(0xFF059669)
+                        : const Color(0xFFD97706),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 2),
 
         // Middle Section: Product Selector List & Active Cart
         Expanded(

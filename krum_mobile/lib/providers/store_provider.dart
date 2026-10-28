@@ -1656,6 +1656,155 @@ class StoreProvider extends ChangeNotifier {
     }
   }
 
+  // --- Cash Drawer & Shift Handover Sessions ---
+
+  Map<String, dynamic>? get currentCashSession => syncService.currentCashSession;
+  bool get isShiftActive => currentCashSession != null && currentCashSession!['status'] == 'open';
+  List<Map<String, dynamic>> get cashSessions => syncService.cashSessions;
+
+  Map<String, double> get currentDrawerMetrics {
+    if (!isShiftActive) {
+      return {
+        'openingFloat': 0.0,
+        'cashSales': 0.0,
+        'otherSales': 0.0,
+        'totalSales': 0.0,
+        'cashDebtPayments': 0.0,
+        'cashExpenses': 0.0,
+        'expectedCash': 0.0,
+      };
+    }
+
+    final session = currentCashSession!;
+    final openedAtStr = session['opened_at']?.toString() ?? '';
+    final openedAt = DateTime.tryParse(openedAtStr) ?? DateTime.now();
+    final openingFloat = (session['opening_float'] as num?)?.toDouble() ?? 0.0;
+
+    double cashSales = 0.0;
+    double otherSales = 0.0;
+
+    for (final s in sales) {
+      if (s['status'] == 'reversed') continue;
+      final sDateStr = s['completed_at'] ?? s['created_at'];
+      if (sDateStr == null) continue;
+      final sDate = DateTime.tryParse(sDateStr.toString());
+      if (sDate != null && sDate.isAfter(openedAt.subtract(const Duration(seconds: 1)))) {
+        final method = (s['payment_method'] ?? 'cash').toString().toLowerCase();
+        final amount = (s['amount_paid'] as num?)?.toDouble() ?? (s['total_amount'] as num?)?.toDouble() ?? 0.0;
+        if (method == 'cash') {
+          cashSales += amount;
+        } else {
+          otherSales += amount;
+        }
+      }
+    }
+
+    double cashExpenses = 0.0;
+    for (final e in expenses) {
+      final eDateStr = e.createdAt;
+      DateTime? eDate;
+      if (eDateStr != null) {
+        eDate = DateTime.tryParse(eDateStr);
+      }
+      eDate ??= DateTime.tryParse(e.occurredAt);
+      if (eDate != null && eDate.isAfter(openedAt.subtract(const Duration(seconds: 1)))) {
+        cashExpenses += e.amount;
+      }
+    }
+
+    double cashDebtPayments = 0.0;
+    final allPayments = [
+      ...syncService.localPayments,
+      ...syncService.pendingPayments,
+    ];
+    final Set<String> processedPayKeys = {};
+    for (final p in allPayments) {
+      final key = p['client_transaction_id'] ?? '${p['customer_id']}_${p['amount']}_${p['created_at']}';
+      if (processedPayKeys.contains(key)) continue;
+      processedPayKeys.add(key);
+
+      final pMethod = (p['method'] ?? 'cash').toString().toLowerCase();
+      if (pMethod != 'cash') continue;
+
+      final pDateStr = p['created_at']?.toString();
+      final pDate = pDateStr != null ? DateTime.tryParse(pDateStr) : null;
+      if (pDate != null && pDate.isAfter(openedAt.subtract(const Duration(seconds: 1)))) {
+        final amt = p['amount'];
+        if (amt is num) {
+          cashDebtPayments += amt.toDouble();
+        }
+      }
+    }
+
+    final expectedCash = openingFloat + cashSales + cashDebtPayments - cashExpenses;
+
+    return {
+      'openingFloat': openingFloat,
+      'cashSales': cashSales,
+      'otherSales': otherSales,
+      'totalSales': cashSales + otherSales,
+      'cashDebtPayments': cashDebtPayments,
+      'cashExpenses': cashExpenses,
+      'expectedCash': expectedCash,
+    };
+  }
+
+  Future<bool> startShift({
+    required double openingFloat,
+    String openingNotes = '',
+  }) async {
+    _isLoading = true;
+    _errorMessage = '';
+    notifyListeners();
+    try {
+      await syncService.startCashSessionLocally(
+        openingFloat: openingFloat,
+        openingNotes: openingNotes,
+      );
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> closeShift({
+    required double closingCashActual,
+    String closingNotes = '',
+  }) async {
+    _isLoading = true;
+    _errorMessage = '';
+    notifyListeners();
+    try {
+      final metrics = currentDrawerMetrics;
+      final closed = await syncService.closeCashSessionLocally(
+        closingCashActual: closingCashActual,
+        closingNotes: closingNotes,
+        cashSales: metrics['cashSales'] ?? 0.0,
+        otherSales: metrics['otherSales'] ?? 0.0,
+        cashDebtPayments: metrics['cashDebtPayments'] ?? 0.0,
+        cashExpenses: metrics['cashExpenses'] ?? 0.0,
+      );
+      _isLoading = false;
+      notifyListeners();
+      return closed;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<void> refreshCashSessions() async {
+    await syncService.syncCashSessionsWithRemote();
+    notifyListeners();
+  }
+
   void _setLoading(bool val) {
     _isLoading = val;
     notifyListeners();
