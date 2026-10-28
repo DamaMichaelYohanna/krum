@@ -15,12 +15,13 @@
     }
 
     .toggle-pill {
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
+        background: #FFFFFF;
+        border: 1px solid var(--border);
         border-radius: 9999px;
         padding: 4px;
         display: flex;
         gap: 4px;
+        box-shadow: var(--shadow-sm);
     }
 
     .toggle-opt {
@@ -30,13 +31,13 @@
         font-weight: 700;
         cursor: pointer;
         transition: var(--transition-smooth);
-        color: var(--text-muted);
+        color: var(--text-secondary);
     }
 
     .toggle-opt.active {
-        background: var(--gradient-brand);
+        background: var(--primary);
         color: #FFFFFF;
-        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+        box-shadow: 0 2px 8px rgba(31, 131, 150, 0.35);
     }
 
     /* Pricing Cards Grid */
@@ -49,26 +50,28 @@
     }
 
     .price-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-subtle);
+        background: #FFFFFF;
+        border: 1px solid var(--border);
         border-radius: 24px;
         padding: 38px 30px;
         display: flex;
         flex-direction: column;
         transition: var(--transition-smooth);
         position: relative;
+        box-shadow: var(--shadow-card);
     }
 
     .price-card.featured {
-        background: linear-gradient(145deg, rgba(23, 34, 60, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
-        border: 1px solid var(--border-glow);
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 35px rgba(99, 102, 241, 0.25);
+        background: #FFFFFF;
+        border: 2px solid var(--primary);
+        box-shadow: 0 12px 35px rgba(31, 131, 150, 0.18);
         transform: translateY(-6px);
     }
 
     .price-card:hover {
-        border-color: var(--border-glow);
+        border-color: var(--primary);
         transform: translateY(-8px);
+        box-shadow: var(--shadow-card-hover);
     }
 
     .featured-badge {
@@ -76,27 +79,27 @@
         top: -14px;
         left: 50%;
         transform: translateX(-50%);
-        background: var(--gradient-brand);
+        background: var(--primary);
         color: #FFFFFF;
         font-size: 11.5px;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.8px;
-        padding: 5px 16px;
+        padding: 5px 18px;
         border-radius: 20px;
-        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.5);
+        box-shadow: 0 4px 12px rgba(31, 131, 150, 0.35);
     }
 
     .plan-name {
         font-family: 'Outfit', sans-serif;
         font-size: 22px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--primary-dark);
         margin-bottom: 8px;
     }
 
     .plan-desc {
-        color: var(--text-muted);
+        color: var(--text-secondary);
         font-size: 14px;
         min-height: 44px;
         line-height: 1.5;
@@ -109,20 +112,20 @@
         gap: 6px;
         margin-bottom: 24px;
         padding-bottom: 24px;
-        border-bottom: 1px solid var(--border-subtle);
+        border-bottom: 1px solid var(--border);
     }
 
     .price-amount {
         font-family: 'Outfit', sans-serif;
         font-size: 44px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--primary-dark);
         line-height: 1;
     }
 
     .price-period {
         font-size: 14px;
-        color: var(--text-muted);
+        color: var(--text-secondary);
     }
 
     .plan-features-list {
@@ -139,11 +142,11 @@
         align-items: flex-start;
         gap: 10px;
         font-size: 14px;
-        color: var(--text-main);
+        color: var(--text-primary);
     }
 
     .feature-check {
-        color: #10B981;
+        color: var(--success);
         font-weight: 800;
         font-size: 15px;
         line-height: 1.2;
@@ -155,10 +158,11 @@
     }
 
     .table-container {
-        background: var(--bg-card);
-        border: 1px solid var(--border-subtle);
+        background: #FFFFFF;
+        border: 1px solid var(--border);
         border-radius: 20px;
         overflow-x: auto;
+        box-shadow: var(--shadow-card);
     }
 
     .compare-table {
@@ -171,12 +175,12 @@
     .compare-table th,
     .compare-table td {
         padding: 16px 20px;
-        border-bottom: 1px solid var(--border-subtle);
+        border-bottom: 1px solid var(--border);
     }
 
     .compare-table th {
-        background: rgba(255, 255, 255, 0.02);
-        color: var(--text-dim);
+        background: var(--bg-subtle);
+        color: var(--primary-dark);
         font-weight: 700;
         font-size: 13px;
         text-transform: uppercase;
@@ -184,17 +188,17 @@
     }
 
     .compare-table tr:hover td {
-        background: rgba(255, 255, 255, 0.02);
+        background: var(--primary-light);
     }
 
     .check-yes {
-        color: #10B981;
+        color: var(--success);
         font-weight: 800;
         font-size: 16px;
     }
 
     .check-no {
-        color: var(--text-dim);
+        color: var(--text-muted);
         font-size: 14px;
     }
 
@@ -207,22 +211,23 @@
     }
 
     .bundle-card {
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
+        background: #FFFFFF;
+        border: 1px solid var(--border);
         border-radius: 20px;
-        padding: 30px;
+        padding: 32px;
+        box-shadow: var(--shadow-card);
     }
 
     .bundle-card h3 {
         font-family: 'Outfit', sans-serif;
         font-size: 20px;
         font-weight: 700;
-        color: #FFFFFF;
+        color: var(--primary-dark);
         margin-bottom: 10px;
     }
 
     .bundle-card p {
-        color: var(--text-muted);
+        color: var(--text-secondary);
         font-size: 14px;
         line-height: 1.6;
         margin-bottom: 16px;
@@ -249,7 +254,7 @@
 
     <!-- Currency Selector -->
     <div class="pricing-toggle-wrap">
-        <span style="font-size: 14px; font-weight: 600; color: var(--text-muted);">Currency:</span>
+        <span style="font-size: 14px; font-weight: 600; color: var(--text-secondary);">Currency:</span>
         <div class="toggle-pill">
             <div class="toggle-opt active" id="btn-curr-ngn" onclick="setCurrency('NGN')">₦ NGN (Naira)</div>
             <div class="toggle-opt" id="btn-curr-usd" onclick="setCurrency('USD')">$ USD (Dollars)</div>
@@ -289,11 +294,11 @@
                     <span class="feature-check">✓</span>
                     <span>Local SQLite Database & Offline Storage</span>
                 </li>
-                <li class="plan-feature-item" style="color: var(--text-dim);">
+                <li class="plan-feature-item" style="color: var(--text-muted);">
                     <span>✕</span>
                     <span>Cloud Sync & Web Dashboard</span>
                 </li>
-                <li class="plan-feature-item" style="color: var(--text-dim);">
+                <li class="plan-feature-item" style="color: var(--text-muted);">
                     <span>✕</span>
                     <span>Automated WhatsApp Supplier Restock</span>
                 </li>
@@ -311,7 +316,7 @@
             <div class="plan-desc">For established supermarkets, pharmacies, and high-volume retail stores.</div>
             
             <div class="price-display">
-                <span class="price-amount" id="pro-price" style="color: #34D399;">₦15,000</span>
+                <span class="price-amount" id="pro-price" style="color: var(--primary);">₦15,000</span>
                 <span class="price-period">/ month per store</span>
             </div>
 
@@ -346,7 +351,7 @@
                 </li>
             </ul>
 
-            <a href="/contact/?plan=pro" class="btn btn-emerald" style="width: 100%; padding: 13px;">
+            <a href="/contact/?plan=pro" class="btn btn-primary" style="width: 100%; padding: 13px;">
                 Get Started with Pro
             </a>
         </div>
@@ -388,7 +393,7 @@
                 </li>
             </ul>
 
-            <a href="/contact/?plan=enterprise" class="btn btn-primary" style="width: 100%; padding: 13px;">
+            <a href="/contact/?plan=enterprise" class="btn btn-outline" style="width: 100%; padding: 13px; border-color: var(--primary); color: var(--primary);">
                 Contact Enterprise Sales
             </a>
         </div>
@@ -538,10 +543,10 @@
         <h2>Start Modernizing Your Store Today</h2>
         <p>No credit card required to test. Download the Android APK and experience sub-second retail checkout.</p>
         <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
-            <a href="/download/krum.apk" class="btn btn-emerald" style="padding: 14px 28px;">
+            <a href="/download/krum.apk" class="btn btn-outline" style="padding: 14px 28px; color: var(--primary-dark); font-weight: 800;">
                 Download Free APK
             </a>
-            <a href="/contact/" class="btn btn-outline" style="padding: 14px 28px;">
+            <a href="/contact/" class="btn btn-outline" style="padding: 14px 28px; background: rgba(255,255,255,0.15); color: #FFFFFF; border-color: rgba(255,255,255,0.3);">
                 Speak with Sales
             </a>
         </div>

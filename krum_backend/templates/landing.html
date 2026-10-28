@@ -15,19 +15,17 @@
 
     .hero-h1 {
         font-family: 'Outfit', sans-serif;
-        font-size: clamp(38px, 6vw, 62px);
+        font-size: clamp(38px, 6vw, 60px);
         font-weight: 900;
-        line-height: 1.1;
-        letter-spacing: -1.8px;
+        line-height: 1.12;
+        letter-spacing: -1.6px;
         margin-bottom: 22px;
-        background: linear-gradient(135deg, #FFFFFF 20%, #E2E8F0 60%, #818CF8 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: var(--primary-dark);
     }
 
     .hero-lead {
         font-size: clamp(17px, 2.2vw, 20px);
-        color: var(--text-muted);
+        color: var(--text-secondary);
         line-height: 1.6;
         margin-bottom: 38px;
         max-width: 760px;
@@ -47,11 +45,11 @@
     .pos-preview-container {
         margin: 20px auto 70px;
         max-width: 1040px;
-        background: var(--bg-surface);
-        border: 1px solid var(--border-glow);
+        background: #FFFFFF;
+        border: 1px solid var(--primary-border);
         border-radius: 24px;
         padding: 24px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(79, 70, 229, 0.25);
+        box-shadow: 0 16px 40px rgba(31, 131, 150, 0.12);
         position: relative;
         overflow: hidden;
     }
@@ -63,7 +61,7 @@
         flex-wrap: wrap;
         gap: 16px;
         padding-bottom: 18px;
-        border-bottom: 1px solid var(--border-subtle);
+        border-bottom: 1px solid var(--border);
         margin-bottom: 20px;
     }
 
@@ -74,6 +72,7 @@
         font-family: 'Outfit', sans-serif;
         font-weight: 700;
         font-size: 16px;
+        color: var(--primary-dark);
     }
 
     .pos-layout {
@@ -86,7 +85,7 @@
     .mock-catalog-title {
         font-size: 13px;
         font-weight: 700;
-        color: var(--text-dim);
+        color: var(--text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-bottom: 12px;
@@ -99,8 +98,8 @@
     }
 
     .mock-item-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--border-subtle);
+        background: var(--bg-base);
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 14px;
         cursor: pointer;
@@ -109,21 +108,21 @@
     }
 
     .mock-item-card:hover {
-        background: rgba(99, 102, 241, 0.12);
-        border-color: var(--border-glow);
+        background: var(--primary-light);
+        border-color: var(--primary);
         transform: translateY(-2px);
     }
 
     .mock-item-name {
-        font-weight: 600;
+        font-weight: 700;
         font-size: 13.5px;
-        color: #FFFFFF;
+        color: var(--text-primary);
         margin-bottom: 4px;
     }
 
     .mock-item-unit {
         font-size: 11.5px;
-        color: var(--cyan);
+        color: var(--primary);
         margin-bottom: 8px;
         font-weight: 600;
     }
@@ -131,14 +130,14 @@
     .mock-item-price {
         font-family: 'JetBrains Mono', monospace;
         font-weight: 700;
-        font-size: 14px;
-        color: #34D399;
+        font-size: 14.5px;
+        color: var(--primary-dark);
     }
 
     /* Cart in Mockup */
     .mock-cart {
-        background: rgba(6, 8, 14, 0.7);
-        border: 1px solid var(--border-subtle);
+        background: #F8FAFC;
+        border: 1px solid var(--border);
         border-radius: 16px;
         padding: 18px;
         display: flex;
@@ -152,7 +151,7 @@
         display: flex;
         justify-content: space-between;
         margin-bottom: 14px;
-        color: #FFFFFF;
+        color: var(--primary-dark);
     }
 
     .mock-cart-list {
@@ -167,17 +166,18 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        border-radius: 8px;
-        padding: 8px 12px;
+        background: #FFFFFF;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
         font-size: 13px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
     .mock-cart-totals {
         margin-top: 14px;
         padding-top: 14px;
-        border-top: 1px solid var(--border-subtle);
+        border-top: 1px solid var(--border);
     }
 
     .mock-total-row {
@@ -185,13 +185,13 @@
         justify-content: space-between;
         margin-bottom: 6px;
         font-size: 13px;
-        color: var(--text-muted);
+        color: var(--text-secondary);
     }
 
     .mock-grand-total {
-        font-size: 17px;
-        font-weight: 700;
-        color: #FFFFFF;
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--primary-dark);
         margin-top: 8px;
     }
 
@@ -204,35 +204,39 @@
     }
 
     .trust-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-subtle);
+        background: #FFFFFF;
+        border: 1px solid var(--border);
         border-radius: 18px;
         padding: 24px;
         text-align: center;
-        backdrop-filter: blur(12px);
+        box-shadow: var(--shadow-card);
+        transition: var(--transition-smooth);
+    }
+
+    .trust-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
     }
 
     .trust-val {
         font-family: 'Outfit', sans-serif;
-        font-size: 36px;
+        font-size: 38px;
         font-weight: 800;
-        background: var(--gradient-brand);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: var(--primary);
         line-height: 1.1;
         margin-bottom: 6px;
     }
 
     .trust-label {
         font-weight: 700;
-        font-size: 14px;
-        color: #FFFFFF;
+        font-size: 14.5px;
+        color: var(--text-primary);
         margin-bottom: 4px;
     }
 
     .trust-sub {
-        font-size: 12.5px;
-        color: var(--text-muted);
+        font-size: 13px;
+        color: var(--text-secondary);
     }
 
     /* Pillars */
@@ -252,12 +256,12 @@
         font-weight: 800;
         letter-spacing: -1px;
         margin-bottom: 14px;
-        color: #FFFFFF;
+        color: var(--primary-dark);
     }
 
     .section-sub {
         font-size: 16px;
-        color: var(--text-muted);
+        color: var(--text-secondary);
     }
 
     .pillars-grid {
@@ -267,25 +271,25 @@
     }
 
     .pillar-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-subtle);
+        background: #FFFFFF;
+        border: 1px solid var(--border);
         border-radius: 20px;
         padding: 32px;
         transition: var(--transition-smooth);
-        position: relative;
+        box-shadow: var(--shadow-card);
     }
 
     .pillar-card:hover {
-        background: var(--bg-card-hover);
-        border-color: var(--border-glow);
+        border-color: var(--primary);
         transform: translateY(-4px);
+        box-shadow: var(--shadow-card-hover);
     }
 
     .pillar-icon {
         width: 52px;
         height: 52px;
-        background: rgba(99, 102, 241, 0.12);
-        border: 1px solid rgba(99, 102, 241, 0.3);
+        background: var(--primary-light);
+        border: 1px solid var(--primary-border);
         border-radius: 14px;
         display: flex;
         align-items: center;
@@ -299,26 +303,27 @@
         font-size: 20px;
         font-weight: 700;
         margin-bottom: 12px;
-        color: #FFFFFF;
+        color: var(--primary-dark);
     }
 
     .pillar-desc {
-        color: var(--text-muted);
+        color: var(--text-secondary);
         font-size: 14.5px;
         line-height: 1.6;
     }
 
     /* Interactive Savings Calculator */
     .calc-card {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(11, 16, 29, 0.95) 100%);
-        border: 1px solid var(--border-glow);
+        background: linear-gradient(135deg, #13525E 0%, #1F8396 100%);
+        color: #FFFFFF;
         border-radius: 24px;
-        padding: 40px;
+        padding: 44px;
         margin-bottom: 90px;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 40px;
         align-items: center;
+        box-shadow: 0 15px 40px rgba(31, 131, 150, 0.25);
     }
 
     .calc-slider-group {
@@ -335,13 +340,14 @@
 
     input[type=range] {
         width: 100%;
-        accent-color: #6366F1;
+        accent-color: #BCE5ED;
         cursor: pointer;
     }
 
     .calc-results {
-        background: rgba(6, 8, 14, 0.7);
-        border: 1px solid var(--border-subtle);
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
         border-radius: 20px;
         padding: 30px;
         text-align: center;
@@ -349,9 +355,9 @@
 
     .calc-res-val {
         font-family: 'Outfit', sans-serif;
-        font-size: 44px;
+        font-size: 46px;
         font-weight: 800;
-        color: #34D399;
+        color: #6EE7B7;
         line-height: 1.1;
         margin-bottom: 8px;
     }
@@ -363,11 +369,17 @@
     }
 
     .faq-item {
-        background: var(--bg-card);
-        border: 1px solid var(--border-subtle);
+        background: #FFFFFF;
+        border: 1px solid var(--border);
         border-radius: 14px;
         margin-bottom: 12px;
         overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition-smooth);
+    }
+
+    .faq-item.active {
+        border-color: var(--primary);
     }
 
     .faq-question {
@@ -375,7 +387,7 @@
         font-family: 'Outfit', sans-serif;
         font-weight: 700;
         font-size: 17px;
-        color: #FFFFFF;
+        color: var(--primary-dark);
         cursor: pointer;
         display: flex;
         justify-content: space-between;
@@ -384,7 +396,7 @@
 
     .faq-answer {
         padding: 0 24px 20px;
-        color: var(--text-muted);
+        color: var(--text-secondary);
         font-size: 14.5px;
         line-height: 1.6;
         display: none;
@@ -396,17 +408,17 @@
 
     .faq-item.active .faq-icon {
         transform: rotate(180deg);
+        color: var(--primary);
     }
 
     /* Bottom CTA Banner */
     .cta-banner {
-        background: linear-gradient(135deg, #1E1B4B 0%, #0F172A 50%, #064E3B 100%);
-        border: 1px solid var(--border-glow);
+        background: linear-gradient(135deg, #13525E 0%, #1F8396 100%);
         border-radius: 28px;
         padding: 60px 40px;
         text-align: center;
-        position: relative;
-        overflow: hidden;
+        color: #FFFFFF;
+        box-shadow: 0 15px 40px rgba(31, 131, 150, 0.25);
     }
 
     .cta-banner h2 {
@@ -419,7 +431,7 @@
 
     .cta-banner p {
         font-size: 17px;
-        color: #CBD5E1;
+        color: #E6F5F8;
         max-width: 650px;
         margin: 0 auto 36px;
     }
@@ -437,7 +449,7 @@
     <!-- Hero Section -->
     <section class="landing-hero">
         <div class="badge-pill">
-            <span style="color: var(--cyan);">⚡</span> Next-Gen Offline-First POS & Cloud Sync
+            <span style="color: var(--primary); font-weight: 800;">⚡</span> Next-Gen Offline-First POS & Cloud Sync
         </div>
         <h1 class="hero-h1">The Complete Operating System for Fast-Paced Retail & Supermarkets</h1>
         <p class="hero-lead">
@@ -452,7 +464,7 @@
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
                 <span>Download Android APK</span>
-                <span style="font-size: 11px; opacity: 0.85; background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 6px;">v1.0.0</span>
+                <span style="font-size: 11px; opacity: 0.9; background: rgba(255,255,255,0.22); padding: 2px 6px; border-radius: 6px;">v1.0.0</span>
             </a>
 
             <a href="/pricing/" class="btn btn-outline" id="hero-cta-pricing">
@@ -480,10 +492,10 @@
                 <div class="brand-icon" style="width: 32px; height: 32px; font-size: 16px;">K</div>
                 <div>
                     <span>Krum Terminal Simulator</span>
-                    <span style="font-size: 12px; color: #10B981; font-weight: 600; margin-left: 8px;">● Live Till Active</span>
+                    <span style="font-size: 12px; color: #10B981; font-weight: 700; margin-left: 8px;">● Live Till Active</span>
                 </div>
             </div>
-            <div style="font-size: 13px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">
+            <div style="font-size: 13px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">
                 Click any product below to simulate instant checkout
             </div>
         </div>
@@ -523,23 +535,23 @@
             <div class="mock-cart">
                 <div class="mock-cart-header">
                     <span>Current Cart</span>
-                    <span style="color: var(--cyan); cursor: pointer; font-size: 13px;" onclick="clearCart()">Clear</span>
+                    <span style="color: var(--primary); cursor: pointer; font-size: 13px; font-weight: 700;" onclick="clearCart()">Clear</span>
                 </div>
 
                 <div class="mock-cart-list" id="mock-cart-items">
                     <div class="mock-cart-item">
                         <div>
-                            <div style="font-weight: 600;">Golden Penny Pasta</div>
-                            <div style="font-size: 11px; color: var(--text-dim);">1 × Carton (20 Pcs)</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Golden Penny Pasta</div>
+                            <div style="font-size: 11.5px; color: var(--text-secondary);">1 × Carton (20 Pcs)</div>
                         </div>
-                        <div style="font-family: monospace; font-weight: 700; color: #34D399;">₦18,500</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary-dark);">₦18,500</div>
                     </div>
                 </div>
 
                 <div class="mock-cart-totals">
                     <div class="mock-total-row">
                         <span>Subtotal</span>
-                        <span id="mock-subtotal" style="font-family: monospace;">₦18,500</span>
+                        <span id="mock-subtotal" style="font-family: monospace; font-weight: 600;">₦18,500</span>
                     </div>
                     <div class="mock-total-row">
                         <span>Tax / VAT (0%)</span>
@@ -547,7 +559,7 @@
                     </div>
                     <div class="mock-total-row mock-grand-total">
                         <span>Total Due</span>
-                        <span id="mock-total" style="color: #34D399; font-family: monospace;">₦18,500</span>
+                        <span id="mock-total" style="color: var(--primary); font-family: 'JetBrains Mono', monospace;">₦18,500</span>
                     </div>
 
                     <button class="btn btn-emerald" style="width: 100%; margin-top: 14px; padding: 12px;" onclick="checkoutSim()">
@@ -644,18 +656,20 @@
     <!-- Interactive ROI / Savings Calculator -->
     <section class="calc-card">
         <div>
-            <div class="badge-pill" style="margin-bottom: 12px;">Interactive Estimation</div>
+            <div class="badge-pill" style="background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: #FFFFFF; margin-bottom: 12px;">
+                Interactive Estimation
+            </div>
             <h3 style="font-family: 'Outfit', sans-serif; font-size: 30px; font-weight: 800; color: #FFFFFF; margin-bottom: 14px;">
                 Calculate Your Store's Annual Savings with Krum
             </h3>
-            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 28px;">
+            <p style="color: #E6F5F8; font-size: 15px; margin-bottom: 28px;">
                 Adjust the sliders to estimate how much cash leakages and hours Krum helps eliminate through automated shift audits, stock deficit tracking, and barcode accuracy.
             </p>
 
             <div class="calc-slider-group">
                 <div class="calc-label-row">
                     <span>Average Daily Store Sales</span>
-                    <span id="lbl-daily" style="color: var(--cyan); font-family: monospace;">₦350,000</span>
+                    <span id="lbl-daily" style="color: #6EE7B7; font-family: monospace; font-weight: 700;">₦350,000</span>
                 </div>
                 <input type="range" id="rng-daily" min="50000" max="2500000" step="25000" value="350000" oninput="recalcSavings()">
             </div>
@@ -663,21 +677,21 @@
             <div class="calc-slider-group">
                 <div class="calc-label-row">
                     <span>Estimated Cash & Stock Discrepancy Rate</span>
-                    <span id="lbl-shrink" style="color: var(--amber); font-family: monospace;">2.5%</span>
+                    <span id="lbl-shrink" style="color: #FDE68A; font-family: monospace; font-weight: 700;">2.5%</span>
                 </div>
                 <input type="range" id="rng-shrink" min="0.5" max="8.0" step="0.5" value="2.5" oninput="recalcSavings()">
             </div>
         </div>
 
         <div class="calc-results">
-            <div style="font-size: 13px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;">
+            <div style="font-size: 13px; font-weight: 700; color: #E6F5F8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;">
                 Estimated Annual Losses Prevented
             </div>
             <div class="calc-res-val" id="res-savings">₦3,150,000</div>
-            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">
+            <div style="font-size: 14px; color: #E6F5F8; margin-bottom: 20px;">
                 Plus ~<strong>180 hours</strong> of manual paper stocktaking saved per year.
             </div>
-            <a href="/pricing/" class="btn btn-primary" style="width: 100%; padding: 14px;">
+            <a href="/pricing/" class="btn btn-outline" style="width: 100%; padding: 14px; color: var(--primary-dark); font-weight: 800;">
                 Start Saving with Krum Today
             </a>
         </div>
@@ -748,10 +762,10 @@
             Download the Android application or connect your team to experience resilient, offline-first retail operations.
         </p>
         <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
-            <a href="/download/krum.apk" class="btn btn-emerald" style="padding: 14px 28px; font-size: 15px;">
+            <a href="/download/krum.apk" class="btn btn-outline" style="padding: 14px 28px; font-size: 15px; color: var(--primary-dark); font-weight: 800;">
                 Download Android App (APK)
             </a>
-            <a href="/contact/" class="btn btn-outline" style="padding: 14px 28px; font-size: 15px;">
+            <a href="/contact/" class="btn btn-outline" style="padding: 14px 28px; font-size: 15px; background: rgba(255,255,255,0.15); color: #FFFFFF; border-color: rgba(255,255,255,0.3);">
                 Request Store Demo
             </a>
         </div>
@@ -775,12 +789,12 @@
             row.className = 'mock-cart-item';
             row.innerHTML = `
                 <div>
-                    <div style="font-weight: 600;">${item.name}</div>
-                    <div style="font-size: 11px; color: var(--text-dim);">${item.unit}</div>
+                    <div style="font-weight: 700; color: var(--text-primary);">${item.name}</div>
+                    <div style="font-size: 11.5px; color: var(--text-secondary);">${item.unit}</div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-family: monospace; font-weight: 700; color: #34D399;">₦${item.price.toLocaleString()}</span>
-                    <span style="cursor: pointer; color: var(--rose); font-size: 13px;" onclick="removeItem(${idx})">✕</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary-dark);">₦${item.price.toLocaleString()}</span>
+                    <span style="cursor: pointer; color: var(--error); font-size: 13px;" onclick="removeItem(${idx})">✕</span>
                 </div>
             `;
             list.appendChild(row);

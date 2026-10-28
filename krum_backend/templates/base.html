@@ -18,26 +18,43 @@
     
     <style>
         :root {
-            --bg-base: #06080E;
-            --bg-surface: #0B101D;
-            --bg-card: rgba(15, 23, 42, 0.72);
-            --bg-card-hover: rgba(23, 34, 60, 0.85);
-            --border-subtle: rgba(255, 255, 255, 0.07);
-            --border-glow: rgba(99, 102, 241, 0.45);
-            --primary: #4F46E5;
-            --primary-light: #6366F1;
-            --primary-hover: #4338CA;
-            --cyan: #06B6D4;
-            --emerald: #10B981;
-            --amber: #F59E0B;
-            --rose: #F43F5E;
-            --text-main: #F8FAFC;
+            /* Exact Krum App Color Scheme (Deep Ocean Teal / Cyan) */
+            --primary: #1F8396;
+            --primary-light: #E6F5F8;
+            --primary-dark: #13525E;
+            --primary-accent: #269CB2;
+            --primary-border: #BCE5ED;
+            
+            --bg-base: #F7FBFC;
+            --bg-surface: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #F1F7F9;
+            
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
             --text-muted: #94A3B8;
-            --text-dim: #64748B;
-            --gradient-brand: linear-gradient(135deg, #4F46E5 0%, #06B6D4 100%);
-            --gradient-accent: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
-            --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.25);
-            --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            
+            --success: #10B981;
+            --success-light: #DCFCE7;
+            --warning: #F59E0B;
+            --warning-light: #FEF3C7;
+            --error: #EF4444;
+            --error-light: #FEE2E2;
+            --info: #0284C7;
+            --info-light: #E0F2FE;
+            
+            --border: #E2EBF0;
+            --divider: #EFF4F7;
+            
+            --gradient-primary: linear-gradient(135deg, #1F8396 0%, #13525E 100%);
+            --gradient-accent: linear-gradient(135deg, #269CB2 0%, #1F8396 100%);
+            --gradient-hero: linear-gradient(135deg, #E6F5F8 0%, #F7FBFC 50%, #FFFFFF 100%);
+            
+            --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+            --shadow-card: 0 4px 20px rgba(31, 131, 150, 0.08);
+            --shadow-card-hover: 0 10px 30px rgba(31, 131, 150, 0.15);
+            --shadow-glow: 0 4px 18px rgba(31, 131, 150, 0.28);
+            --transition-smooth: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * {
@@ -52,7 +69,7 @@
 
         body {
             background-color: var(--bg-base);
-            color: var(--text-main);
+            color: var(--text-primary);
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
             overflow-x: hidden;
@@ -60,22 +77,9 @@
             display: flex;
             flex-direction: column;
             background-image: 
-                radial-gradient(circle at 10% 15%, rgba(79, 70, 229, 0.14) 0%, transparent 40%),
-                radial-gradient(circle at 90% 60%, rgba(6, 182, 212, 0.12) 0%, transparent 45%),
-                radial-gradient(circle at 50% 95%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
-        }
-
-        /* Subtle grid background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-size: 48px 48px;
-            background-image: 
-                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            pointer-events: none;
-            z-index: 0;
+                radial-gradient(circle at 12% 10%, rgba(31, 131, 150, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 88% 50%, rgba(38, 156, 178, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
         }
 
         .container {
@@ -92,12 +96,13 @@
             position: sticky;
             top: 0;
             width: 100%;
-            background: rgba(6, 8, 14, 0.85);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border);
             z-index: 100;
             transition: var(--transition-smooth);
+            box-shadow: 0 2px 10px rgba(31, 131, 150, 0.04);
         }
 
         .nav-inner {
@@ -117,7 +122,7 @@
         .brand-icon {
             width: 42px;
             height: 42px;
-            background: var(--gradient-brand);
+            background: var(--gradient-primary);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -126,7 +131,7 @@
             font-weight: 800;
             font-size: 22px;
             color: #FFFFFF;
-            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.45);
+            box-shadow: 0 4px 14px rgba(31, 131, 150, 0.35);
         }
 
         .brand-text {
@@ -139,13 +144,13 @@
             font-size: 23px;
             font-weight: 800;
             letter-spacing: -0.5px;
-            color: #FFFFFF;
+            color: var(--primary-dark);
             line-height: 1.1;
         }
 
         .brand-tag {
             font-size: 11px;
-            color: var(--cyan);
+            color: var(--primary);
             font-weight: 700;
             letter-spacing: 0.8px;
             text-transform: uppercase;
@@ -159,10 +164,10 @@
         }
 
         nav.nav-links a {
-            color: var(--text-muted);
+            color: var(--text-secondary);
             text-decoration: none;
             font-size: 14.5px;
-            font-weight: 500;
+            font-weight: 600;
             transition: var(--transition-smooth);
             position: relative;
             padding: 6px 0;
@@ -170,7 +175,7 @@
 
         nav.nav-links a:hover,
         nav.nav-links a.active {
-            color: #FFFFFF;
+            color: var(--primary);
         }
 
         nav.nav-links a.active::after {
@@ -179,8 +184,8 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 2px;
-            background: var(--gradient-brand);
+            height: 2.5px;
+            background: var(--primary);
             border-radius: 2px;
         }
 
@@ -196,9 +201,9 @@
             justify-content: center;
             gap: 8px;
             padding: 10px 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             text-decoration: none;
             cursor: pointer;
             transition: var(--transition-smooth);
@@ -207,45 +212,47 @@
         }
 
         .btn-sm {
-            padding: 8px 14px;
+            padding: 8px 16px;
             font-size: 13px;
-            border-radius: 8px;
+            border-radius: 10px;
         }
 
         .btn-primary {
-            background: var(--gradient-brand);
+            background: var(--primary);
             color: #FFFFFF;
-            box-shadow: 0 4px 18px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 4px 14px rgba(31, 131, 150, 0.3);
         }
 
         .btn-primary:hover {
+            background: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(79, 70, 229, 0.55);
+            box-shadow: 0 6px 20px rgba(31, 131, 150, 0.45);
         }
 
         .btn-outline {
-            background: rgba(255, 255, 255, 0.03);
-            border-color: var(--border-subtle);
-            color: var(--text-main);
-            backdrop-filter: blur(8px);
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
         }
 
         .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
-            color: #FFFFFF;
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
             transform: translateY(-2px);
         }
 
         .btn-emerald {
-            background: var(--gradient-accent);
+            background: #10B981;
             color: #FFFFFF;
-            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
         }
 
         .btn-emerald:hover {
+            background: #059669;
             transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.5);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
         }
 
         /* Mobile Hamburger */
@@ -253,7 +260,7 @@
             display: none;
             background: transparent;
             border: none;
-            color: var(--text-main);
+            color: var(--text-primary);
             font-size: 24px;
             cursor: pointer;
             padding: 6px;
@@ -266,13 +273,13 @@
             top: 76px;
             left: 0;
             right: 0;
-            background: rgba(11, 16, 29, 0.98);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-subtle);
+            background: #FFFFFF;
+            border-bottom: 1px solid var(--border);
             padding: 24px;
             flex-direction: column;
             gap: 16px;
             z-index: 99;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06);
         }
 
         .mobile-drawer.open {
@@ -280,12 +287,12 @@
         }
 
         .mobile-drawer a {
-            color: var(--text-main);
+            color: var(--text-primary);
             text-decoration: none;
             font-size: 16px;
             font-weight: 600;
             padding: 10px 0;
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--divider);
         }
 
         /* Main Content */
@@ -295,10 +302,10 @@
             z-index: 1;
         }
 
-        /* Footer */
+        /* Global Footer - Styled with App's Deep Navy Teal (primaryDark) */
         footer.site-footer {
-            background: var(--bg-surface);
-            border-top: 1px solid var(--border-subtle);
+            background: var(--primary-dark);
+            color: #FFFFFF;
             margin-top: 80px;
             padding: 70px 0 30px;
             position: relative;
@@ -313,7 +320,7 @@
         }
 
         .footer-brand p {
-            color: var(--text-muted);
+            color: #BCE5ED;
             font-size: 14.5px;
             margin: 16px 0 24px;
             max-width: 320px;
@@ -324,13 +331,13 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.25);
+            background: rgba(16, 185, 129, 0.18);
+            border: 1px solid rgba(16, 185, 129, 0.4);
             padding: 6px 14px;
             border-radius: 9999px;
             font-size: 12.5px;
-            font-weight: 600;
-            color: #34D399;
+            font-weight: 700;
+            color: #6EE7B7;
         }
 
         .footer-status .pulse-dot {
@@ -365,7 +372,7 @@
         }
 
         .footer-links a {
-            color: var(--text-muted);
+            color: #BCE5ED;
             text-decoration: none;
             font-size: 14px;
             transition: var(--transition-smooth);
@@ -383,8 +390,8 @@
             flex-wrap: wrap;
             gap: 20px;
             padding-top: 30px;
-            border-top: 1px solid var(--border-subtle);
-            color: var(--text-dim);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            color: #94A3B8;
             font-size: 13.5px;
         }
 
@@ -394,13 +401,13 @@
         }
 
         .footer-bottom-links a {
-            color: var(--text-dim);
+            color: #BCE5ED;
             text-decoration: none;
             transition: var(--transition-smooth);
         }
 
         .footer-bottom-links a:hover {
-            color: var(--text-muted);
+            color: #FFFFFF;
         }
 
         /* Common Page Header */
@@ -415,9 +422,9 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(99, 102, 241, 0.12);
-            border: 1px solid rgba(99, 102, 241, 0.35);
-            color: #A5B4FC;
+            background: var(--primary-light);
+            border: 1px solid var(--primary-border);
+            color: var(--primary-dark);
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.8px;
@@ -434,14 +441,12 @@
             line-height: 1.15;
             letter-spacing: -1.2px;
             margin-bottom: 16px;
-            background: linear-gradient(135deg, #FFFFFF 30%, #CBD5E1 70%, #A5B4FC 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary-dark);
         }
 
         .page-subtitle {
             font-size: clamp(16px, 1.8vw, 18px);
-            color: var(--text-muted);
+            color: var(--text-secondary);
             line-height: 1.6;
         }
 
@@ -541,10 +546,10 @@
             <div class="footer-grid">
                 <div class="footer-brand">
                     <a href="/" class="brand-link" style="margin-bottom: 12px;">
-                        <div class="brand-icon">K</div>
+                        <div class="brand-icon" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">K</div>
                         <div class="brand-text">
-                            <span class="brand-title">Krum</span>
-                            <span class="brand-tag">Cloud Sync Engine</span>
+                            <span class="brand-title" style="color: #FFFFFF;">Krum</span>
+                            <span class="brand-tag" style="color: #6EE7B7;">Cloud Sync Engine</span>
                         </div>
                     </a>
                     <p>

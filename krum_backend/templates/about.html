@@ -18,33 +18,25 @@
         font-size: clamp(28px, 4vw, 38px);
         font-weight: 800;
         margin-bottom: 18px;
-        color: #FFFFFF;
+        color: var(--primary-dark);
         line-height: 1.2;
     }
 
     .story-content p {
-        color: var(--text-muted);
+        color: var(--text-secondary);
         font-size: 15.5px;
         line-height: 1.7;
         margin-bottom: 18px;
     }
 
     .story-highlight-box {
-        background: var(--bg-card);
-        border: 1px solid var(--border-glow);
+        background: var(--primary-light);
+        border: 1px solid var(--primary-border);
         border-radius: 24px;
         padding: 36px;
         position: relative;
         overflow: hidden;
-    }
-
-    .story-highlight-box::after {
-        content: '';
-        position: absolute;
-        top: -50px; right: -50px;
-        width: 150px; height: 150px;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
-        pointer-events: none;
+        box-shadow: var(--shadow-card);
     }
 
     /* Architecture Breakdown */
@@ -56,24 +48,25 @@
     }
 
     .arch-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-subtle);
+        background: #FFFFFF;
+        border: 1px solid var(--border);
         border-radius: 18px;
         padding: 30px;
         transition: var(--transition-smooth);
+        box-shadow: var(--shadow-card);
     }
 
     .arch-card:hover {
-        border-color: var(--border-glow);
-        background: var(--bg-card-hover);
+        border-color: var(--primary);
         transform: translateY(-3px);
+        box-shadow: var(--shadow-card-hover);
     }
 
     .arch-num {
         font-family: 'Outfit', sans-serif;
-        font-size: 14px;
+        font-size: 13.5px;
         font-weight: 800;
-        color: var(--cyan);
+        color: var(--primary);
         text-transform: uppercase;
         letter-spacing: 1px;
         margin-bottom: 12px;
@@ -83,23 +76,24 @@
         font-family: 'Outfit', sans-serif;
         font-size: 20px;
         font-weight: 700;
-        color: #FFFFFF;
+        color: var(--primary-dark);
         margin-bottom: 10px;
     }
 
     .arch-card p {
-        color: var(--text-muted);
+        color: var(--text-secondary);
         font-size: 14.5px;
         line-height: 1.6;
     }
 
     /* Hardware Ecosystem */
     .hardware-section {
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
+        background: #FFFFFF;
+        border: 1px solid var(--border);
         border-radius: 24px;
         padding: 48px;
         margin-bottom: 90px;
+        box-shadow: var(--shadow-card);
     }
 
     .hardware-grid {
@@ -110,10 +104,16 @@
     }
 
     .hardware-item {
-        background: rgba(6, 8, 14, 0.6);
-        border: 1px solid var(--border-subtle);
+        background: var(--bg-base);
+        border: 1px solid var(--border);
         border-radius: 16px;
-        padding: 22px;
+        padding: 24px;
+        transition: var(--transition-smooth);
+    }
+
+    .hardware-item:hover {
+        border-color: var(--primary);
+        background: var(--primary-light);
     }
 
     .hardware-icon {
@@ -125,12 +125,12 @@
         font-family: 'Outfit', sans-serif;
         font-size: 17px;
         font-weight: 700;
-        color: #FFFFFF;
+        color: var(--primary-dark);
         margin-bottom: 6px;
     }
 
     .hardware-item p {
-        color: var(--text-muted);
+        color: var(--text-secondary);
         font-size: 13.5px;
         line-height: 1.5;
     }
@@ -173,40 +173,40 @@
         </div>
 
         <div class="story-highlight-box">
-            <div style="font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 800; color: #FFFFFF; margin-bottom: 18px;">
+            <div style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 800; color: var(--primary-dark); margin-bottom: 20px;">
                 The 4 Core Tenets of Krum
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 <div style="display: flex; gap: 14px;">
-                    <div style="color: var(--cyan); font-weight: 800; font-size: 18px;">01</div>
+                    <div style="color: var(--primary); font-weight: 800; font-size: 18px;">01</div>
                     <div>
-                        <div style="font-weight: 700; color: #FFFFFF; font-size: 15px;">Zero Downtime Selling</div>
-                        <div style="color: var(--text-muted); font-size: 13.5px;">100% of sales and till operations execute on device in local SQLite. Internet outages never halt business.</div>
+                        <div style="font-weight: 700; color: var(--primary-dark); font-size: 15px;">Zero Downtime Selling</div>
+                        <div style="color: var(--text-secondary); font-size: 13.5px;">100% of sales and till operations execute on device in local SQLite. Internet outages never halt business.</div>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 14px;">
-                    <div style="color: var(--cyan); font-weight: 800; font-size: 18px;">02</div>
+                    <div style="color: var(--primary); font-weight: 800; font-size: 18px;">02</div>
                     <div>
-                        <div style="font-weight: 700; color: #FFFFFF; font-size: 15px;">Multi-Packaging Precision</div>
-                        <div style="color: var(--text-muted); font-size: 13.5px;">Native conversion ratios between base units, retail packs, cartons, and bulk bags.</div>
+                        <div style="font-weight: 700; color: var(--primary-dark); font-size: 15px;">Multi-Packaging Precision</div>
+                        <div style="color: var(--text-secondary); font-size: 13.5px;">Native conversion ratios between base units, retail packs, cartons, and bulk bags.</div>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 14px;">
-                    <div style="color: var(--cyan); font-weight: 800; font-size: 18px;">03</div>
+                    <div style="color: var(--primary); font-weight: 800; font-size: 18px;">03</div>
                     <div>
-                        <div style="font-weight: 700; color: #FFFFFF; font-size: 15px;">Frictionless Restock Hub</div>
-                        <div style="color: var(--text-muted); font-size: 13.5px;">Instant supplier purchase orders sent through WhatsApp and SMS in 1 tap.</div>
+                        <div style="font-weight: 700; color: var(--primary-dark); font-size: 15px;">Frictionless Restock Hub</div>
+                        <div style="color: var(--text-secondary); font-size: 13.5px;">Instant supplier purchase orders sent through WhatsApp and SMS in 1 tap.</div>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 14px;">
-                    <div style="color: var(--cyan); font-weight: 800; font-size: 18px;">04</div>
+                    <div style="color: var(--primary); font-weight: 800; font-size: 18px;">04</div>
                     <div>
-                        <div style="font-weight: 700; color: #FFFFFF; font-size: 15px;">Strict Cashier Accountability</div>
-                        <div style="color: var(--text-muted); font-size: 13.5px;">Live till sessions, expected cash calculation, and variance audits at shift end.</div>
+                        <div style="font-weight: 700; color: var(--primary-dark); font-size: 15px;">Strict Cashier Accountability</div>
+                        <div style="color: var(--text-secondary); font-size: 13.5px;">Live till sessions, expected cash calculation, and variance audits at shift end.</div>
                     </div>
                 </div>
             </div>
@@ -276,10 +276,10 @@
     <section class="hardware-section">
         <div style="text-align: center; max-width: 650px; margin: 0 auto;">
             <div class="badge-pill">Hardware Ecosystem</div>
-            <h2 style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; color: #FFFFFF; margin-bottom: 12px;">
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; color: var(--primary-dark); margin-bottom: 12px;">
                 Works with Hardware You Already Own
             </h2>
-            <p style="color: var(--text-muted); font-size: 15px;">
+            <p style="color: var(--text-secondary); font-size: 15px;">
                 Krum avoids expensive proprietary hardware lock-in. Use standard Android devices and plug-and-play retail accessories.
             </p>
         </div>
@@ -313,14 +313,14 @@
 
     <!-- Bottom CTA -->
     <section style="text-align: center; padding: 40px 0 20px;">
-        <h2 style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; color: #FFFFFF; margin-bottom: 16px;">
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; color: var(--primary-dark); margin-bottom: 16px;">
             Ready to upgrade your store's infrastructure?
         </h2>
         <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
             <a href="/pricing/" class="btn btn-primary" style="padding: 14px 28px;">
                 View Pricing & Plans
             </a>
-            <a href="/download/krum.apk" class="btn btn-emerald" style="padding: 14px 28px;">
+            <a href="/download/krum.apk" class="btn btn-outline" style="padding: 14px 28px;">
                 Download Android APK
             </a>
         </div>
