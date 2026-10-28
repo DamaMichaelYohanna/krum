@@ -37,7 +37,7 @@ class SyncService:
 
         # Products with inventory and configured units
         products = []
-        for p in Product.objects.filter(business=business, active=True).select_related('base_unit', 'inventory').prefetch_related('units__unit'):
+        for p in Product.objects.filter(business=business, active=True).select_related('base_unit', 'inventory', 'preferred_supplier').prefetch_related('units__unit'):
             inv = getattr(p, 'inventory', None)
             stock = float(inv.quantity_base) if inv else 0.0
             cost = float(inv.average_cost) if inv else 0.0
@@ -62,6 +62,8 @@ class SyncService:
                 'category_id': p.category_id,
                 'base_unit_id': p.base_unit_id,
                 'base_unit_name': p.base_unit.name if p.base_unit else '',
+                'preferred_supplier_id': p.preferred_supplier_id,
+                'preferred_supplier_name': p.preferred_supplier.name if p.preferred_supplier else '',
                 'brand': p.brand,
                 'reorder_level': float(p.reorder_level),
                 'stock_base': stock,

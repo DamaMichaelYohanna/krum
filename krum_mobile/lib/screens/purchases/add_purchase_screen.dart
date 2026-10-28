@@ -6,7 +6,18 @@ import '../../providers/store_provider.dart';
 import '../../utils/formatters.dart';
 
 class AddPurchaseScreen extends StatefulWidget {
-  const AddPurchaseScreen({super.key});
+  final Product? initialProduct;
+  final double? initialQuantity;
+  final int? initialSupplierId;
+  final double? initialUnitCost;
+
+  const AddPurchaseScreen({
+    super.key,
+    this.initialProduct,
+    this.initialQuantity,
+    this.initialSupplierId,
+    this.initialUnitCost,
+  });
 
   @override
   State<AddPurchaseScreen> createState() => _AddPurchaseScreenState();
@@ -23,6 +34,40 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
   int? _selectedSupplierId;
   Product? _selectedProduct;
   ProductUnit? _selectedUnit;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialProduct != null) {
+      _selectedProduct = widget.initialProduct;
+      _selectedUnit = widget.initialProduct!.units.isNotEmpty
+          ? widget.initialProduct!.units.first
+          : widget.initialProduct!.baseUnit;
+      if (widget.initialUnitCost != null && widget.initialUnitCost! > 0) {
+        _unitCostController.text = widget.initialUnitCost!.toStringAsFixed(2);
+      } else if (_selectedUnit != null && _selectedUnit!.costPrice > 0) {
+        _unitCostController.text = _selectedUnit!.costPrice.toStringAsFixed(2);
+      } else if (_selectedProduct!.averageCost > 0) {
+        _unitCostController.text = _selectedProduct!.averageCost.toStringAsFixed(2);
+      }
+      if (_selectedUnit != null && _selectedUnit!.sellingPrice > 0) {
+        _sellingPriceController.text = _selectedUnit!.sellingPrice.toStringAsFixed(2);
+      }
+      if (widget.initialQuantity != null && widget.initialQuantity! > 0) {
+        _qtyController.text = CurrencyFormatter.formatQty(widget.initialQuantity!);
+      }
+      final qty = double.tryParse(_qtyController.text) ?? 0.0;
+      final cost = double.tryParse(_unitCostController.text) ?? 0.0;
+      if (qty > 0 && cost > 0) {
+        _amountPaidController.text = (qty * cost).toStringAsFixed(2);
+      }
+    }
+    if (widget.initialSupplierId != null) {
+      _selectedSupplierId = widget.initialSupplierId;
+    } else if (widget.initialProduct?.preferredSupplierId != null) {
+      _selectedSupplierId = widget.initialProduct?.preferredSupplierId;
+    }
+  }
 
   @override
   void dispose() {

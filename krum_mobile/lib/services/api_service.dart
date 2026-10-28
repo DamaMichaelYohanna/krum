@@ -529,6 +529,20 @@ class ApiService {
     return null;
   }
 
+  Future<Map<String, dynamic>> getLowStockAlerts({int? supplierId}) async {
+    final queryParams = <String, String>{};
+    if (supplierId != null) queryParams['supplier'] = supplierId.toString();
+
+    final uri = Uri.parse('$_baseUrl/inventory/low-stock/').replace(
+      queryParameters: queryParams.isEmpty ? null : queryParams,
+    );
+    final response = await http.get(uri, headers: _headers());
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(_parseError(response));
+  }
+
   String _parseError(http.Response response) {
     try {
       final decoded = jsonDecode(response.body);

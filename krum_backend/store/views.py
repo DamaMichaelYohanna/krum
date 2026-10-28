@@ -171,15 +171,21 @@ class ExpenseDetailView(TenantRetrieveUpdateDestroy):
 # --- Products ---
 
 class ProductView(TenantListCreate):
-    queryset = Product.objects.select_related('inventory', 'base_unit', 'category').prefetch_related('units__unit')
+    queryset = Product.objects.select_related('inventory', 'base_unit', 'category', 'preferred_supplier').prefetch_related('units__unit')
     serializer_class = ProductSerializer
 
     def get_queryset(self):
         qs = super().get_queryset()
         query = self.request.query_params.get('q', '').strip()
         category_id = self.request.query_params.get('category')
+        supplier_id = self.request.query_params.get('supplier')
+        low_stock_only = self.request.query_params.get('low_stock')
         if category_id:
             qs = qs.filter(category_id=category_id)
+        if supplier_id:
+            qs = qs.filter(preferred_supplier_id=supplier_id)
+        if low_stock_only in ('true', '1'):
+            qs = qs.filter(Q(inventory__quantity_base__lte=F('reorder_level')) | Q(inventory__isnull=True))
         if query:
             qs = qs.filter(Q(name__icontains=query) | Q(barcode__icontains=query) | Q(sku__icontains=query))
         return qs.order_by('name')
@@ -189,7 +195,7 @@ class ProductView(TenantListCreate):
         super().perform_create(serializer)
 
 class ProductDetailView(TenantRetrieveUpdateDestroy):
-    queryset = Product.objects.select_related('inventory', 'base_unit', 'category').prefetch_related('units__unit')
+    queryset = Product.objects.select_related('inventory', 'base_unit', 'category', 'preferred_supplier').prefetch_related('units__unit')
     serializer_class = ProductSerializer
 
     def perform_update(self, serializer):
@@ -1033,4 +1039,79 @@ def list_cash_sessions(request):
         for s in sessions
     ]
     return Response(data)
+
+@api_view(['GET'])
+@permission_classes([HasBusiness])
+def low_stock_alerts(request):
+    require_role(request, 'owner', 'manager')
+    business = business_for(request)
+    supplier_id = request.query_params.get('supplier')
+
+    products = Product.objects.filter(
+        business=business,
+        active=True
+    ).select_related('base_unit', 'inventory', 'category', 'preferred_supplier').prefetch_related('units__unit')
+
+    if supplier_id and supplier_id.isdigit():
+        products = products.filter(preferred_supplier_id=int(supplier_id))
+
+    items = []
+    total_estimated_restock_cost = Decimal('0')
+    out_of_stock_count = 0
+    low_stock_count = 0
+
+    for p in products:
+        inv = getattr(p, 'inventory', None)
+        current_stock = float(inv.quantity_base) if inv else 0.0
+        reorder_lvl = float(p.reorder_level)
+
+        if current_stock <= reorder_lvl:
+            is_out = current_stock <= 0
+            if is_out:
+                out_of_stock_count += 1
+            else:
+                low_stock_count += 1
+
+            target_stock = max(reorder_lvl * 2, 10.0 if reorder_lvl == 0 else reorder_lvl)
+            suggested_order_qty = max(target_stock - current_stock, 1.0)
+
+            base_pu = next((u for u in p.units.all() if u.conversion_to_base == Decimal('1.000')), None)
+            cost_price = float(base_pu.cost_price) if base_pu and base_pu.cost_price > 0 else (float(inv.average_cost) if inv and inv.average_cost > 0 else 0.0)
+            selling_price = float(base_pu.selling_price) if base_pu else 0.0
+
+            est_cost = suggested_order_qty * cost_price
+            total_estimated_restock_cost += Decimal(str(est_cost))
+
+            items.append({
+                'id': p.id,
+                'name': p.name,
+                'sku': p.sku,
+                'barcode': p.barcode,
+                'category_name': p.category.name if p.category else 'General',
+                'base_unit_id': p.base_unit_id,
+                'base_unit_name': p.base_unit.name if p.base_unit else 'Piece',
+                'product_unit_id': base_pu.id if base_pu else None,
+                'current_stock': current_stock,
+                'reorder_level': reorder_lvl,
+                'deficit': max(reorder_lvl - current_stock, 0.0),
+                'suggested_reorder_qty': suggested_order_qty,
+                'unit_cost': cost_price,
+                'selling_price': selling_price,
+                'estimated_restock_cost': est_cost,
+                'is_out_of_stock': is_out,
+                'preferred_supplier_id': p.preferred_supplier_id,
+                'preferred_supplier_name': p.preferred_supplier.name if p.preferred_supplier else None,
+                'preferred_supplier_phone': p.preferred_supplier.phone if p.preferred_supplier else '',
+            })
+
+    items.sort(key=lambda x: (not x['is_out_of_stock'], -x['deficit'], x['name']))
+
+    return Response({
+        'total_low_stock': len(items),
+        'out_of_stock_count': out_of_stock_count,
+        'low_stock_count': low_stock_count,
+        'total_estimated_restock_cost': float(total_estimated_restock_cost),
+        'items': items,
+    })
+
 

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../services/sync_service.dart';
+import 'package:intl/intl.dart';
 import '../utils/formatters.dart';
 
 class StoreProvider extends ChangeNotifier {
@@ -51,6 +52,11 @@ class StoreProvider extends ChangeNotifier {
   List<Customer> get customers => syncService.customers;
   List<Supplier> get suppliers => syncService.suppliers;
   Business? get business => syncService.currentBusiness;
+
+  // Low Stock & Reordering Getters
+  List<Product> get lowStockProducts => products.where((p) => p.active && p.needsRestock).toList();
+  List<Product> get outOfStockProducts => products.where((p) => p.active && p.isOutOfStock).toList();
+  double get totalRestockBudget => lowStockProducts.fold(0.0, (sum, p) => sum + p.estimatedRestockCost);
 
   // Cart getters
   List<CartItem> get cart => _cart;
@@ -282,6 +288,7 @@ class StoreProvider extends ChangeNotifier {
     String sku = '',
     String barcode = '',
     int? categoryId,
+    int? preferredSupplierId,
     String brand = '',
     double reorderLevel = 0.0,
     double sellingPrice = 0.0,
@@ -297,6 +304,7 @@ class StoreProvider extends ChangeNotifier {
         sku: sku,
         barcode: barcode,
         categoryId: categoryId,
+        preferredSupplierId: preferredSupplierId,
         brand: brand,
         reorderLevel: reorderLevel,
         sellingPrice: sellingPrice,
@@ -312,6 +320,7 @@ class StoreProvider extends ChangeNotifier {
             'sku': product.sku,
             'barcode': barcode,
             'category': categoryId,
+            'preferred_supplier': preferredSupplierId,
             'base_unit': baseUnitId,
             'brand': brand,
             'reorder_level': reorderLevel,
@@ -494,6 +503,89 @@ class StoreProvider extends ChangeNotifier {
     );
     await refreshDashboard();
     notifyListeners();
+  }
+
+  Future<bool> batchReceiveStock({
+    int? supplierId,
+    required List<Map<String, dynamic>> items,
+    String reference = '',
+  }) async {
+    _setLoading(true);
+    try {
+      for (final item in items) {
+        final product = item['product'] as Product;
+        final unit = item['unit'] as ProductUnit;
+        final qty = (item['quantity'] as num).toDouble();
+        final unitCost = (item['unit_cost'] as num).toDouble();
+        final sellingPrice = (item['selling_price'] as num?)?.toDouble();
+
+        await syncService.enqueuePurchase(
+          supplierId: supplierId,
+          productId: product.id,
+          productUnitId: unit.id,
+          quantity: qty,
+          unitCost: unitCost,
+          amountPaid: qty * unitCost,
+          newSellingPrice: sellingPrice,
+          reference: reference.isNotEmpty ? reference : 'Bulk Reorder',
+        );
+      }
+      await refreshDashboard();
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  String generatePurchaseOrderText({
+    Supplier? supplier,
+    required List<Map<String, dynamic>> items,
+    String notes = '',
+  }) {
+    final businessName = business?.name ?? 'Our Store';
+    final now = DateTime.now();
+    final dateStr = DateFormat('dd MMM yyyy, hh:mm a').format(now);
+    final ref = 'PO-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch.toString().substring(8)}';
+    final currency = business?.currency ?? 'NGN';
+
+    final buffer = StringBuffer();
+    buffer.writeln('📦 *PURCHASE REQUISITION ORDER*');
+    buffer.writeln('🏪 Store: *$businessName*');
+    if (supplier != null) {
+      buffer.writeln('🚚 Supplier: *${supplier.name}*');
+      if (supplier.phone.isNotEmpty) buffer.writeln('📞 Contact: ${supplier.phone}');
+    }
+    buffer.writeln('🗓 Date: $dateStr');
+    buffer.writeln('🔖 Order Ref: $ref');
+    buffer.writeln('--------------------------------');
+    buffer.writeln('*ITEMS REQUESTED:*');
+
+    double grandTotal = 0.0;
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      final name = item['name'] ?? 'Product';
+      final unitName = item['unit_name'] ?? 'pcs';
+      final qty = (item['quantity'] as num).toDouble();
+      final cost = (item['unit_cost'] as num).toDouble();
+      final subtotal = qty * cost;
+      grandTotal += subtotal;
+
+      buffer.writeln('${i + 1}. *$name*');
+      buffer.writeln('   Qty: ${CurrencyFormatter.formatQty(qty)} $unitName @ ${CurrencyFormatter.format(cost, currency: currency)} = ${CurrencyFormatter.format(subtotal, currency: currency)}');
+    }
+
+    buffer.writeln('--------------------------------');
+    buffer.writeln('💰 *Total Estimated Order: ${CurrencyFormatter.format(grandTotal, currency: currency)}*');
+    if (notes.trim().isNotEmpty) {
+      buffer.writeln('📝 Notes: ${notes.trim()}');
+    }
+    buffer.writeln('--------------------------------');
+    buffer.writeln('Please confirm item availability and delivery schedule.');
+    buffer.writeln('Thank you!');
+    return buffer.toString();
   }
 
   // --- Customers & Debt Repayments ---

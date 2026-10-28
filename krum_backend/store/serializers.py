@@ -77,6 +77,7 @@ class ProductSerializer(serializers.ModelSerializer):
     average_cost = serializers.DecimalField(source='inventory.average_cost', max_digits=14, decimal_places=2, read_only=True)
     base_unit_name = serializers.CharField(source='base_unit.name', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
+    preferred_supplier_name = serializers.CharField(source='preferred_supplier.name', read_only=True)
 
     # Allow setting initial unit prices and opening stock on creation
     selling_price = serializers.DecimalField(max_digits=14, decimal_places=2, write_only=True, required=False)
@@ -88,10 +89,14 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'sku', 'barcode', 'category', 'category_name',
             'base_unit', 'base_unit_name', 'brand', 'reorder_level',
+            'preferred_supplier', 'preferred_supplier_name',
             'active', 'stock', 'average_cost', 'units',
             'selling_price', 'cost_price', 'opening_stock'
         ]
-        extra_kwargs = {'barcode': {'required': False, 'allow_blank': True}}
+        extra_kwargs = {
+            'barcode': {'required': False, 'allow_blank': True},
+            'preferred_supplier': {'required': False, 'allow_null': True}
+        }
 
     def create(self, validated_data):
         selling_price = validated_data.pop('selling_price', None)

@@ -1070,6 +1070,122 @@ void main() {
     expect(provider3.cashSessions.first['difference'], -500.0);
     expect(provider3.cashSessions.first['status'], 'closed');
   });
+
+  test('Low stock alerts detection, suggested reorder calculation, PO generation, and batch restock offline', () async {
+    SharedPreferences.setMockInitialValues({});
+    final api = ApiService();
+    final sync = SyncService(api: api);
+    final provider = StoreProvider(api: api, syncService: sync);
+    await provider.init();
+
+    // 1. Create a supplier
+    final supplier = await provider.createSupplier('Flour Mills of Nigeria', phone: '08022223333');
+    expect(supplier, isNotNull);
+
+    // 2. Create Product A (reorder_level = 10, opening stock = 2 -> Low Stock)
+    final p1Created = await provider.createProduct(
+      name: 'Golden Penny Semovita 1kg',
+      barcode: '111222333',
+      sku: 'SEMO-1KG',
+      costPrice: 1200.0,
+      sellingPrice: 1500.0,
+      openingStock: 2.0,
+      reorderLevel: 10.0,
+      preferredSupplierId: supplier!.id,
+      baseUnitId: 1,
+    );
+    expect(p1Created, true);
+
+    // 3. Create Product B (reorder_level = 5, opening stock = 0 -> Out of Stock)
+    final p2Created = await provider.createProduct(
+      name: 'Golden Penny Spaghetti 500g',
+      barcode: '444555666',
+      sku: 'SPAG-500',
+      costPrice: 700.0,
+      sellingPrice: 900.0,
+      openingStock: 0.0,
+      reorderLevel: 5.0,
+      preferredSupplierId: supplier.id,
+      baseUnitId: 1,
+    );
+    expect(p2Created, true);
+
+    // 4. Verify low stock detection
+    final lowItems = provider.lowStockProducts;
+    expect(lowItems.length, 2);
+
+    final p1 = provider.products.firstWhere((p) => p.name == 'Golden Penny Semovita 1kg');
+    expect(p1.isLowStock, true);
+    expect(p1.isOutOfStock, false);
+    expect(p1.targetHealthyStock, 20.0); // 10 * 2
+    expect(p1.suggestedReorderQty, 18.0); // 20 - 2 = 18
+    expect(p1.preferredSupplierId, supplier.id);
+
+    final p2 = provider.products.firstWhere((p) => p.name == 'Golden Penny Spaghetti 500g');
+    expect(p2.isOutOfStock, true);
+    expect(p2.targetHealthyStock, 10.0); // 5 * 2
+    expect(p2.suggestedReorderQty, 10.0); // 10 - 0 = 10
+
+    expect(provider.outOfStockProducts.length, 1);
+    expect(provider.outOfStockProducts.first.name, 'Golden Penny Spaghetti 500g');
+
+    // 5. Test formatted Purchase Order Requisition text generation
+    final poText = provider.generatePurchaseOrderText(
+      supplier: supplier,
+      items: [
+        {
+          'name': p1.name,
+          'unit_name': p1.baseUnitName,
+          'quantity': p1.suggestedReorderQty,
+          'unit_cost': p1.baseUnit.costPrice,
+        },
+        {
+          'name': p2.name,
+          'unit_name': p2.baseUnitName,
+          'quantity': p2.suggestedReorderQty,
+          'unit_cost': p2.baseUnit.costPrice,
+        },
+      ],
+      notes: 'Urgent delivery required',
+    );
+    expect(poText.contains('PURCHASE REQUISITION ORDER'), true);
+    expect(poText.contains('Flour Mills of Nigeria'), true);
+    expect(poText.contains('Golden Penny Semovita 1kg'), true);
+    expect(poText.contains('Golden Penny Spaghetti 500g'), true);
+    expect(poText.contains('Urgent delivery required'), true);
+
+    // 6. Test Batch Restock Receipt into local inventory
+    final batchSuccess = await provider.batchReceiveStock(
+      supplierId: supplier.id,
+      items: [
+        {
+          'product': p1,
+          'unit': p1.baseUnit,
+          'quantity': 18.0,
+          'unit_cost': 1200.0,
+        },
+        {
+          'product': p2,
+          'unit': p2.baseUnit,
+          'quantity': 10.0,
+          'unit_cost': 700.0,
+        },
+      ],
+      reference: 'PO-TEST-001',
+    );
+    expect(batchSuccess, true);
+
+    // 7. Verify stock levels increased and products are no longer in low stock
+    final p1After = provider.products.firstWhere((p) => p.name == 'Golden Penny Semovita 1kg');
+    expect(p1After.stockBase, 20.0); // 2 + 18
+    expect(p1After.needsRestock, false);
+
+    final p2After = provider.products.firstWhere((p) => p.name == 'Golden Penny Spaghetti 500g');
+    expect(p2After.stockBase, 10.0); // 0 + 10
+    expect(p2After.needsRestock, false);
+
+    expect(provider.lowStockProducts.length, 0);
+  });
 }
 
 

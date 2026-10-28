@@ -8,6 +8,7 @@ import 'product_form_screen.dart';
 import 'stock_adjustment_dialog.dart';
 import '../scanner/barcode_scanner_screen.dart';
 import '../../widgets/app_search_bar.dart';
+import 'low_stock_screen.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -473,6 +474,50 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 ],
               ),
             ),
+
+            // Low Stock Alert Banner (1-Tap jump to LowStockScreen)
+            if (provider.lowStockProducts.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 2, 16, 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${provider.lowStockProducts.length} product(s) at or below reorder level',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF92400E)),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LowStockScreen()),
+                        );
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Restock Hub',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                            ),
+                            Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFFD97706)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
           // Product List
           Expanded(

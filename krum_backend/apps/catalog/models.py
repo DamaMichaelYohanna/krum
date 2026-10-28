@@ -10,6 +10,7 @@ class Unit(TenantModel):
     class Meta: constraints = [models.UniqueConstraint(fields=['business', 'name'], name='catalog_unique_unit')]
 class Product(TenantModel):
     name=models.CharField(max_length=180); sku=models.CharField(max_length=64,blank=True); barcode=models.CharField(max_length=64,blank=True); category=models.ForeignKey(Category,null=True,blank=True,on_delete=models.SET_NULL); base_unit=models.ForeignKey(Unit,on_delete=models.PROTECT); brand=models.CharField(max_length=80,blank=True); reorder_level=models.DecimalField(max_digits=14,decimal_places=3,default=0); active=models.BooleanField(default=True)
+    preferred_supplier=models.ForeignKey('purchasing.Supplier',null=True,blank=True,on_delete=models.SET_NULL,related_name='products')
     class Meta:
         indexes = [models.Index(fields=['business', 'name']), models.Index(fields=['business', 'barcode'])]
         constraints = [models.UniqueConstraint(fields=['business', 'barcode'], condition=~models.Q(barcode=''), name='catalog_unique_barcode')]

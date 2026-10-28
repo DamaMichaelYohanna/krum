@@ -27,6 +27,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
   int? _selectedCategoryId;
   int? _selectedBaseUnitId;
+  int? _selectedSupplierId;
 
   // Alternative units list to add after product creation
   final List<Map<String, dynamic>> _alternativeUnits = [];
@@ -42,6 +43,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       _brandController.text = p.brand;
       _selectedCategoryId = p.categoryId;
       _selectedBaseUnitId = p.baseUnitId;
+      _selectedSupplierId = p.preferredSupplierId;
       _costPriceController.text = p.baseUnit.costPrice > 0
           ? p.baseUnit.costPrice.toStringAsFixed(2)
           : (p.averageCost > 0 ? p.averageCost.toStringAsFixed(2) : '');
@@ -238,6 +240,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     final provider = context.watch<StoreProvider>();
     final categories = provider.categories;
     final units = provider.units;
+    final suppliers = provider.suppliers;
 
     if (_selectedBaseUnitId == null && units.isNotEmpty) {
       _selectedBaseUnitId = units.first.id;
@@ -376,6 +379,23 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       onPressed: _showNewUnitDialog,
                     ),
                   ],
+                ),
+                const SizedBox(height: 14),
+
+                // Preferred Supplier dropdown
+                DropdownButtonFormField<int?>(
+                  initialValue: _selectedSupplierId,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Preferred Supplier (Optional)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.local_shipping_outlined),
+                  ),
+                  items: [
+                    const DropdownMenuItem<int?>(value: null, child: Text('No Preferred Supplier', overflow: TextOverflow.ellipsis)),
+                    ...suppliers.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name, overflow: TextOverflow.ellipsis))),
+                  ],
+                  onChanged: (val) => setState(() => _selectedSupplierId = val),
                 ),
                 const SizedBox(height: 14),
 
@@ -563,12 +583,20 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                               ));
                             }
 
+                            String? supName;
+                            if (_selectedSupplierId != null) {
+                              final match = suppliers.where((s) => s.id == _selectedSupplierId);
+                              if (match.isNotEmpty) supName = match.first.name;
+                            }
+
                             final updatedProd = widget.product!.copyWith(
                               name: _nameController.text.trim(),
                               barcode: _barcodeController.text.trim(),
                               sku: _skuController.text.trim(),
                               categoryId: _selectedCategoryId,
                               categoryName: catName,
+                              preferredSupplierId: _selectedSupplierId,
+                              preferredSupplierName: supName,
                               baseUnitId: _selectedBaseUnitId!,
                               baseUnitName: baseUnitObj.name,
                               brand: _brandController.text.trim(),
@@ -585,6 +613,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                               barcode: _barcodeController.text.trim(),
                               sku: _skuController.text.trim(),
                               categoryId: _selectedCategoryId,
+                              preferredSupplierId: _selectedSupplierId,
                               baseUnitId: _selectedBaseUnitId!,
                               brand: _brandController.text.trim(),
                               costPrice: cost,

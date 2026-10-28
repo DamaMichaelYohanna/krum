@@ -995,6 +995,7 @@ class SyncService extends ChangeNotifier {
     String sku = '',
     String barcode = '',
     int? categoryId,
+    int? preferredSupplierId,
     String brand = '',
     double reorderLevel = 0.0,
     double sellingPrice = 0.0,
@@ -1027,6 +1028,14 @@ class SyncService extends ChangeNotifier {
       final match = categories.where((c) => c.id == categoryId);
       if (match.isNotEmpty) {
         categoryName = match.first.name;
+      }
+    }
+
+    String? preferredSupplierName;
+    if (preferredSupplierId != null) {
+      final match = suppliers.where((s) => s.id == preferredSupplierId);
+      if (match.isNotEmpty) {
+        preferredSupplierName = match.first.name;
       }
     }
 
@@ -1073,6 +1082,8 @@ class SyncService extends ChangeNotifier {
       baseUnitName: baseUnitObj.name,
       brand: brand.trim(),
       reorderLevel: reorderLevel,
+      preferredSupplierId: preferredSupplierId,
+      preferredSupplierName: preferredSupplierName,
       stockBase: openingStock,
       averageCost: costPrice,
       units: productUnits,

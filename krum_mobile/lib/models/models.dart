@@ -155,6 +155,8 @@ class Product {
   final String brand;
   final double reorderLevel;
   final bool active;
+  final int? preferredSupplierId;
+  final String? preferredSupplierName;
   double stockBase;
   double averageCost;
   final List<ProductUnit> units;
@@ -171,6 +173,8 @@ class Product {
     this.brand = '',
     this.reorderLevel = 0.0,
     this.active = true,
+    this.preferredSupplierId,
+    this.preferredSupplierName,
     this.stockBase = 0.0,
     this.averageCost = 0.0,
     this.units = const [],
@@ -188,6 +192,8 @@ class Product {
     String? brand,
     double? reorderLevel,
     bool? active,
+    int? preferredSupplierId,
+    String? preferredSupplierName,
     double? stockBase,
     double? averageCost,
     List<ProductUnit>? units,
@@ -204,6 +210,8 @@ class Product {
       brand: brand ?? this.brand,
       reorderLevel: reorderLevel ?? this.reorderLevel,
       active: active ?? this.active,
+      preferredSupplierId: preferredSupplierId ?? this.preferredSupplierId,
+      preferredSupplierName: preferredSupplierName ?? this.preferredSupplierName,
       stockBase: stockBase ?? this.stockBase,
       averageCost: averageCost ?? this.averageCost,
       units: units ?? this.units,
@@ -212,6 +220,10 @@ class Product {
 
   bool get isOutOfStock => stockBase <= 0;
   bool get isLowStock => stockBase > 0 && stockBase <= reorderLevel;
+  bool get needsRestock => isOutOfStock || isLowStock;
+  double get targetHealthyStock => (reorderLevel > 0 ? reorderLevel * 2 : 10.0);
+  double get suggestedReorderQty => (targetHealthyStock - stockBase).clamp(1.0, double.infinity);
+  double get estimatedRestockCost => suggestedReorderQty * (baseUnit.costPrice > 0 ? baseUnit.costPrice : (averageCost > 0 ? averageCost : 0.0));
   double get basePrice => baseUnit.sellingPrice;
 
   List<ProductUnit> get allUnits {
@@ -265,6 +277,10 @@ class Product {
       brand: json['brand'] as String? ?? '',
       reorderLevel: (json['reorder_level'] as num?)?.toDouble() ?? 0.0,
       active: json['active'] as bool? ?? true,
+      preferredSupplierId: json['preferred_supplier'] is int
+          ? json['preferred_supplier'] as int
+          : (json['preferred_supplier_id'] as int?),
+      preferredSupplierName: json['preferred_supplier_name'] as String?,
       stockBase: (json['stock'] ?? json['stock_base'] as num?)?.toDouble() ?? 0.0,
       averageCost: (json['average_cost'] as num?)?.toDouble() ?? 0.0,
       units: rawUnits.map((u) => ProductUnit.fromJson(u as Map<String, dynamic>)).toList(),
@@ -283,6 +299,8 @@ class Product {
         'brand': brand,
         'reorder_level': reorderLevel,
         'active': active,
+        'preferred_supplier_id': preferredSupplierId,
+        'preferred_supplier_name': preferredSupplierName,
         'stock_base': stockBase,
         'average_cost': averageCost,
         'units': units.map((u) => u.toJson()).toList(),

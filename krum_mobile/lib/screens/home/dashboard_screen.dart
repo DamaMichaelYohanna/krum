@@ -6,6 +6,7 @@ import '../../utils/formatters.dart';
 import '../../widgets/sync_status_badge.dart';
 import '../../theme/app_colors.dart';
 import '../sales/sales_history_screen.dart';
+import '../inventory/low_stock_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final Function(int) onNavigateTab;
@@ -230,13 +231,19 @@ class DashboardScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _sectionHeader('Stock Alerts'),
-                      TextButton(
-                        onPressed: () => onNavigateTab(2),
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const LowStockScreen()),
+                          );
+                        },
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.primary,
                           textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                         ),
-                        child: const Text('View All'),
+                        icon: const Icon(Icons.autorenew_rounded, size: 16),
+                        label: const Text('Restock Hub'),
                       ),
                     ],
                   ).animate().fade(delay: 400.ms),
@@ -268,13 +275,23 @@ class DashboardScreen extends StatelessWidget {
                           name: p.name,
                           badgeText: 'Out of stock',
                           badgeColor: AppColors.error,
-                          onTap: () => onNavigateTab(2),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LowStockScreen()),
+                            );
+                          },
                         )).toList().animate(interval: 50.ms).fade(delay: 450.ms).slideX(begin: 0.05),
                     ...lowStockProducts.take(4).map((p) => _stockAlertTile(
                           name: p.name,
                           badgeText: '${CurrencyFormatter.formatQty(p.stockBase)} ${p.baseUnitName} left',
                           badgeColor: AppColors.warning,
-                          onTap: () => onNavigateTab(2),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LowStockScreen()),
+                            );
+                          },
                         )).toList().animate(interval: 50.ms).fade(delay: 500.ms).slideX(begin: 0.05),
                   ],
 

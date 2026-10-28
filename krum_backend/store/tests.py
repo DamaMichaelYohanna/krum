@@ -450,3 +450,54 @@ class RestockingAndBusinessTests(TestCase):
         self.assertEqual(len(list_res.data), 1)
         self.assertEqual(list_res.data[0]['id'], session_id)
         self.assertEqual(list_res.data[0]['difference'], -200.0)
+
+    def test_low_stock_alerts_and_restock_generation(self):
+        # 1. Create a supplier
+        supplier = Supplier.objects.create(business=self.business, name='Dangote Distributors', phone='08012345678')
+
+        # 2. Assign supplier and reorder level to product (reorder_level = 15)
+        self.product.preferred_supplier = supplier
+        self.product.reorder_level = Decimal('15.000')
+        self.product.save()
+
+        # Currently inventory has 0 pieces (out of stock)
+        res = self.client.get('/api/inventory/low-stock/')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data['total_low_stock'], 1)
+        self.assertEqual(res.data['out_of_stock_count'], 1)
+        item = res.data['items'][0]
+        self.assertEqual(item['id'], self.product.id)
+        self.assertEqual(item['is_out_of_stock'], True)
+        self.assertEqual(item['deficit'], 15.0)
+        # target_stock = 15 * 2 = 30 -> suggested_order_qty = 30
+        self.assertEqual(item['suggested_reorder_qty'], 30.0)
+        self.assertEqual(item['preferred_supplier_name'], 'Dangote Distributors')
+
+        # 3. Filter by supplier
+        res_sup = self.client.get(f'/api/inventory/low-stock/?supplier={supplier.id}')
+        self.assertEqual(res_sup.status_code, 200)
+        self.assertEqual(res_sup.data['total_low_stock'], 1)
+
+        res_none = self.client.get('/api/inventory/low-stock/?supplier=9999')
+        self.assertEqual(res_none.status_code, 200)
+        self.assertEqual(res_none.data['total_low_stock'], 0)
+
+        # 4. Restock 20 pieces via PurchaseService (now stock is 20 > 15 reorder level)
+        PurchaseService.complete(
+            business=self.business,
+            supplier=supplier,
+            items=[{
+                'product_unit': self.pu_piece.id,
+                'quantity': 20,
+                'unit_cost': 100,
+            }],
+            amount_paid=2000,
+            client_transaction_id=str(uuid.uuid4()),
+            actor=self.user
+        )
+
+        # 5. Check low stock endpoint now reports 0 items
+        res_after = self.client.get('/api/inventory/low-stock/')
+        self.assertEqual(res_after.status_code, 200)
+        self.assertEqual(res_after.data['total_low_stock'], 0)
+
