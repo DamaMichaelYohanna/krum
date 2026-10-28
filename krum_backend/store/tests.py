@@ -501,3 +501,48 @@ class RestockingAndBusinessTests(TestCase):
         self.assertEqual(res_after.status_code, 200)
         self.assertEqual(res_after.data['total_low_stock'], 0)
 
+
+class LandingAndRootViewsTests(TestCase):
+    def setUp(self):
+        from rest_framework.test import APIClient
+        self.client = APIClient()
+
+    def test_root_landing_page_html(self):
+        res = self.client.get('/')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('text/html', res['Content-Type'])
+        content = res.content.decode('utf-8')
+        self.assertIn('Krum', content)
+        self.assertIn('API Operational', content)
+        self.assertIn('/download/krum.apk', content)
+
+    def test_root_landing_page_json(self):
+        res = self.client.get('/', HTTP_ACCEPT='application/json')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('application/json', res['Content-Type'])
+        self.assertEqual(res.data['name'], 'Krum Cloud API')
+        self.assertEqual(res.data['status'], 'operational')
+        self.assertTrue(len(res.data['endpoints']) > 0)
+
+    def test_api_root_endpoint(self):
+        res = self.client.get('/api/')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data['name'], 'Krum Cloud API')
+        self.assertEqual(res.data['status'], 'operational')
+
+    def test_health_check_endpoints(self):
+        res1 = self.client.get('/health/')
+        self.assertEqual(res1.status_code, 200)
+        self.assertEqual(res1.data['status'], 'healthy')
+        self.assertEqual(res1.data['database'], 'connected')
+
+        res2 = self.client.get('/api/health/')
+        self.assertEqual(res2.status_code, 200)
+        self.assertEqual(res2.data['status'], 'healthy')
+
+    def test_download_apk_endpoint(self):
+        res = self.client.get('/download/krum.apk')
+        # Either 200 (file stream) or 302 (redirect to github raw)
+        self.assertIn(res.status_code, [200, 302])
+
+
