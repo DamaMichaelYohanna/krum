@@ -1,60 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-scroll-behavior="smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Krum — Smart POS & Cloud Inventory Management{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}Next-generation offline-first Point of Sale, multi-unit inventory engine, restock management, and cloud sync for supermarkets and retail stores.{% endblock %}">
+    <title>{% block title %}Krum — Retail POS & Cloud Inventory Operating System{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Discover high-velocity offline POS, multi-unit inventory engine, restock management, and cloud sync for supermarkets and retail stores.{% endblock %}">
     
     <!-- Open Graph / Meta -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="{% block og_title %}Krum — Retail POS & Cloud Inventory Operating System{% endblock %}">
     <meta property="og:description" content="Offline-first point of sale, barcode scanning, multi-unit pack conversions, supplier restock hub, and cloud sync.">
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Outfit, Plus Jakarta Sans, Newsreader/Playfair-style Editorial Serif & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,600&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            /* Exact Krum App Color Scheme (Deep Ocean Teal / Cyan) */
-            --primary: #1F8396;
-            --primary-light: #E6F5F8;
-            --primary-dark: #13525E;
-            --primary-accent: #269CB2;
-            --primary-border: #BCE5ED;
+            /* Krum Brand Colors */
+            --color-primary: #1F8396;
+            --color-primary-dark: #13525E;
+            --color-primary-light: #E6F5F8;
+            --color-primary-border: #BCE5ED;
+            --color-accent: #269CB2;
+            --color-gold: #D7A928;
+            --color-gold-light: #FEF6E4;
             
-            --bg-base: #F7FBFC;
+            --bg-canvas: #F7FBFC;
             --bg-surface: #FFFFFF;
-            --bg-card: #FFFFFF;
             --bg-subtle: #F1F7F9;
             
             --text-primary: #0F172A;
-            --text-secondary: #64748B;
-            --text-muted: #94A3B8;
+            --text-secondary: #475569;
+            --text-muted: #64748B;
+            --text-dim: #94A3B8;
+            
+            --border-light: #E2EBF0;
+            --border-subtle: #EDF3F6;
             
             --success: #10B981;
             --success-light: #DCFCE7;
-            --warning: #F59E0B;
-            --warning-light: #FEF3C7;
-            --error: #EF4444;
-            --error-light: #FEE2E2;
-            --info: #0284C7;
-            --info-light: #E0F2FE;
             
-            --border: #E2EBF0;
-            --divider: #EFF4F7;
-            
-            --gradient-primary: linear-gradient(135deg, #1F8396 0%, #13525E 100%);
-            --gradient-accent: linear-gradient(135deg, #269CB2 0%, #1F8396 100%);
-            --gradient-hero: linear-gradient(135deg, #E6F5F8 0%, #F7FBFC 50%, #FFFFFF 100%);
-            
-            --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
-            --shadow-card: 0 4px 20px rgba(31, 131, 150, 0.08);
-            --shadow-card-hover: 0 10px 30px rgba(31, 131, 150, 0.15);
-            --shadow-glow: 0 4px 18px rgba(31, 131, 150, 0.28);
+            --shadow-sm: 0 1px 3px rgba(19, 82, 94, 0.04), 0 1px 2px rgba(19, 82, 94, 0.02);
+            --shadow-card: 0 4px 20px rgba(31, 131, 150, 0.07);
+            --shadow-card-hover: 0 12px 32px rgba(31, 131, 150, 0.14);
+            --shadow-glow: 0 4px 18px rgba(31, 131, 150, 0.25);
             --transition-smooth: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+
+            /* Subpage Compatibility Aliases */
+            --primary: var(--color-primary);
+            --primary-dark: var(--color-primary-dark);
+            --primary-light: var(--color-primary-light);
+            --primary-border: var(--color-primary-border);
+            --border: var(--border-light);
         }
 
         * {
@@ -63,23 +62,15 @@
             padding: 0;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
         body {
-            background-color: var(--bg-base);
+            background-color: var(--bg-canvas);
             color: var(--text-primary);
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
-            overflow-x: hidden;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background-image: 
-                radial-gradient(circle at 12% 10%, rgba(31, 131, 150, 0.06) 0%, transparent 40%),
-                radial-gradient(circle at 88% 50%, rgba(38, 156, 178, 0.05) 0%, transparent 45%),
-                radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+            overflow-x: hidden;
         }
 
         .container {
@@ -87,121 +78,139 @@
             max-width: 1240px;
             margin: 0 auto;
             padding: 0 24px;
-            position: relative;
-            z-index: 1;
         }
 
-        /* Top Navigation Header */
-        header.site-header {
-            position: sticky;
-            top: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border);
-            z-index: 100;
-            transition: var(--transition-smooth);
-            box-shadow: 0 2px 10px rgba(31, 131, 150, 0.04);
+        /* 1. TOP UTILITY BAR (NSUK Style) */
+        .utility-bar {
+            background: #0D373F;
+            color: #BCE5ED;
+            font-size: 12.5px;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .nav-inner {
+        .utility-bar__inner {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 76px;
+            height: 38px;
         }
 
-        .brand-link {
+        .utility-bar__location {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 6px;
+            color: #E6F5F8;
+            font-size: 12px;
+        }
+
+        .utility-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .utility-links a {
+            color: #BCE5ED;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: var(--transition-smooth);
+        }
+
+        .utility-links a:hover {
+            color: #FFFFFF;
+        }
+
+        /* 2. BRAND BAR (NSUK Style) */
+        .brand-bar {
+            background: #FFFFFF;
+            border-bottom: 1px solid var(--border-light);
+            padding: 16px 0;
+        }
+
+        .brand-bar__inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-mark {
+            display: flex;
+            align-items: center;
+            gap: 16px;
             text-decoration: none;
         }
 
-        .brand-icon {
-            width: 42px;
-            height: 42px;
-            background: var(--gradient-primary);
+        .brand-mark__logo {
+            width: 50px;
+            height: 50px;
+            background: var(--color-primary-dark);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Outfit', sans-serif;
             font-weight: 800;
-            font-size: 22px;
+            font-size: 26px;
             color: #FFFFFF;
-            box-shadow: 0 4px 14px rgba(31, 131, 150, 0.35);
+            border: 2px solid var(--color-primary-border);
+            box-shadow: 0 4px 14px rgba(31, 131, 150, 0.25);
         }
 
-        .brand-text {
+        .brand-mark__name {
             display: flex;
             flex-direction: column;
         }
 
-        .brand-title {
+        .brand-mark__name strong {
             font-family: 'Outfit', sans-serif;
-            font-size: 23px;
+            font-size: 24px;
             font-weight: 800;
+            color: var(--color-primary-dark);
             letter-spacing: -0.5px;
-            color: var(--primary-dark);
             line-height: 1.1;
         }
 
-        .brand-tag {
-            font-size: 11px;
-            color: var(--primary);
-            font-weight: 700;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-        }
-
-        /* Nav menu */
-        nav.nav-links {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-        }
-
-        nav.nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14.5px;
+        .brand-mark__name span {
+            font-size: 12.5px;
+            color: var(--color-primary);
             font-weight: 600;
-            transition: var(--transition-smooth);
-            position: relative;
-            padding: 6px 0;
+            letter-spacing: 0.4px;
         }
 
-        nav.nav-links a:hover,
-        nav.nav-links a.active {
-            color: var(--primary);
-        }
-
-        nav.nav-links a.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2.5px;
-            background: var(--primary);
-            border-radius: 2px;
-        }
-
-        .nav-actions {
+        .brand-bar__actions {
             display: flex;
             align-items: center;
             gap: 14px;
         }
 
-        .btn {
+        .text-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            font-size: 13.5px;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            transition: var(--transition-smooth);
+        }
+
+        .text-action:hover {
+            color: var(--color-primary-dark);
+            background: var(--color-primary-light);
+        }
+
+        .button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 12px;
+            gap: 6px;
+            padding: 10px 22px;
+            border-radius: 8px;
             font-size: 14px;
             font-weight: 700;
             text-decoration: none;
@@ -211,105 +220,276 @@
             white-space: nowrap;
         }
 
-        .btn-sm {
-            padding: 8px 16px;
-            font-size: 13px;
-            border-radius: 10px;
+        .button--primary {
+            background: var(--color-primary);
+            color: #FFFFFF;
+            box-shadow: 0 4px 14px rgba(31, 131, 150, 0.3);
+        }
+
+        .button--primary:hover {
+            background: var(--color-primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(31, 131, 150, 0.45);
+        }
+
+        .button--accent {
+            background: var(--color-primary-dark);
+            color: #FFFFFF;
+            border: 1px solid var(--color-primary-dark);
+        }
+
+        .button--accent:hover {
+            background: var(--color-primary);
+            transform: translateY(-2px);
+        }
+
+        .button--ghost {
+            background: transparent;
+            color: var(--color-primary-dark);
+            border: 1.5px solid var(--color-primary-border);
+        }
+
+        .button--ghost:hover {
+            background: var(--color-primary-light);
+            border-color: var(--color-primary);
+            transform: translateY(-2px);
+        }
+
+        .button--gold {
+            background: var(--color-gold);
+            color: #1A1302;
+            border: 1px solid var(--color-gold);
+            font-weight: 800;
+            box-shadow: 0 4px 16px rgba(215, 169, 40, 0.35);
+        }
+
+        .button--gold:hover {
+            background: #C4961E;
+            color: #000000;
+            transform: translateY(-2px);
+        }
+
+        .button--trans {
+            background: rgba(255, 255, 255, 0.1);
+            color: #FFFFFF;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(8px);
+        }
+
+        .button--trans:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+
+        /* Compatibility aliases for subpages */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: 1px solid transparent;
+            white-space: nowrap;
         }
 
         .btn-primary {
-            background: var(--primary);
+            background: var(--color-primary);
             color: #FFFFFF;
             box-shadow: 0 4px 14px rgba(31, 131, 150, 0.3);
         }
 
         .btn-primary:hover {
-            background: var(--primary-dark);
+            background: var(--color-primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(31, 131, 150, 0.45);
+            box-shadow: 0 6px 18px rgba(31, 131, 150, 0.45);
         }
 
         .btn-outline {
-            background: #FFFFFF;
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            box-shadow: var(--shadow-sm);
+            background: transparent;
+            color: var(--color-primary-dark);
+            border: 1.5px solid var(--color-primary-border);
         }
 
         .btn-outline:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: var(--primary-light);
+            background: var(--color-primary-light);
+            border-color: var(--color-primary);
             transform: translateY(-2px);
         }
 
-        .btn-emerald {
-            background: #10B981;
+        /* Subpage Hero & Common Header Components */
+        .page-hero {
+            text-align: center;
+            padding: 56px 0 44px;
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        .badge-pill {
+            display: inline-block;
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--color-primary);
+            background: var(--color-primary-light);
+            border: 1px solid var(--color-primary-border);
+            padding: 5px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .page-title {
+            font-family: 'Newsreader', Georgia, serif;
+            font-size: clamp(34px, 4.5vw, 48px);
+            font-weight: 500;
+            color: var(--color-primary-dark);
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+            margin-bottom: 14px;
+        }
+
+        .page-subtitle {
+            font-size: 16.5px;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        /* 3. MAIN NAVIGATION (NSUK Style) */
+        .main-navigation {
+            background: var(--color-primary-dark);
+            border-bottom: 2px solid var(--color-gold);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .main-navigation__inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .desktop-nav {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .desktop-nav a {
+            color: #E6F5F8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 14px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .desktop-nav a:hover,
+        .desktop-nav a.is-active {
             color: #FFFFFF;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        .btn-emerald:hover {
-            background: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+        .desktop-nav a.is-active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--color-gold);
         }
 
-        /* Mobile Hamburger */
-        .mobile-menu-btn {
+        .mobile-toggle-btn {
             display: none;
             background: transparent;
             border: none;
-            color: var(--text-primary);
-            font-size: 24px;
+            color: #FFFFFF;
+            font-size: 22px;
             cursor: pointer;
-            padding: 6px;
+            padding: 10px;
         }
 
-        /* Mobile Drawer */
-        .mobile-drawer {
+        .mobile-panel {
             display: none;
             position: fixed;
-            top: 76px;
+            top: 140px;
             left: 0;
             right: 0;
             background: #FFFFFF;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--color-gold);
             padding: 24px;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             z-index: 99;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.06);
         }
 
-        .mobile-drawer.open {
+        .mobile-panel.open {
             display: flex;
         }
 
-        .mobile-drawer a {
+        .mobile-panel a {
             color: var(--text-primary);
             text-decoration: none;
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 700;
             padding: 10px 0;
-            border-bottom: 1px solid var(--divider);
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        /* Main Content */
+        /* 4. ANNOUNCEMENT TICKER (NSUK Style) */
+        .announcement {
+            background: var(--color-gold-light);
+            border-bottom: 1px solid rgba(215, 169, 40, 0.25);
+            padding: 9px 0;
+            font-size: 13px;
+        }
+
+        .announcement__inner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #78350F;
+        }
+
+        .announcement__badge {
+            background: var(--color-gold);
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Main Site Layout */
         main.site-main {
             flex: 1;
-            position: relative;
-            z-index: 1;
         }
 
-        /* Global Footer - Styled with App's Deep Navy Teal (primaryDark) */
+        /* 5. INSTITUTIONAL FOOTER (NSUK Style) */
         footer.site-footer {
-            background: var(--primary-dark);
+            background: #0A282E;
             color: #FFFFFF;
             margin-top: 80px;
-            padding: 70px 0 30px;
-            position: relative;
-            z-index: 1;
+            padding: 70px 0 25px;
+            border-top: 4px solid var(--color-gold);
         }
 
         .footer-grid {
@@ -321,9 +501,9 @@
 
         .footer-brand p {
             color: #BCE5ED;
-            font-size: 14.5px;
+            font-size: 14px;
             margin: 16px 0 24px;
-            max-width: 320px;
+            max-width: 330px;
             line-height: 1.6;
         }
 
@@ -332,15 +512,15 @@
             align-items: center;
             gap: 8px;
             background: rgba(16, 185, 129, 0.18);
-            border: 1px solid rgba(16, 185, 129, 0.4);
+            border: 1px solid rgba(16, 185, 129, 0.35);
             padding: 6px 14px;
-            border-radius: 9999px;
-            font-size: 12.5px;
+            border-radius: 6px;
+            font-size: 12px;
             font-weight: 700;
             color: #6EE7B7;
         }
 
-        .footer-status .pulse-dot {
+        .pulse-dot {
             width: 8px;
             height: 8px;
             background-color: #10B981;
@@ -357,29 +537,33 @@
 
         .footer-col h4 {
             font-family: 'Outfit', sans-serif;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: #FFFFFF;
-            margin-bottom: 20px;
-            letter-spacing: -0.2px;
+            margin-bottom: 18px;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
         }
 
         .footer-links {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 11px;
         }
 
         .footer-links a {
             color: #BCE5ED;
             text-decoration: none;
-            font-size: 14px;
+            font-size: 13.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
             transition: var(--transition-smooth);
         }
 
         .footer-links a:hover {
-            color: #FFFFFF;
+            color: var(--color-gold);
             transform: translateX(3px);
         }
 
@@ -388,74 +572,29 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 20px;
-            padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            gap: 16px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
             color: #94A3B8;
-            font-size: 13.5px;
+            font-size: 13px;
         }
 
-        .footer-bottom-links {
-            display: flex;
-            gap: 20px;
-        }
-
-        .footer-bottom-links a {
+        .footer-bottom a {
             color: #BCE5ED;
             text-decoration: none;
+            margin-left: 18px;
             transition: var(--transition-smooth);
         }
 
-        .footer-bottom-links a:hover {
+        .footer-bottom a:hover {
             color: #FFFFFF;
         }
 
-        /* Common Page Header */
-        .page-hero {
-            padding: 60px 0 40px;
-            text-align: center;
-            max-width: 820px;
-            margin: 0 auto;
-        }
-
-        .badge-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--primary-light);
-            border: 1px solid var(--primary-border);
-            color: var(--primary-dark);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            padding: 6px 16px;
-            border-radius: 9999px;
-            margin-bottom: 18px;
-        }
-
-        .page-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: clamp(32px, 5vw, 48px);
-            font-weight: 800;
-            line-height: 1.15;
-            letter-spacing: -1.2px;
-            margin-bottom: 16px;
-            color: var(--primary-dark);
-        }
-
-        .page-subtitle {
-            font-size: clamp(16px, 1.8vw, 18px);
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        /* Responsive */
         @media (max-width: 992px) {
-            nav.nav-links, .nav-actions .btn-outline {
+            .desktop-nav, .brand-bar__actions .text-action {
                 display: none;
             }
-            .mobile-menu-btn {
+            .mobile-toggle-btn {
                 display: block;
             }
             .footer-grid {
@@ -467,7 +606,7 @@
             .footer-grid {
                 grid-template-columns: 1fr;
             }
-            .nav-actions .btn-primary span {
+            .utility-links {
                 display: none;
             }
         }
@@ -476,84 +615,103 @@
 </head>
 <body>
 
-    <!-- Header Navigation -->
-    <header class="site-header">
-        <div class="container">
-            <div class="nav-inner">
-                <a href="/" class="brand-link" id="nav-brand">
-                    <div class="brand-icon">K</div>
-                    <div class="brand-text">
-                        <span class="brand-title">Krum</span>
-                        <span class="brand-tag">Retail POS & Cloud</span>
-                    </div>
+    <!-- 1. TOP UTILITY BAR (NSUK Pattern) -->
+    <div class="utility-bar">
+        <div class="container utility-bar__inner">
+            <span class="utility-bar__location">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                Lagos, Nigeria · Offline-First Engine · Cloud Sync Active
+            </span>
+            <nav class="utility-links" aria-label="Quick links">
+                <a href="/api/"><span>API Specs</span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
+                <a href="/health/"><span>Health Probe</span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
+                <a href="/admin/"><span>Admin Portal</span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
+                <a href="https://wa.me/2348000000000" target="_blank"><span>Support Desk</span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- 2. BRAND BAR (NSUK Pattern) -->
+    <div class="brand-bar">
+        <div class="container brand-bar__inner">
+            <a href="/" class="brand-mark" id="brand-link">
+                <span class="brand-mark__logo">K</span>
+                <span class="brand-mark__name">
+                    <strong>Krum Technologies</strong>
+                    <span>Precision & Resilience for Modern Retail</span>
+                </span>
+            </a>
+            
+            <div class="brand-bar__actions">
+                <a href="/admin/" class="text-action">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <span>Store Admin</span>
                 </a>
-
-                <nav class="nav-links">
-                    <a href="/" class="{% if request.path == '/' %}active{% endif %}" id="nav-home">Home</a>
-                    <a href="/about/" class="{% if request.path == '/about/' %}active{% endif %}" id="nav-about">About Product</a>
-                    <a href="/pricing/" class="{% if request.path == '/pricing/' %}active{% endif %}" id="nav-pricing">Pricing</a>
-                    <a href="/contact/" class="{% if request.path == '/contact/' %}active{% endif %}" id="nav-contact">Contact Us</a>
-                    <a href="/privacy/" class="{% if request.path == '/privacy/' %}active{% endif %}" id="nav-privacy">Privacy</a>
-                    <a href="/terms/" class="{% if request.path == '/terms/' %}active{% endif %}" id="nav-terms">Terms</a>
-                </nav>
-
-                <div class="nav-actions">
-                    <a href="/admin/" class="btn btn-outline btn-sm" id="nav-admin">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                        </svg>
-                        <span>Store Admin</span>
-                    </a>
-
-                    <a href="/download/krum.apk" class="btn btn-primary btn-sm" id="nav-download-apk">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        <span>Get App (APK)</span>
-                    </a>
-
-                    <button class="mobile-menu-btn" id="mobile-toggle" aria-label="Toggle Navigation">
-                        ☰
-                    </button>
-                </div>
+                <a href="/download/krum.apk" class="button button--primary" id="btn-download-header">
+                    <span>Get Krum APK</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                </a>
             </div>
         </div>
+    </div>
 
-        <!-- Mobile Drawer -->
-        <div class="mobile-drawer" id="mobile-drawer">
-            <a href="/" id="m-home">Home</a>
-            <a href="/about/" id="m-about">About Product</a>
-            <a href="/pricing/" id="m-pricing">Pricing</a>
-            <a href="/contact/" id="m-contact">Contact Us</a>
-            <a href="/privacy/" id="m-privacy">Privacy Policy</a>
-            <a href="/terms/" id="m-terms">Terms & Conditions</a>
-            <a href="/admin/" id="m-admin">Store Admin Portal</a>
-            <a href="/download/krum.apk" class="btn btn-primary" id="m-apk">Download Android APK</a>
+    <!-- 3. MAIN NAVIGATION (NSUK Pattern) -->
+    <nav class="main-navigation" aria-label="Main Navigation">
+        <div class="container main-navigation__inner">
+            <div class="desktop-nav">
+                <a href="/" class="{% if request.path == '/' %}is-active{% endif %}">Home</a>
+                <a href="/about/" class="{% if request.path == '/about/' %}is-active{% endif %}">About Product</a>
+                <a href="/pricing/" class="{% if request.path == '/pricing/' %}is-active{% endif %}">Pricing Plans</a>
+                <a href="/contact/" class="{% if request.path == '/contact/' %}is-active{% endif %}">Contact Us</a>
+                <a href="/privacy/" class="{% if request.path == '/privacy/' %}is-active{% endif %}">Privacy Policy</a>
+                <a href="/terms/" class="{% if request.path == '/terms/' %}is-active{% endif %}">Terms & Conditions</a>
+            </div>
+
+            <button class="mobile-toggle-btn" id="mobile-toggle-btn" aria-label="Toggle Navigation">
+                ☰
+            </button>
         </div>
-    </header>
 
-    <!-- Main Content Injection -->
-    <main class="site-main">
+        <!-- Mobile Panel -->
+        <div class="mobile-panel" id="mobile-panel">
+            <a href="/">Home</a>
+            <a href="/about/">About Product</a>
+            <a href="/pricing/">Pricing Plans</a>
+            <a href="/contact/">Contact Us</a>
+            <a href="/privacy/">Privacy Policy</a>
+            <a href="/terms/">Terms & Conditions</a>
+            <a href="/admin/">Store Admin Portal</a>
+            <a href="/download/krum.apk" class="button button--primary" style="margin-top: 10px;">Download Android APK</a>
+        </div>
+    </nav>
+
+    <!-- 4. ANNOUNCEMENT TICKER (NSUK Pattern) -->
+    <aside class="announcement">
+        <div class="container announcement__inner">
+            <span class="announcement__badge">Release v1.0.0</span>
+            <span>Now with 1-Tap WhatsApp Supplier Restock & Cash Drawer Discrepancy Auditing.</span>
+        </div>
+    </aside>
+
+    <!-- 5. MAIN CONTENT -->
+    <main class="site-main" id="main-content">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Global Footer -->
+    <!-- 6. FOOTER (NSUK Institutional Pattern) -->
     <footer class="site-footer">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <a href="/" class="brand-link" style="margin-bottom: 12px;">
-                        <div class="brand-icon" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">K</div>
-                        <div class="brand-text">
-                            <span class="brand-title" style="color: #FFFFFF;">Krum</span>
-                            <span class="brand-tag" style="color: #6EE7B7;">Cloud Sync Engine</span>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <span class="brand-mark__logo" style="width: 42px; height: 42px; font-size: 22px; background: rgba(255,255,255,0.12);">K</span>
+                        <div>
+                            <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; color: #FFFFFF;">Krum Technologies</div>
+                            <div style="font-size: 12px; color: var(--color-gold);">Knowledge for resilient retail</div>
                         </div>
-                    </a>
+                    </div>
                     <p>
-                        High-velocity, offline-first Point of Sale & Inventory management for supermarkets, provision stores, and retail chains.
+                        High-velocity, offline-first Point of Sale & Inventory management engineered for supermarkets, provision stores, and wholesale FMCG merchants.
                     </p>
                     <div class="footer-status">
                         <span class="pulse-dot"></span>
@@ -562,36 +720,35 @@
                 </div>
 
                 <div class="footer-col">
-                    <h4>Core Capabilities</h4>
+                    <h4>Core Services</h4>
                     <ul class="footer-links">
-                        <li><a href="/about/#pos">Offline Barcode POS</a></li>
-                        <li><a href="/about/#multi-unit">Multi-Unit Conversions</a></li>
-                        <li><a href="/about/#restock">1-Tap Restock Hub</a></li>
-                        <li><a href="/about/#cash-drawer">Cash Drawer Sessions</a></li>
-                        <li><a href="/about/#sync">Two-Way Delta Sync</a></li>
-                        <li><a href="/about/#reports">WACP Profit & Loss</a></li>
+                        <li><a href="/about/#pos">Offline Barcode POS <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
+                        <li><a href="/about/#multi-unit">Multi-Unit Conversions <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
+                        <li><a href="/about/#restock">1-Tap Restock Hub <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
+                        <li><a href="/about/#cash-drawer">Cash Drawer Sessions <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
+                        <li><a href="/about/#sync">Two-Way Delta Sync <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
                     </ul>
                 </div>
 
                 <div class="footer-col">
-                    <h4>Platform</h4>
+                    <h4>The Platform</h4>
                     <ul class="footer-links">
                         <li><a href="/about/">About Product</a></li>
-                        <li><a href="/pricing/">Pricing Plans</a></li>
+                        <li><a href="/pricing/">Pricing & Plans</a></li>
                         <li><a href="/contact/">Contact Sales & Support</a></li>
                         <li><a href="/health/">API System Health</a></li>
                         <li><a href="/api/">API Documentation</a></li>
-                        <li><a href="/admin/">Django Admin Portal</a></li>
+                        <li><a href="/admin/">Store Admin Portal</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-col">
-                    <h4>Legal & Trust</h4>
+                    <h4>Governance</h4>
                     <ul class="footer-links">
                         <li><a href="/privacy/">Privacy Policy</a></li>
                         <li><a href="/terms/">Terms of Service</a></li>
-                        <li><a href="/privacy/#data-protection">Data Protection</a></li>
-                        <li><a href="/terms/#licensing">Software Licensing</a></li>
+                        <li><a href="/privacy/#sec-3">Offline Data Sandboxing</a></li>
+                        <li><a href="/terms/#term-2">Software Licensing</a></li>
                         <li><a href="/download/krum.apk">Download Android APK</a></li>
                     </ul>
                 </div>
@@ -599,9 +756,9 @@
 
             <div class="footer-bottom">
                 <div>
-                    &copy; 2026 Krum POS & Inventory Technologies. Built for resilient retail operations.
+                    &copy; 2026 Krum POS & Inventory Technologies. Built for resilient retail commerce.
                 </div>
-                <div class="footer-bottom-links">
+                <div>
                     <a href="/privacy/">Privacy</a>
                     <a href="/terms/">Terms</a>
                     <a href="/contact/">Support</a>
@@ -612,12 +769,12 @@
     </footer>
 
     <script>
-        const toggleBtn = document.getElementById('mobile-toggle');
-        const drawer = document.getElementById('mobile-drawer');
-        if (toggleBtn && drawer) {
+        const toggleBtn = document.getElementById('mobile-toggle-btn');
+        const panel = document.getElementById('mobile-panel');
+        if (toggleBtn && panel) {
             toggleBtn.addEventListener('click', () => {
-                drawer.classList.toggle('open');
-                toggleBtn.textContent = drawer.classList.contains('open') ? '✕' : '☰';
+                panel.classList.toggle('open');
+                toggleBtn.textContent = panel.classList.contains('open') ? '✕' : '☰';
             });
         }
     </script>
