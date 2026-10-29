@@ -10,6 +10,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import DecimalField, F, Q, Sum
@@ -159,6 +160,99 @@ def dashboard_login(request):
     return render(request, 'dashboard/login.html', {
         'error': error,
         'next_url': next_url
+    })
+
+
+def dashboard_register(request):
+    """
+    Registration view for new store owners to set up their store and administrative account.
+    """
+    if request.user.is_authenticated:
+        return redirect('/dashboard/')
+
+    error = None
+    form_data = {
+        'business_name': '',
+        'username': '',
+        'email': '',
+        'phone': '',
+        'currency': 'NGN',
+    }
+
+    if request.method == 'POST':
+        business_name = request.POST.get('business_name', '').strip()
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        currency = request.POST.get('currency', 'NGN').strip().upper()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
+        form_data = {
+            'business_name': business_name,
+            'username': username,
+            'email': email,
+            'phone': phone,
+            'currency': currency,
+        }
+
+        if not business_name or not username or not password:
+            error = "Store name, owner username, and password are required."
+        elif len(password) < 8:
+            error = "Password must be at least 8 characters long."
+        elif password != confirm_password:
+            error = "Passwords do not match."
+        elif User.objects.filter(username=username).exists():
+            error = f"The username '{username}' is already registered. Please choose another or sign in."
+        else:
+            try:
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password
+                )
+                business = Business.objects.create(
+                    name=business_name,
+                    currency=currency or 'NGN',
+                    phone=phone
+                )
+                Membership.objects.create(
+                    user=user,
+                    business=business,
+                    role=Membership.Role.OWNER
+                )
+
+                # Seed initial default retail units
+                default_units = [
+                    ('Piece', 'pcs'),
+                    ('Carton', 'ctn'),
+                    ('Pack', 'pk'),
+                    ('Bottle', 'btl'),
+                    ('Kg', 'kg'),
+                    ('Liter', 'L'),
+                ]
+                for name, sym in default_units:
+                    Unit.objects.create(business=business, name=name, symbol=sym)
+
+                # Seed initial default categories
+                default_categories = [
+                    'General Provisions',
+                    'Beverages & Drinks',
+                    'Packaged Foods',
+                    'Toiletries & Household',
+                ]
+                for name in default_categories:
+                    Category.objects.create(business=business, name=name)
+
+                # Log user in immediately and direct to dashboard
+                login(request, user)
+                return redirect('/dashboard/')
+            except Exception as e:
+                error = f"An error occurred while creating your store: {str(e)}"
+
+    return render(request, 'dashboard/register.html', {
+        'error': error,
+        'form': form_data,
     })
 
 

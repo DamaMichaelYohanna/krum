@@ -707,12 +707,15 @@
             </a>
             
             <div class="brand-bar__actions">
-                <a href="/dashboard/" class="text-action">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    <span>Store Dashboard</span>
+                <a href="/dashboard/register/" class="button button--accent">
+                    <span>Register Store</span>
+                </a>
+                <a href="/dashboard/login/" class="text-action">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                    <span>Sign In</span>
                 </a>
                 <a href="/download/krum.apk" class="button button--primary" id="btn-download-header">
-                    <span>Get Krum APK</span>
+                    <span>Get APK</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
                 </a>
             </div>
@@ -728,6 +731,7 @@
                 <a href="/privacy/" class="{% if request.path == '/privacy/' %}is-active{% endif %}">Privacy Policy</a>
                 <a href="/terms/" class="{% if request.path == '/terms/' %}is-active{% endif %}">Terms & Conditions</a>
                 <a href="/dashboard/" style="color: var(--color-gold);">Store Dashboard ↗</a>
+                <a href="/dashboard/register/" style="color: #FFFFFF; background: var(--color-primary); padding: 5px 12px; border-radius: 6px; font-weight: 700; font-size: 13px; margin-left: 6px;">Create Store ↗</a>
             </div>
 
             <button class="mobile-toggle-btn" id="mobile-toggle-btn" aria-label="Toggle Navigation">
@@ -742,6 +746,7 @@
             <a href="/privacy/">Privacy Policy</a>
             <a href="/terms/">Terms & Conditions</a>
             <a href="/dashboard/" style="color: var(--color-primary); font-weight: 800;">Store Admin Dashboard ↗</a>
+            <a href="/dashboard/register/" style="color: var(--color-gold); font-weight: 800;">Create Store Account ↗</a>
             <a href="/download/krum.apk" class="button button--primary" style="margin-top: 10px;">Download Android APK</a>
         </div>
     </nav>

@@ -23,6 +23,29 @@ class RegisterSerializer(serializers.Serializer):
             phone=data.get('phone', '')
         )
         Membership.objects.create(user=user, business=business, role=Membership.Role.OWNER)
+
+        # Seed initial default retail units
+        default_units = [
+            ('Piece', 'pcs'),
+            ('Carton', 'ctn'),
+            ('Pack', 'pk'),
+            ('Bottle', 'btl'),
+            ('Kg', 'kg'),
+            ('Liter', 'L'),
+        ]
+        for name, sym in default_units:
+            Unit.objects.create(business=business, name=name, symbol=sym)
+
+        # Seed initial default categories
+        default_categories = [
+            'General Provisions',
+            'Beverages & Drinks',
+            'Packaged Foods',
+            'Toiletries & Household',
+        ]
+        for name in default_categories:
+            Category.objects.create(business=business, name=name)
+
         return user
 
 class BusinessSerializer(serializers.ModelSerializer):

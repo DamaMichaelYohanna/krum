@@ -10,6 +10,7 @@ urlpatterns = [
     path('staff/', dashboard_views.dashboard_staff, name='dashboard_staff'),
     path('settings/', dashboard_views.dashboard_settings, name='dashboard_settings'),
     path('login/', dashboard_views.dashboard_login, name='dashboard_login'),
+    path('register/', dashboard_views.dashboard_register, name='dashboard_register'),
     path('logout/', dashboard_views.dashboard_logout, name='dashboard_logout'),
     path('switch-store/<int:business_id>/', dashboard_views.switch_store, name='dashboard_switch_store'),
 ]

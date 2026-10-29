@@ -3,7 +3,7 @@ import uuid
 from django.contrib.auth.models import User
 from django.test import TestCase
 from .models import (
-    AuditLog, Business, CashSession, Customer, Expense, Membership, Product,
+    AuditLog, Business, CashSession, Category, Customer, Expense, Membership, Product,
     ProductUnit, Sale, Supplier, Unit, InventoryMovement, InventoryBalance
 )
 from apps.inventory.services import InventoryService
@@ -723,6 +723,46 @@ class StoreDashboardTests(TestCase):
         res = self.client.get('/dashboard/logout/')
         self.assertEqual(res.status_code, 302)
         self.assertIn('/dashboard/login/', res['Location'])
+
+    def test_dashboard_register_get(self):
+        res = self.client.get('/dashboard/register/')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('Create Your Store', res.content.decode('utf-8'))
+
+    def test_dashboard_register_post_success(self):
+        res = self.client.post('/dashboard/register/', {
+            'business_name': 'Greenfield Retail Hub',
+            'username': 'greenfield_boss',
+            'email': 'boss@greenfield.com',
+            'phone': '08099887766',
+            'currency': 'NGN',
+            'password': 'strongpassword123',
+            'confirm_password': 'strongpassword123'
+        })
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res['Location'], '/dashboard/')
+
+        # Verify User and Business created
+        new_user = User.objects.get(username='greenfield_boss')
+        new_biz = Business.objects.get(name='Greenfield Retail Hub')
+        membership = Membership.objects.get(user=new_user, business=new_biz)
+        self.assertEqual(membership.role, 'owner')
+
+        # Verify initial units and categories seeded
+        self.assertTrue(Unit.objects.filter(business=new_biz, name='Piece').exists())
+        self.assertTrue(Unit.objects.filter(business=new_biz, name='Carton').exists())
+        self.assertTrue(Category.objects.filter(business=new_biz, name='General Provisions').exists())
+
+    def test_dashboard_register_password_mismatch(self):
+        res = self.client.post('/dashboard/register/', {
+            'business_name': 'Greenfield Retail Hub',
+            'username': 'mismatch_user',
+            'password': 'password12345',
+            'confirm_password': 'password99999'
+        })
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('Passwords do not match', res.content.decode('utf-8'))
+
 
 
 
