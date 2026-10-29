@@ -12,13 +12,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -244,10 +244,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
 
                   TextField(
-                    controller: _usernameController,
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: 'Username',
-                      prefixIcon: Icon(Icons.person_outline),
+                      labelText: 'Email Address',
+                      hintText: 'e.g. owner@store.com',
+                      prefixIcon: Icon(Icons.email_outlined),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -270,15 +272,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: provider.isLoading
                         ? null
                         : () async {
-                            final username = _usernameController.text.trim();
+                            final email = _emailController.text.trim();
                             final password = _passwordController.text;
-                            if (username.isEmpty || password.isEmpty) {
+                            if (email.isEmpty || password.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please enter username and password')),
+                                const SnackBar(content: Text('Please enter email and password')),
                               );
                               return;
                             }
-                            await provider.login(username, password);
+                            await provider.login(email, password);
                           },
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.primary,

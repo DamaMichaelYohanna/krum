@@ -13,7 +13,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _businessNameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _currency = 'NGN';
   bool _obscurePassword = true;
@@ -22,7 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _businessNameController.dispose();
     _phoneController.dispose();
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -115,10 +115,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 14),
                   TextField(
-                    controller: _usernameController,
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: 'Owner Username',
-                      prefixIcon: Icon(Icons.person_outline),
+                      labelText: 'Owner Email (Login ID)',
+                      hintText: 'e.g. owner@store.com',
+                      prefixIcon: Icon(Icons.email_outlined),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -142,9 +144,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ? null
                         : () async {
                             final bizName = _businessNameController.text.trim();
-                            final username = _usernameController.text.trim();
+                            final email = _emailController.text.trim();
                             final password = _passwordController.text;
-                            if (bizName.isEmpty || username.isEmpty || password.length < 8) {
+                            if (bizName.isEmpty || email.isEmpty || password.length < 8) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Please fill all fields (password at least 8 characters)')),
                               );
@@ -152,7 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             }
                             final success = await provider.register(
                               businessName: bizName,
-                              username: username,
+                              email: email,
                               password: password,
                               currency: _currency,
                               phone: _phoneController.text.trim(),

@@ -23,8 +23,10 @@ from .serializers import (
     CustomerSerializer, ExpenseSerializer, InventoryMovementSerializer,
     ProductSerializer, ProductUnitSerializer, PurchaseSerializer,
     RegisterSerializer, SaleSerializer, StockAdjustmentSerializer,
-    SupplierSerializer, TransactionSerializer, UnitSerializer
+    SupplierSerializer, TransactionSerializer, UnitSerializer,
+    EmailTokenObtainPairSerializer
 )
+from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.inventory.services import InventoryService
 from apps.customers.services import DebtService
 from apps.purchasing.services import PurchaseService
@@ -250,13 +252,17 @@ def barcode_lookup(request, barcode):
 
 # --- Authentication & Business Profile ---
 
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailTokenObtainPairSerializer
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
     serializer = RegisterSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = serializer.save()
-    return Response({'id': user.id, 'username': user.username}, status=status.HTTP_201_CREATED)
+    return Response({'id': user.id, 'email': user.email, 'username': user.username}, status=status.HTTP_201_CREATED)
 
 @api_view(['GET', 'PATCH'])
 @permission_classes([HasBusiness])

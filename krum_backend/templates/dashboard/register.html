@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Your Store — Krum Store System</title>
+    <title>Create an account — Krum Store System</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --color-primary: #1F8396;
             --color-primary-dark: #13525E;
             --color-primary-deep: #0D373F;
-            --color-primary-light: #E6F5F8;
-            --color-primary-border: #BCE5ED;
-            --color-gold: #D7A928;
-            --bg-canvas: #F4F8FA;
-            --text-primary: #0F172A;
-            --text-secondary: #475569;
+            --bg-canvas: #F8FAFC;
+            --text-heading: #0F172A;
+            --text-body: #475569;
             --text-muted: #64748B;
             --danger: #EF4444;
             --danger-light: #FEE2E2;
+            --border-input: #D1D5DB;
+            --border-box-green: #86EFAC;
+            --bg-box-green: #FAFDFB;
         }
 
         * {
@@ -33,155 +33,292 @@
 
         body {
             background-color: var(--bg-canvas);
-            color: var(--text-primary);
+            color: var(--text-body);
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 32px 20px;
+            padding: 32px 16px;
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(31, 131, 150, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(215, 169, 40, 0.08) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, rgba(31, 131, 150, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(215, 169, 40, 0.05) 0%, transparent 40%);
         }
 
-        .register-card {
+        .account-card {
             background: #FFFFFF;
-            border: 1px solid var(--color-primary-border);
+            border: 1px solid #E2E8F0;
             border-radius: 20px;
             width: 100%;
-            max-width: 520px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(19, 82, 94, 0.08);
-            position: relative;
-        }
-
-        .register-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-gold) 100%);
-            border-radius: 20px 20px 0 0;
+            max-width: 490px;
+            padding: 36px 32px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04), 0 2px 6px rgba(15, 23, 42, 0.02);
         }
 
         .brand-header {
             text-align: center;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
+        }
+
+        .brand-logo-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
         }
 
         .brand-logo {
-            width: 50px;
-            height: 50px;
-            background: var(--color-primary);
+            width: 44px;
+            height: 44px;
+            background: #10B981;
             color: #FFFFFF;
-            font-family: 'Outfit', sans-serif;
-            font-size: 26px;
-            font-weight: 800;
             border-radius: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid var(--color-primary-border);
-            box-shadow: 0 4px 14px rgba(31, 131, 150, 0.3);
-            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+
+        .brand-logo svg {
+            width: 24px;
+            height: 24px;
         }
 
         .brand-header h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 800;
-            color: var(--color-primary-dark);
+            color: var(--text-heading);
+            letter-spacing: -0.5px;
             margin-bottom: 4px;
         }
 
         .brand-header p {
             font-size: 13.5px;
             color: var(--text-muted);
+            line-height: 1.45;
+            max-width: 360px;
+            margin: 0 auto;
         }
 
         .error-alert {
             background: var(--danger-light);
             border: 1px solid rgba(239, 68, 68, 0.3);
             color: #991B1B;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 8px;
             font-size: 13px;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-heading);
+            margin-bottom: 6px;
+        }
+
+        .req {
+            color: #DC2626;
+            margin-left: 2px;
+        }
+
+        .input-text, .select-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px;
+            border: 1px solid var(--border-input);
+            border-radius: 10px;
+            font-size: 14px;
+            color: var(--text-heading);
+            outline: none;
+            background: #FFFFFF;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            font-family: inherit;
+        }
+
+        .input-text:focus, .select-input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(31, 131, 150, 0.15);
+        }
+
+        .input-text::placeholder {
+            color: #94A3B8;
+        }
+
+        /* Location & Phone Card Box */
+        .location-card {
+            border: 1.5px solid var(--border-box-green);
+            border-radius: 14px;
+            padding: 16px 16px 14px 16px;
+            background: var(--bg-box-green);
+            margin-bottom: 16px;
+        }
+
+        .location-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .location-title {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #15803D;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .location-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .badge-pill {
+            background: #DCFCE7;
+            color: #15803D;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            white-space: nowrap;
         }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            gap: 12px;
         }
 
-        @media (max-width: 540px) {
+        @media (max-width: 460px) {
             .form-row {
                 grid-template-columns: 1fr;
-                gap: 0;
+                gap: 12px;
+            }
+            .account-card {
+                padding: 26px 18px;
             }
         }
 
-        .form-group {
-            margin-bottom: 18px;
+        .select-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            cursor: pointer;
         }
 
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 11px 14px;
-            border: 1.5px solid var(--color-primary-border);
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
+        /* Phone Input with Country Prefix */
+        .phone-input-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-input);
+            border-radius: 10px;
+            height: 44px;
             background: #FFFFFF;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            font-family: inherit;
+            overflow: hidden;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
 
-        .form-group input:focus, .form-group select:focus {
+        .phone-input-group:focus-within {
             border-color: var(--color-primary);
             box-shadow: 0 0 0 3px rgba(31, 131, 150, 0.15);
         }
 
+        .phone-prefix {
+            padding: 0 12px;
+            background: #F8FAFC;
+            border-right: 1px solid #E2E8F0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-heading);
+            user-select: none;
+        }
+
+        .phone-input-group input {
+            flex: 1;
+            height: 100%;
+            border: none;
+            outline: none;
+            padding: 0 12px;
+            font-size: 14px;
+            color: var(--text-heading);
+            font-family: inherit;
+            background: transparent;
+        }
+
+        .phone-input-group input::placeholder {
+            color: #94A3B8;
+        }
+
+        /* Password Wrapper with Eye Toggle */
+        .password-wrap {
+            position: relative;
+        }
+
+        .password-wrap .input-text {
+            padding-right: 42px;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #94A3B8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s;
+        }
+
+        .toggle-btn:hover {
+            color: var(--text-heading);
+        }
+
         .submit-btn {
             width: 100%;
-            padding: 14px;
+            height: 46px;
             background: var(--color-primary);
             color: #FFFFFF;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14.5px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(31, 131, 150, 0.3);
+            box-shadow: 0 4px 12px rgba(31, 131, 150, 0.25);
             transition: all 0.2s;
-            margin-top: 8px;
+            margin-top: 6px;
         }
 
         .submit-btn:hover {
             background: var(--color-primary-dark);
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(31, 131, 150, 0.4);
+            box-shadow: 0 6px 16px rgba(31, 131, 150, 0.35);
         }
 
         .card-footer {
             text-align: center;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--color-primary-light);
-            font-size: 13px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #F1F5F9;
+            font-size: 13.5px;
             color: var(--text-muted);
         }
 
@@ -198,11 +335,19 @@
 </head>
 <body>
 
-    <div class="register-card">
+    <div class="account-card">
+        <!-- Logo & Header -->
         <div class="brand-header">
-            <div class="brand-logo">K</div>
-            <h1>Create Your Store</h1>
-            <p>Setup your supermarket or provision store with Krum OS</p>
+            <div class="brand-logo-wrap">
+                <div class="brand-logo">
+                    <!-- Clean Shopping Cart Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                    </svg>
+                </div>
+            </div>
+            <h1>Create an account</h1>
+            <p>Create your account to manage your store from your dashboard.</p>
         </div>
 
         {% if error %}
@@ -214,66 +359,99 @@
         <form method="POST">
             {% csrf_token %}
 
+            <!-- 1. Store / Business Name (Old Information Collected) -->
             <div class="form-group">
-                <label for="business_name">Store / Business Name *</label>
-                <input type="text" id="business_name" name="business_name" required autofocus placeholder="e.g. Sunrise Supermarket & Provisions" value="{{ form.business_name }}">
+                <label class="input-label" for="business_name">Store Name <span class="req">*</span></label>
+                <input type="text" id="business_name" name="business_name" class="input-text" required autofocus placeholder="e.g. Mama Ngozi Provisions" value="{{ form.business_name }}">
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="currency">Currency</label>
-                    <select id="currency" name="currency">
-                        <option value="NGN" {% if form.currency == 'NGN' %}selected{% endif %}>₦ Nigerian Naira (NGN)</option>
-                        <option value="USD" {% if form.currency == 'USD' %}selected{% endif %}>$ US Dollar (USD)</option>
-                        <option value="GHS" {% if form.currency == 'GHS' %}selected{% endif %}>GH₵ Ghanaian Cedi (GHS)</option>
-                        <option value="KES" {% if form.currency == 'KES' %}selected{% endif %}>KSh Kenyan Shilling (KES)</option>
-                        <option value="GBP" {% if form.currency == 'GBP' %}selected{% endif %}>£ British Pound (GBP)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="phone">Store Phone</label>
-                    <input type="tel" id="phone" name="phone" placeholder="e.g. 08012345678" value="{{ form.phone }}">
-                </div>
+            <!-- 2. Email Address (Old Information Collected & Primary Login) -->
+            <div class="form-group">
+                <label class="input-label" for="email">Email <span class="req">*</span></label>
+                <input type="email" id="email" name="email" class="input-text" required placeholder="owner@store.com" value="{{ form.email }}">
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="username">Owner Username *</label>
-                    <input type="text" id="username" name="username" required placeholder="e.g. storeowner" value="{{ form.username }}">
+            <!-- 3. Location & Phone Section Box (Matching Design Reference) -->
+            <div class="location-card">
+                <div class="location-card-header">
+                    <div>
+                        <div class="location-title">Location & Phone</div>
+                        <div class="location-subtitle">Select your supported coverage area.</div>
+                    </div>
+                    <span class="badge-pill">+234</span>
                 </div>
 
-                <div class="form-group">
-                    <label for="email">Owner Email</label>
-                    <input type="email" id="email" name="email" placeholder="owner@store.com" value="{{ form.email }}">
-                </div>
-            </div>
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="input-label" for="currency">Currency <span class="req">*</span></label>
+                        <select id="currency" name="currency" class="select-input">
+                            <option value="NGN" {% if form.currency == 'NGN' %}selected{% endif %}>₦ Nigeria (NGN)</option>
+                            <option value="USD" {% if form.currency == 'USD' %}selected{% endif %}>$ United States (USD)</option>
+                            <option value="GHS" {% if form.currency == 'GHS' %}selected{% endif %}>GH₵ Ghana (GHS)</option>
+                            <option value="KES" {% if form.currency == 'KES' %}selected{% endif %}>KSh Kenya (KES)</option>
+                            <option value="GBP" {% if form.currency == 'GBP' %}selected{% endif %}>£ United Kingdom (GBP)</option>
+                        </select>
+                    </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="password">Password (min 8 chars) *</label>
-                    <input type="password" id="password" name="password" required placeholder="Minimum 8 characters">
-                </div>
-
-                <div class="form-group">
-                    <label for="confirm_password">Confirm Password *</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required placeholder="Re-enter password">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="input-label" for="phone">Phone Number</label>
+                        <div class="phone-input-group">
+                            <span class="phone-prefix">+234</span>
+                            <input type="tel" id="phone" name="phone" placeholder="08012345678" value="{{ form.phone }}">
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            <!-- 4. Password & Confirm Password Row with Eye Toggles -->
+            <div class="form-row" style="margin-bottom: 16px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="input-label" for="password">Password <span class="req">*</span></label>
+                    <div class="password-wrap">
+                        <input type="password" id="password" name="password" class="input-text" required placeholder="••••••••">
+                        <button type="button" class="toggle-btn" onclick="togglePasswordVisibility('password', this)" aria-label="Toggle password">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="input-label" for="confirm_password">Confirm Password <span class="req">*</span></label>
+                    <div class="password-wrap">
+                        <input type="password" id="confirm_password" name="confirm_password" class="input-text" required placeholder="••••••••">
+                        <button type="button" class="toggle-btn" onclick="togglePasswordVisibility('confirm_password', this)" aria-label="Toggle password">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
             <button type="submit" class="submit-btn">
-                Create Store & Access Dashboard →
+                Create an account
             </button>
         </form>
 
         <div class="card-footer">
-            <p style="margin-bottom: 8px;">
-                Already have a store account? 
-                <a href="/dashboard/login/">Sign In to Dashboard →</a>
+            <p style="margin-bottom: 6px;">
+                Already have an account? 
+                <a href="/dashboard/login/">Log in</a>
             </p>
-            <a href="/">← Return to Krum Homepage</a>
+            <a href="/" style="color: var(--text-muted); font-size: 12.5px; font-weight: 500;">← Return to Krum Homepage</a>
         </div>
     </div>
 
+    <script>
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+            } else {
+                input.type = 'password';
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            }
+        }
+    </script>
 </body>
 </html>

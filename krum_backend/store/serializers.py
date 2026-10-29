@@ -1,6 +1,7 @@
 from decimal import Decimal
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import (
     Business, Category, Customer, Expense, InventoryBalance,
     InventoryMovement, Membership, Product, ProductUnit,
@@ -8,15 +9,48 @@ from .models import (
     Supplier, Unit
 )
 
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Accepts email as the credential, allowing email to serve both username and email purposes.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'] = serializers.CharField(required=False)
+        self.fields[self.username_field].required = False
+
+    def validate(self, attrs):
+        identifier = attrs.get('email') or attrs.get(self.username_field)
+        if not identifier:
+            raise serializers.ValidationError({'email': 'Email address is required.'})
+        attrs[self.username_field] = str(identifier).strip().lower()
+        return super().validate(attrs)
+
 class RegisterSerializer(serializers.Serializer):
     business_name = serializers.CharField(max_length=160)
-    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField(max_length=150, required=False)
+    username = serializers.CharField(max_length=150, required=False)
     password = serializers.CharField(write_only=True, min_length=8)
     currency = serializers.CharField(max_length=3, default='NGN', required=False)
     phone = serializers.CharField(max_length=30, required=False, allow_blank=True)
 
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        # Email serves both username and email purposes
+        if 'email' not in data and 'username' in data:
+            data['email'] = data['username']
+        elif 'email' in data and 'username' not in data:
+            data['username'] = data['email']
+        return super().to_internal_value(data)
+
+    def validate_email(self, value):
+        normalized = value.strip().lower()
+        if User.objects.filter(email__iexact=normalized).exists() or User.objects.filter(username__iexact=normalized).exists():
+            raise serializers.ValidationError("An account with this email address already exists. Please log in.")
+        return normalized
+
     def create(self, data):
-        user = User.objects.create_user(username=data['username'], password=data['password'])
+        email = (data.get('email') or data.get('username') or '').strip().lower()
+        user = User.objects.create_user(username=email, email=email, password=data['password'])
         business = Business.objects.create(
             name=data['business_name'],
             currency=data.get('currency', 'NGN'),

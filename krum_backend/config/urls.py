@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 from store import landing_views
+from store.views import EmailTokenObtainPairView
 
 urlpatterns = [
     path('', landing_views.landing_page, name='landing_page'),
@@ -16,6 +17,6 @@ urlpatterns = [
     path('dashboard/', include('store.dashboard_urls')),
     path('admin/', admin.site.urls),
     path('api/', include('apps.api.urls')),
-    path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/auth/login/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

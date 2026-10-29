@@ -131,6 +131,12 @@ else:
     DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
 
 
+AUTHENTICATION_BACKENDS = [
+    'apps.core.backends.EmailAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 

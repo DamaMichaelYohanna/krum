@@ -147,7 +147,7 @@ def dashboard_login(request):
     error = None
 
     if request.method == 'POST':
-        identifier = request.POST.get('username', '').strip()
+        identifier = request.POST.get('email', '').strip() or request.POST.get('username', '').strip()
         password = request.POST.get('password', '').strip()
 
         user = authenticate(request, username=identifier, password=password)
@@ -155,7 +155,7 @@ def dashboard_login(request):
             login(request, user)
             return redirect(next_url)
         else:
-            error = "Invalid username or password. Please verify your merchant credentials."
+            error = "Invalid email or password. Please verify your merchant credentials."
 
     return render(request, 'dashboard/login.html', {
         'error': error,
@@ -166,6 +166,7 @@ def dashboard_login(request):
 def dashboard_register(request):
     """
     Registration view for new store owners to set up their store and administrative account.
+    Email serves as both account identifier and contact address.
     """
     if request.user.is_authenticated:
         return redirect('/dashboard/')
@@ -173,7 +174,6 @@ def dashboard_register(request):
     error = None
     form_data = {
         'business_name': '',
-        'username': '',
         'email': '',
         'phone': '',
         'currency': 'NGN',
@@ -181,8 +181,7 @@ def dashboard_register(request):
 
     if request.method == 'POST':
         business_name = request.POST.get('business_name', '').strip()
-        username = request.POST.get('username', '').strip()
-        email = request.POST.get('email', '').strip()
+        email = request.POST.get('email', '').strip().lower()
         phone = request.POST.get('phone', '').strip()
         currency = request.POST.get('currency', 'NGN').strip().upper()
         password = request.POST.get('password', '')
@@ -190,24 +189,23 @@ def dashboard_register(request):
 
         form_data = {
             'business_name': business_name,
-            'username': username,
             'email': email,
             'phone': phone,
             'currency': currency,
         }
 
-        if not business_name or not username or not password:
-            error = "Store name, owner username, and password are required."
+        if not business_name or not email or not password:
+            error = "Store name, email address, and password are required."
         elif len(password) < 8:
             error = "Password must be at least 8 characters long."
         elif password != confirm_password:
             error = "Passwords do not match."
-        elif User.objects.filter(username=username).exists():
-            error = f"The username '{username}' is already registered. Please choose another or sign in."
+        elif User.objects.filter(email__iexact=email).exists() or User.objects.filter(username__iexact=email).exists():
+            error = f"An account with email '{email}' is already registered. Please sign in."
         else:
             try:
                 user = User.objects.create_user(
-                    username=username,
+                    username=email,
                     email=email,
                     password=password
                 )
@@ -245,7 +243,7 @@ def dashboard_register(request):
                     Category.objects.create(business=business, name=name)
 
                 # Log user in immediately and direct to dashboard
-                login(request, user)
+                login(request, user, backend='apps.core.backends.EmailAuthBackend')
                 return redirect('/dashboard/')
             except Exception as e:
                 error = f"An error occurred while creating your store: {str(e)}"

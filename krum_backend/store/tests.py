@@ -611,7 +611,7 @@ class LandingAndRootViewsTests(TestCase):
 
 class StoreDashboardTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='merchant_owner', password='secretpassword123')
+        self.user = User.objects.create_user(username='merchant_owner@krum.ng', email='merchant_owner@krum.ng', password='secretpassword123')
         self.business = Business.objects.create(name='Krum Mega Supermarket', currency='NGN', phone='+2348011122233')
         Membership.objects.create(user=self.user, business=self.business, role=Membership.Role.OWNER)
         
@@ -633,14 +633,23 @@ class StoreDashboardTests(TestCase):
 
     def test_login_post_success(self):
         res = self.client.post('/dashboard/login/', {
-            'username': 'merchant_owner',
+            'email': 'merchant_owner@krum.ng',
             'password': 'secretpassword123'
         })
         self.assertEqual(res.status_code, 302)
         self.assertEqual(res['Location'], '/dashboard/')
 
+    def test_api_login_with_email(self):
+        res = self.client.post('/api/auth/login/', {
+            'email': 'merchant_owner@krum.ng',
+            'password': 'secretpassword123'
+        })
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('access', res.data)
+        self.assertIn('refresh', res.data)
+
     def test_dashboard_overview_authenticated(self):
-        self.client.login(username='merchant_owner', password='secretpassword123')
+        self.client.force_login(self.user)
         res = self.client.get('/dashboard/')
         self.assertEqual(res.status_code, 200)
         content = res.content.decode('utf-8')
@@ -650,7 +659,7 @@ class StoreDashboardTests(TestCase):
         self.assertIn('Inventory Valuation', content)
 
     def test_dashboard_sales_ledger_and_csv(self):
-        self.client.login(username='merchant_owner', password='secretpassword123')
+        self.client.force_login(self.user)
         res = self.client.get('/dashboard/sales/')
         self.assertEqual(res.status_code, 200)
         self.assertIn('Sales Ledger & Receipts', res.content.decode('utf-8'))
@@ -661,7 +670,7 @@ class StoreDashboardTests(TestCase):
         self.assertEqual(csv_res['Content-Type'], 'text/csv')
 
     def test_dashboard_inventory_catalog(self):
-        self.client.login(username='merchant_owner', password='secretpassword123')
+        self.client.force_login(self.user)
         res = self.client.get('/dashboard/inventory/')
         self.assertEqual(res.status_code, 200)
         content = res.content.decode('utf-8')
@@ -670,7 +679,7 @@ class StoreDashboardTests(TestCase):
         self.assertIn('Healthy Stock', content)
 
     def test_dashboard_shifts_auditing(self):
-        self.client.login(username='merchant_owner', password='secretpassword123')
+        self.client.force_login(self.user)
         CashSession.objects.create(
             business=self.business,
             user=self.user,
@@ -685,7 +694,7 @@ class StoreDashboardTests(TestCase):
         self.assertIn('Active Shifts', content)
 
     def test_dashboard_customers_debts(self):
-        self.client.login(username='merchant_owner', password='secretpassword123')
+        self.client.force_login(self.user)
         Customer.objects.create(business=self.business, name='Chief Okon', phone='+2348099887766')
         res = self.client.get('/dashboard/customers/')
         self.assertEqual(res.status_code, 200)
@@ -694,7 +703,7 @@ class StoreDashboardTests(TestCase):
         self.assertIn('Chief Okon', content)
 
     def test_dashboard_staff_roles(self):
-        self.client.login(username='merchant_owner', password='secretpassword123')
+        self.client.force_login(self.user)
         res = self.client.get('/dashboard/staff/')
         self.assertEqual(res.status_code, 200)
         content = res.content.decode('utf-8')
@@ -703,7 +712,7 @@ class StoreDashboardTests(TestCase):
         self.assertIn('Store Owner', content)
 
     def test_dashboard_settings_get_and_post(self):
-        self.client.login(username='merchant_owner', password='secretpassword123')
+        self.client.force_login(self.user)
         res = self.client.get('/dashboard/settings/')
         self.assertEqual(res.status_code, 200)
         self.assertIn('Store Profile & Settings', res.content.decode('utf-8'))
@@ -727,24 +736,25 @@ class StoreDashboardTests(TestCase):
     def test_dashboard_register_get(self):
         res = self.client.get('/dashboard/register/')
         self.assertEqual(res.status_code, 200)
-        self.assertIn('Create Your Store', res.content.decode('utf-8'))
+        self.assertIn('Create an account', res.content.decode('utf-8'))
 
     def test_dashboard_register_post_success(self):
         res = self.client.post('/dashboard/register/', {
             'business_name': 'Greenfield Retail Hub',
-            'username': 'greenfield_boss',
             'email': 'boss@greenfield.com',
-            'phone': '08099887766',
             'currency': 'NGN',
+            'phone': '08099887766',
             'password': 'strongpassword123',
             'confirm_password': 'strongpassword123'
         })
         self.assertEqual(res.status_code, 302)
         self.assertEqual(res['Location'], '/dashboard/')
 
-        # Verify User and Business created
-        new_user = User.objects.get(username='greenfield_boss')
+        # Verify User and Business created with email serving as both
+        new_user = User.objects.get(email='boss@greenfield.com')
+        self.assertEqual(new_user.username, 'boss@greenfield.com')
         new_biz = Business.objects.get(name='Greenfield Retail Hub')
+        self.assertEqual(new_biz.currency, 'NGN')
         membership = Membership.objects.get(user=new_user, business=new_biz)
         self.assertEqual(membership.role, 'owner')
 
@@ -756,7 +766,7 @@ class StoreDashboardTests(TestCase):
     def test_dashboard_register_password_mismatch(self):
         res = self.client.post('/dashboard/register/', {
             'business_name': 'Greenfield Retail Hub',
-            'username': 'mismatch_user',
+            'email': 'mismatch@example.com',
             'password': 'password12345',
             'confirm_password': 'password99999'
         })

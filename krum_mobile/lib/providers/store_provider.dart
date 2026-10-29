@@ -93,14 +93,16 @@ class StoreProvider extends ChangeNotifier {
 
   // --- Authentication ---
 
-  Future<bool> login(String username, String password) async {
+  Future<bool> login(String email, String password) async {
     _setLoading(true);
     _errorMessage = '';
+    final cleanEmail = email.trim().toLowerCase();
     try {
-      await api.login(username, password);
-      _username = username;
+      await api.login(cleanEmail, password);
+      _username = cleanEmail;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_username', username);
+      await prefs.setString('user_username', cleanEmail);
+      await prefs.setString('user_email', cleanEmail);
 
       final profile = await api.getBusinessProfile();
       _userRole = profile['role'] ?? 'owner';
@@ -119,25 +121,27 @@ class StoreProvider extends ChangeNotifier {
 
   Future<bool> register({
     required String businessName,
-    required String username,
+    required String email,
     required String password,
     String currency = 'NGN',
     String phone = '',
   }) async {
     _setLoading(true);
     _errorMessage = '';
+    final cleanEmail = email.trim().toLowerCase();
     try {
       await api.register(
         businessName: businessName,
-        username: username,
+        email: cleanEmail,
         password: password,
         currency: currency,
         phone: phone,
       );
-      _username = username;
+      _username = cleanEmail;
       _userRole = 'owner';
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_username', username);
+      await prefs.setString('user_username', cleanEmail);
+      await prefs.setString('user_email', cleanEmail);
       await prefs.setString('user_role', 'owner');
 
       await syncService.sync();

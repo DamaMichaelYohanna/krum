@@ -156,11 +156,12 @@ class ApiService {
     return res;
   }
 
-  Future<Map<String, dynamic>> login(String username, String password) async {
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final cleanEmail = email.trim().toLowerCase();
     final response = await http.post(
       Uri.parse('$_baseUrl/auth/login/'),
       headers: _headers(requireAuth: false),
-      body: jsonEncode({'username': username, 'password': password}),
+      body: jsonEncode({'email': cleanEmail, 'password': password}),
     );
 
     if (response.statusCode == 200) {
@@ -175,17 +176,18 @@ class ApiService {
 
   Future<Map<String, dynamic>> register({
     required String businessName,
-    required String username,
+    required String email,
     required String password,
     String currency = 'NGN',
     String phone = '',
   }) async {
+    final cleanEmail = email.trim().toLowerCase();
     final response = await http.post(
       Uri.parse('$_baseUrl/auth/register/'),
       headers: _headers(requireAuth: false),
       body: jsonEncode({
         'business_name': businessName,
-        'username': username,
+        'email': cleanEmail,
         'password': password,
         'currency': currency,
         'phone': phone,
@@ -194,7 +196,7 @@ class ApiService {
 
     if (response.statusCode == 201) {
       // Auto login
-      return await login(username, password);
+      return await login(cleanEmail, password);
     } else {
       final err = _parseError(response);
       throw Exception(err);
