@@ -160,7 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               phone: _phoneController.text.trim(),
                             );
                             if (success && context.mounted) {
-                              Navigator.pop(context);
+                              Navigator.of(context).popUntil((route) => route.isFirst);
                             }
                           },
                     style: FilledButton.styleFrom(

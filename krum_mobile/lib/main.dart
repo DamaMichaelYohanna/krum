@@ -11,6 +11,7 @@ import 'screens/inventory/product_form_screen.dart';
 import 'screens/purchases/add_purchase_screen.dart';
 import 'screens/expenses/expenses_screen.dart';
 import 'screens/settings/settings_screen.dart';
+import 'screens/auth/login_screen.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_colors.dart';
 
@@ -40,7 +41,13 @@ class KrumApp extends StatelessWidget {
       title: 'Krum Store Manager',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const AppShell(), // Bypass login for UI testing
+      home: Consumer<StoreProvider>(
+        builder: (context, storeProvider, _) {
+          return storeProvider.isAuthenticated
+              ? const AppShell()
+              : const LoginScreen();
+        },
+      ),
     );
   }
 }
