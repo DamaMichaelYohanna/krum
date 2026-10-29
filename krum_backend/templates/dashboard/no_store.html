@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No Store Assigned — Krum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F4F8FA;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .box {
+            background: #FFFFFF;
+            border: 1px solid #BCE5ED;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(19, 82, 94, 0.08);
+        }
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            color: #13525E;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        p {
+            color: #475569;
+            font-size: 14.5px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .btn {
+            display: inline-block;
+            background: #1F8396;
+            color: #FFFFFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>No Store Assigned</h1>
+        <p>
+            Hello <strong>{{ user.username }}</strong>, your account is authenticated but not currently linked to any active store membership. Please contact your store administrator to assign you a role or reach out to support.
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <a href="/contact/" class="btn">Contact Support</a>
+            <a href="/dashboard/logout/" class="btn" style="background: transparent; color: #1F8396; border: 1.5px solid #BCE5ED;">Sign Out</a>
+        </div>
+    </div>
+</body>
+</html>

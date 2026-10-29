@@ -1,0 +1,70 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Store Settings — {{ business.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Store Profile & Settings</h1>
+        <p>Manage business name, contact telephone, and currency preferences.</p>
+    </div>
+</div>
+
+<div style="max-width: 760px;">
+    <div class="card-table">
+        <div class="card-table__header">
+            <h3>Store Profile Information</h3>
+        </div>
+
+        <form method="POST" style="padding: 28px;">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+                    Store / Supermarket Business Name
+                </label>
+                <input type="text" name="name" value="{{ business.name }}" required
+                       style="width: 100%; padding: 11px 14px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 14px; outline: none;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+                        Contact Telephone
+                    </label>
+                    <input type="text" name="phone" value="{{ business.phone }}" placeholder="+234 800 000 0000"
+                           style="width: 100%; padding: 11px 14px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 14px; outline: none;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+                        Operating Currency
+                    </label>
+                    <select name="currency" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 14px; background: #FFFFFF; outline: none;">
+                        <option value="NGN" {% if business.currency == 'NGN' %}selected{% endif %}>Nigerian Naira (₦ / NGN)</option>
+                        <option value="USD" {% if business.currency == 'USD' %}selected{% endif %}>US Dollar ($ / USD)</option>
+                        <option value="GHS" {% if business.currency == 'GHS' %}selected{% endif %}>Ghanaian Cedi (₵ / GHS)</option>
+                        <option value="KES" {% if business.currency == 'KES' %}selected{% endif %}>Kenyan Shilling (KSh / KES)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 28px; padding-top: 14px; border-top: 1px solid var(--border-subtle);">
+                <div style="font-size: 12.5px; color: var(--text-muted);">
+                    Registered Since: <strong>{{ business.created_at|date:"F d, Y" }}</strong>
+                </div>
+            </div>
+
+            {% if user_role in 'owner,manager' %}
+            <button type="submit" class="btn-action btn-action--primary" style="padding: 12px 24px; font-size: 14px;">
+                Save Store Settings
+            </button>
+            {% else %}
+            <div style="color: var(--text-muted); font-size: 13px;">
+                * Read-only view: You need Manager or Owner privileges to edit store configuration.
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

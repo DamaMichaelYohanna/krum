@@ -13,6 +13,7 @@ urlpatterns = [
     path('health/', landing_views.health_check, name='health_check'),
     path('download/krum.apk', landing_views.download_apk, name='download_apk'),
     path('download/apk/', landing_views.download_apk, name='download_apk_alt'),
+    path('dashboard/', include('store.dashboard_urls')),
     path('admin/', admin.site.urls),
     path('api/', include('apps.api.urls')),
     path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

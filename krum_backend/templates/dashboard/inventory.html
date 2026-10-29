@@ -1,0 +1,133 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Inventory & Multi-Unit Stock — {{ business.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Inventory & Multi-Unit Catalog</h1>
+        <p>Live inventory balance, unit packaging conversions (Carton / Pack / Piece), and stock health.</p>
+    </div>
+
+    <div style="display: flex; gap: 12px;">
+        <span class="store-pill">
+            <span class="store-pill__badge" style="background: var(--color-primary);"></span>
+            <span>Total Valuation: <strong>₦{{ total_valuation|floatformat:2 }}</strong></span>
+        </span>
+    </div>
+</div>
+
+<!-- Search & Filters -->
+<div style="background: #FFFFFF; border: 1px solid var(--border-light); border-radius: 12px; padding: 18px 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm);">
+    <form method="GET" style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
+        <!-- Text Search -->
+        <div style="flex: 1; min-width: 240px;">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search by name, barcode, or SKU..." 
+                   style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 13.5px; outline: none;">
+        </div>
+
+        <!-- Category Filter -->
+        <select name="category" style="padding: 10px 14px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 13.5px; background: #FFFFFF; outline: none;">
+            <option value="all" {% if selected_category == 'all' %}selected{% endif %}>All Categories</option>
+            {% for c in categories %}
+            <option value="{{ c.id }}" {% if selected_category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Stock Status Filter -->
+        <select name="status" style="padding: 10px 14px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 13.5px; background: #FFFFFF; outline: none;">
+            <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Stock Levels</option>
+            <option value="in_stock" {% if selected_status == 'in_stock' %}selected{% endif %}>In Stock</option>
+            <option value="low_stock" {% if selected_status == 'low_stock' %}selected{% endif %}>Low Stock Alerts ({{ low_stock_count }})</option>
+            <option value="out_of_stock" {% if selected_status == 'out_of_stock' %}selected{% endif %}>Out of Stock ({{ out_of_stock_count }})</option>
+        </select>
+
+        <button type="submit" class="btn-action btn-action--primary" style="height: 40px;">
+            Filter Catalog
+        </button>
+        {% if query or selected_category != 'all' or selected_status != 'all' %}
+        <a href="/dashboard/inventory/" class="btn-action btn-action--outline" style="height: 40px;">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Product Table -->
+<div class="card-table">
+    <div class="card-table__header">
+        <div>
+            <h3>Product Catalog ({{ total_count }} products)</h3>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table class="krum-table">
+            <thead>
+                <tr>
+                    <th>Product & Barcode</th>
+                    <th>Category</th>
+                    <th>Packaging Units</th>
+                    <th>Stock (Base)</th>
+                    <th>Average Cost</th>
+                    <th>Stock Valuation</th>
+                    <th>Health Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <strong>{{ item.product.name }}</strong>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                            {% if item.product.barcode %}Barcode: {{ item.product.barcode }}{% else %}SKU: {{ item.product.sku|default:"N/A" }}{% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <span style="font-size: 13px; color: var(--text-secondary);">
+                            {{ item.product.category.name|default:"General" }}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            {% for u in item.units %}
+                            <span class="badge-status badge-status--info" title="1 {{ u.unit.name }} = {{ u.conversion_to_base }} base unit(s) · Price: ₦{{ u.selling_price }}">
+                                {{ u.unit.name }} (₦{{ u.selling_price|floatformat:0 }})
+                            </span>
+                            {% empty %}
+                            <span style="color: var(--text-muted); font-size: 12px;">Base Unit: {{ item.product.base_unit.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        <strong style="font-size: 14px; font-weight: 800; color: var(--color-primary-dark);">
+                            {{ item.quantity }}
+                        </strong>
+                        <span style="font-size: 12px; color: var(--text-muted);">{{ item.product.base_unit.name }}</span>
+                    </td>
+                    <td>
+                        ₦{{ item.average_cost|floatformat:2 }}
+                    </td>
+                    <td>
+                        <strong style="color: var(--color-primary-dark);">₦{{ item.valuation|floatformat:2 }}</strong>
+                    </td>
+                    <td>
+                        {% if item.status == 'out_of_stock' %}
+                            <span class="badge-status badge-status--danger">Depleted (0)</span>
+                        {% elif item.status == 'low_stock' %}
+                            <span class="badge-status badge-status--warning">Low Stock (≤{{ item.product.reorder_level }})</span>
+                        {% else %}
+                            <span class="badge-status badge-status--success">Healthy Stock</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 50px; color: var(--text-muted);">
+                        No products found matching your search.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

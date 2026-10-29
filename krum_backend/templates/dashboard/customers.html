@@ -1,0 +1,95 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Customer Debts & Receivables — {{ business.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Customer Credit & Debts</h1>
+        <p>Track store debtors, credit tab balances, and customer payment histories.</p>
+    </div>
+
+    <div style="display: flex; gap: 12px;">
+        <span class="store-pill">
+            <span class="store-pill__badge" style="background: var(--danger);"></span>
+            <span>Total Receivables: <strong style="color: var(--danger);">₦{{ total_receivables|floatformat:2 }}</strong></span>
+        </span>
+    </div>
+</div>
+
+<!-- Search Bar -->
+<div style="background: #FFFFFF; border: 1px solid var(--border-light); border-radius: 12px; padding: 18px 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm);">
+    <form method="GET" style="display: flex; gap: 14px; align-items: center;">
+        <div style="flex: 1;">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search customer by name or phone number..." 
+                   style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 13.5px; outline: none;">
+        </div>
+        <button type="submit" class="btn-action btn-action--primary" style="height: 40px;">Search Customers</button>
+        {% if query %}
+        <a href="/dashboard/customers/" class="btn-action btn-action--outline" style="height: 40px;">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Customers Table -->
+<div class="card-table">
+    <div class="card-table__header">
+        <div>
+            <h3>Customer Accounts ({{ customer_list|length }} accounts)</h3>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table class="krum-table">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Phone Contact</th>
+                    <th>Total Orders</th>
+                    <th>Total Purchases</th>
+                    <th>Total Paid</th>
+                    <th>Outstanding Debt</th>
+                    <th>Account Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in customer_list %}
+                <tr>
+                    <td>
+                        <strong>{{ item.customer.name }}</strong>
+                    </td>
+                    <td style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-secondary);">
+                        {{ item.customer.phone|default:"No phone recorded" }}
+                    </td>
+                    <td>
+                        <span class="badge-status badge-status--info">{{ item.orders_count }} order(s)</span>
+                    </td>
+                    <td>₦{{ item.total_purchases|floatformat:2 }}</td>
+                    <td style="color: var(--success); font-weight: 700;">₦{{ item.total_paid|floatformat:2 }}</td>
+                    <td>
+                        {% if item.balance > 0 %}
+                            <strong style="color: var(--danger); font-size: 14px;">₦{{ item.balance|floatformat:2 }}</strong>
+                        {% else %}
+                            <span style="color: var(--success); font-weight: 700;">₦0.00 (Cleared)</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.balance > 0 %}
+                            <span class="badge-status badge-status--danger">Has Debt</span>
+                        {% else %}
+                            <span class="badge-status badge-status--success">Good Standing</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 50px; color: var(--text-muted);">
+                        No customer accounts found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

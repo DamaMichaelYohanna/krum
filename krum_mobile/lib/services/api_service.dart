@@ -3,7 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String defaultBaseUrl = 'http://127.0.0.1:8000/api';
+  static const String productionBaseUrl = 'https://krum.vercel.app/api';
+  static const String localEmulatorUrl = 'http://10.0.2.2:8000/api';
+  static const String localDevUrl = 'http://127.0.0.1:8000/api';
+  static const String defaultBaseUrl = productionBaseUrl;
+
   String _baseUrl = defaultBaseUrl;
 
   String? _accessToken;
@@ -12,10 +16,18 @@ class ApiService {
   String get baseUrl => _baseUrl;
   bool get isAuthenticated => _accessToken != null;
   String? get refreshToken => _refreshToken;
+  String? get accessToken => _accessToken;
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
-    _baseUrl = prefs.getString('api_base_url') ?? defaultBaseUrl;
+    final saved = prefs.getString('api_base_url');
+    // Upgrade legacy localhost default to live production URL
+    if (saved == null || saved == 'http://127.0.0.1:8000/api' || saved == 'http://localhost:8000/api') {
+      _baseUrl = productionBaseUrl;
+      await prefs.setString('api_base_url', _baseUrl);
+    } else {
+      _baseUrl = saved;
+    }
     _accessToken = prefs.getString('jwt_access_token');
     _refreshToken = prefs.getString('jwt_refresh_token');
   }
@@ -51,6 +63,97 @@ class ApiService {
       headers['Authorization'] = 'Bearer $_accessToken';
     }
     return headers;
+  }
+
+  Future<bool> refreshAccessToken() async {
+    if (_refreshToken == null) return false;
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/refresh/'),
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+        body: jsonEncode({'refresh': _refreshToken}),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final newAccess = data['access'] as String;
+        final newRefresh = (data['refresh'] as String?) ?? _refreshToken!;
+        await saveTokens(newAccess, newRefresh);
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  Future<Map<String, dynamic>> healthCheck() async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/health/'),
+      headers: {'Accept': 'application/json'},
+    ).timeout(const Duration(seconds: 8));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Server health check returned HTTP ${response.statusCode}');
+  }
+
+  Future<http.Response> _get(Uri uri, {bool requireAuth = true}) async {
+    var res = await http.get(uri, headers: _headers(requireAuth: requireAuth));
+    if (res.statusCode == 401 && requireAuth && _refreshToken != null) {
+      final refreshed = await refreshAccessToken();
+      if (refreshed) {
+        res = await http.get(uri, headers: _headers(requireAuth: requireAuth));
+      }
+    }
+    return res;
+  }
+
+  Future<http.Response> _post(Uri uri, {Object? body, bool requireAuth = true}) async {
+    var res = await http.post(
+      uri,
+      headers: _headers(requireAuth: requireAuth),
+      body: body != null ? jsonEncode(body) : null,
+    );
+    if (res.statusCode == 401 && requireAuth && _refreshToken != null) {
+      final refreshed = await refreshAccessToken();
+      if (refreshed) {
+        res = await http.post(
+          uri,
+          headers: _headers(requireAuth: requireAuth),
+          body: body != null ? jsonEncode(body) : null,
+        );
+      }
+    }
+    return res;
+  }
+
+  Future<http.Response> _patch(Uri uri, {Object? body, bool requireAuth = true}) async {
+    var res = await http.patch(
+      uri,
+      headers: _headers(requireAuth: requireAuth),
+      body: body != null ? jsonEncode(body) : null,
+    );
+    if (res.statusCode == 401 && requireAuth && _refreshToken != null) {
+      final refreshed = await refreshAccessToken();
+      if (refreshed) {
+        res = await http.patch(
+          uri,
+          headers: _headers(requireAuth: requireAuth),
+          body: body != null ? jsonEncode(body) : null,
+        );
+      }
+    }
+    return res;
+  }
+
+  Future<http.Response> _delete(Uri uri, {bool requireAuth = true}) async {
+    var res = await http.delete(uri, headers: _headers(requireAuth: requireAuth));
+    if (res.statusCode == 401 && requireAuth && _refreshToken != null) {
+      final refreshed = await refreshAccessToken();
+      if (refreshed) {
+        res = await http.delete(uri, headers: _headers(requireAuth: requireAuth));
+      }
+    }
+    return res;
   }
 
   Future<Map<String, dynamic>> login(String username, String password) async {

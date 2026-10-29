@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from .models import (
     AuditLog, Business, CashSession, Customer, Expense, Membership, Product,
-    ProductUnit, Sale, Supplier, Unit, InventoryMovement
+    ProductUnit, Sale, Supplier, Unit, InventoryMovement, InventoryBalance
 )
 from apps.inventory.services import InventoryService
 from apps.customers.services import DebtService
@@ -550,7 +550,7 @@ class LandingAndRootViewsTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn('text/html', res['Content-Type'])
         content = res.content.decode('utf-8')
-        self.assertIn('Engineering Resilient Retail Technology', content)
+        self.assertIn('About Product', content)
         self.assertIn('Offline-First Mobile POS', content)
 
     def test_pricing_page_html(self):
@@ -567,8 +567,8 @@ class LandingAndRootViewsTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn('text/html', res['Content-Type'])
         content = res.content.decode('utf-8')
-        self.assertIn('Connect with Krum Retail Specialists', content)
-        self.assertIn('Send Us a Message', content)
+        self.assertIn('Talk to the Krum team', content)
+        self.assertIn('Contact Us', content)
 
     def test_contact_page_post_submission(self):
         from apps.core.models import ContactInquiry
@@ -607,5 +607,122 @@ class LandingAndRootViewsTests(TestCase):
         content = res.content.decode('utf-8')
         self.assertIn('Terms & Conditions', content)
         self.assertIn('Software License', content)
+
+
+class StoreDashboardTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='merchant_owner', password='secretpassword123')
+        self.business = Business.objects.create(name='Krum Mega Supermarket', currency='NGN', phone='+2348011122233')
+        Membership.objects.create(user=self.user, business=self.business, role=Membership.Role.OWNER)
+        
+        # Create a unit, product, and stock
+        self.unit = Unit.objects.create(business=self.business, name='Pcs')
+        self.product = Product.objects.create(business=self.business, name='Cornflakes 500g', base_unit=self.unit, reorder_level=5)
+        self.product_unit = ProductUnit.objects.create(product=self.product, unit=self.unit, conversion_to_base=1, selling_price=2200, minimum_price=2000)
+        self.balance = InventoryBalance.objects.create(product=self.product, quantity_base=25, average_cost=1800)
+
+    def test_anonymous_redirected_to_login(self):
+        res = self.client.get('/dashboard/')
+        self.assertEqual(res.status_code, 302)
+        self.assertIn('/dashboard/login/', res['Location'])
+
+    def test_login_page_renders(self):
+        res = self.client.get('/dashboard/login/')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('Store Admin Portal', res.content.decode('utf-8'))
+
+    def test_login_post_success(self):
+        res = self.client.post('/dashboard/login/', {
+            'username': 'merchant_owner',
+            'password': 'secretpassword123'
+        })
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res['Location'], '/dashboard/')
+
+    def test_dashboard_overview_authenticated(self):
+        self.client.login(username='merchant_owner', password='secretpassword123')
+        res = self.client.get('/dashboard/')
+        self.assertEqual(res.status_code, 200)
+        content = res.content.decode('utf-8')
+        self.assertIn('Executive Dashboard', content)
+        self.assertIn('Krum Mega Supermarket', content)
+        self.assertIn('Gross Revenue', content)
+        self.assertIn('Inventory Valuation', content)
+
+    def test_dashboard_sales_ledger_and_csv(self):
+        self.client.login(username='merchant_owner', password='secretpassword123')
+        res = self.client.get('/dashboard/sales/')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('Sales Ledger & Receipts', res.content.decode('utf-8'))
+
+        # CSV Export
+        csv_res = self.client.get('/dashboard/sales/?export=csv')
+        self.assertEqual(csv_res.status_code, 200)
+        self.assertEqual(csv_res['Content-Type'], 'text/csv')
+
+    def test_dashboard_inventory_catalog(self):
+        self.client.login(username='merchant_owner', password='secretpassword123')
+        res = self.client.get('/dashboard/inventory/')
+        self.assertEqual(res.status_code, 200)
+        content = res.content.decode('utf-8')
+        self.assertIn('Inventory & Multi-Unit Catalog', content)
+        self.assertIn('Cornflakes 500g', content)
+        self.assertIn('Healthy Stock', content)
+
+    def test_dashboard_shifts_auditing(self):
+        self.client.login(username='merchant_owner', password='secretpassword123')
+        CashSession.objects.create(
+            business=self.business,
+            user=self.user,
+            opening_float=Decimal('10000'),
+            expected_cash=Decimal('15000'),
+            status=CashSession.Status.OPEN
+        )
+        res = self.client.get('/dashboard/shifts/')
+        self.assertEqual(res.status_code, 200)
+        content = res.content.decode('utf-8')
+        self.assertIn('Cash Drawer & Shift Auditing', content)
+        self.assertIn('Active Shifts', content)
+
+    def test_dashboard_customers_debts(self):
+        self.client.login(username='merchant_owner', password='secretpassword123')
+        Customer.objects.create(business=self.business, name='Chief Okon', phone='+2348099887766')
+        res = self.client.get('/dashboard/customers/')
+        self.assertEqual(res.status_code, 200)
+        content = res.content.decode('utf-8')
+        self.assertIn('Customer Credit & Debts', content)
+        self.assertIn('Chief Okon', content)
+
+    def test_dashboard_staff_roles(self):
+        self.client.login(username='merchant_owner', password='secretpassword123')
+        res = self.client.get('/dashboard/staff/')
+        self.assertEqual(res.status_code, 200)
+        content = res.content.decode('utf-8')
+        self.assertIn('Staff & Role Permissions', content)
+        self.assertIn('merchant_owner', content)
+        self.assertIn('Store Owner', content)
+
+    def test_dashboard_settings_get_and_post(self):
+        self.client.login(username='merchant_owner', password='secretpassword123')
+        res = self.client.get('/dashboard/settings/')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('Store Profile & Settings', res.content.decode('utf-8'))
+
+        post_res = self.client.post('/dashboard/settings/', {
+            'name': 'Krum Grand Retail Chain',
+            'phone': '+2348099998888',
+            'currency': 'NGN'
+        })
+        self.assertEqual(post_res.status_code, 302)
+        self.business.refresh_from_db()
+        self.assertEqual(self.business.name, 'Krum Grand Retail Chain')
+        self.assertEqual(self.business.phone, '+2348099998888')
+
+    def test_dashboard_logout(self):
+        self.client.login(username='merchant_owner', password='secretpassword123')
+        res = self.client.get('/dashboard/logout/')
+        self.assertEqual(res.status_code, 302)
+        self.assertIn('/dashboard/login/', res['Location'])
+
 
 

@@ -1,0 +1,118 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Shift & Till Auditing — {{ business.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Cash Drawer & Shift Auditing</h1>
+        <p>Monitor cashier till floats, expected drawer cash, closing counts, and cash discrepancies (over/short).</p>
+    </div>
+
+    <div style="display: flex; gap: 12px;">
+        <span class="store-pill">
+            <span class="store-pill__badge" style="background: var(--success);"></span>
+            <span>Active Shifts: <strong>{{ open_sessions_count }}</strong></span>
+        </span>
+        <span class="store-pill">
+            <span>Float in Circulation: <strong>₦{{ total_open_float|floatformat:2 }}</strong></span>
+        </span>
+    </div>
+</div>
+
+<!-- Shift Filter Tabs -->
+<div style="margin-bottom: 24px;">
+    <div class="period-switcher">
+        <a href="?status=all" class="period-tab {% if status_filter == 'all' %}is-active{% endif %}">All Shifts</a>
+        <a href="?status=open" class="period-tab {% if status_filter == 'open' %}is-active{% endif %}">Open Sessions</a>
+        <a href="?status=closed" class="period-tab {% if status_filter == 'closed' %}is-active{% endif %}">Reconciled / Closed</a>
+    </div>
+</div>
+
+<!-- Shifts Table -->
+<div class="card-table">
+    <div class="card-table__header">
+        <div>
+            <h3>Till Sessions Ledger</h3>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table class="krum-table">
+            <thead>
+                <tr>
+                    <th>Cashier / User</th>
+                    <th>Opened At</th>
+                    <th>Closed At</th>
+                    <th>Opening Float</th>
+                    <th>Cash Sales</th>
+                    <th>Cash Expenses</th>
+                    <th>Expected Cash</th>
+                    <th>Actual Count</th>
+                    <th>Variance / Discrepancy</th>
+                    <th>Session Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sessions %}
+                <tr>
+                    <td>
+                        <strong>{{ s.user.username }}</strong>
+                        {% if s.user.first_name %}<div style="font-size: 12px; color: var(--text-muted);">{{ s.user.get_full_name }}</div>{% endif %}
+                    </td>
+                    <td style="font-size: 13px; color: var(--text-secondary);">
+                        {{ s.opened_at|date:"M d, Y · H:i" }}
+                    </td>
+                    <td style="font-size: 13px; color: var(--text-secondary);">
+                        {% if s.closed_at %}
+                            {{ s.closed_at|date:"M d, Y · H:i" }}
+                        {% else %}
+                            <span style="color: var(--color-primary); font-weight: 700;">Currently In Progress</span>
+                        {% endif %}
+                    </td>
+                    <td>₦{{ s.opening_float|floatformat:2 }}</td>
+                    <td style="color: var(--success); font-weight: 700;">₦{{ s.cash_sales|floatformat:2 }}</td>
+                    <td style="color: var(--danger);">₦{{ s.cash_expenses|floatformat:2 }}</td>
+                    <td>
+                        <strong style="color: var(--color-primary-dark);">₦{{ s.expected_cash|floatformat:2 }}</strong>
+                    </td>
+                    <td>
+                        {% if s.closing_cash_actual is not None %}
+                            <strong>₦{{ s.closing_cash_actual|floatformat:2 }}</strong>
+                        {% else %}
+                            <span style="color: var(--text-muted); font-size: 12px;">Pending Closure</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if s.status == 'closed' %}
+                            {% if s.difference == 0 %}
+                                <span class="badge-status badge-status--success">Exact Match (₦0)</span>
+                            {% elif s.difference > 0 %}
+                                <span class="badge-status badge-status--warning">+₦{{ s.difference|floatformat:2 }} Over</span>
+                            {% else %}
+                                <span class="badge-status badge-status--danger">-₦{{ s.difference|floatformat:2 }} Short</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge-status badge-status--info">Active</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if s.status == 'open' %}
+                            <span class="badge-status badge-status--success" style="background: #DCFCE7; color: #065F46;">Open</span>
+                        {% else %}
+                            <span class="badge-status" style="background: var(--bg-subtle); color: var(--text-muted);">Closed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" style="text-align: center; padding: 50px; color: var(--text-muted);">
+                        No cash drawer sessions recorded.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

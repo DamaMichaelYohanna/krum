@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-scroll-behavior="smooth">
 <head>
     <meta charset="UTF-8">
@@ -689,7 +689,7 @@
             <nav class="utility-links" aria-label="Quick links">
                 <a href="/api/"><span>API Specs</span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
                 <a href="/health/"><span>Health Probe</span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
-                <a href="/admin/"><span>Admin Portal</span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
+                <a href="/dashboard/"><span>Store Dashboard</span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
                 <a href="https://wa.me/2348000000000" target="_blank"><span>Support Desk</span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
             </nav>
         </div>
@@ -707,9 +707,9 @@
             </a>
             
             <div class="brand-bar__actions">
-                <a href="/admin/" class="text-action">
+                <a href="/dashboard/" class="text-action">
                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    <span>Store Admin</span>
+                    <span>Store Dashboard</span>
                 </a>
                 <a href="/download/krum.apk" class="button button--primary" id="btn-download-header">
                     <span>Get Krum APK</span>
@@ -727,6 +727,7 @@
                 <a href="/pricing/" class="{% if request.path == '/pricing/' %}is-active{% endif %}">Pricing Plans</a>
                 <a href="/privacy/" class="{% if request.path == '/privacy/' %}is-active{% endif %}">Privacy Policy</a>
                 <a href="/terms/" class="{% if request.path == '/terms/' %}is-active{% endif %}">Terms & Conditions</a>
+                <a href="/dashboard/" style="color: var(--color-gold);">Store Dashboard ↗</a>
             </div>
 
             <button class="mobile-toggle-btn" id="mobile-toggle-btn" aria-label="Toggle Navigation">
@@ -740,7 +741,7 @@
             <a href="/pricing/">Pricing Plans</a>
             <a href="/privacy/">Privacy Policy</a>
             <a href="/terms/">Terms & Conditions</a>
-            <a href="/admin/">Store Admin Portal</a>
+            <a href="/dashboard/" style="color: var(--color-primary); font-weight: 800;">Store Admin Dashboard ↗</a>
             <a href="/download/krum.apk" class="button button--primary" style="margin-top: 10px;">Download Android APK</a>
         </div>
     </nav>
@@ -793,12 +794,13 @@
                 <div class="footer-col">
                     <h4>The Platform</h4>
                     <ul class="footer-links">
-                        <li><a href="/#product">Product</a></li>
+                        <li><a href="/about/">About Product</a></li>
                         <li><a href="/pricing/">Pricing & Plans</a></li>
                         <li><a href="/contact/">Contact Sales & Support</a></li>
                         <li><a href="/health/">API System Health</a></li>
                         <li><a href="/api/">API Documentation</a></li>
-                        <li><a href="/admin/">Store Admin Portal</a></li>
+                        <li><a href="/dashboard/">Store Admin Dashboard</a></li>
+                        <li><a href="/admin/">Django Superadmin</a></li>
                     </ul>
                 </div>
 
@@ -841,5 +843,3 @@
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
-
-
