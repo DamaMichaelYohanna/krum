@@ -612,6 +612,138 @@
             border-bottom: 1px solid var(--border-light);
         }
     }
+
+    .home-product {
+        padding: 18px 0 74px;
+    }
+
+    .home-product__header,
+    .home-contact__header {
+        max-width: 650px;
+        margin-bottom: 26px;
+    }
+
+    .home-product__header h2,
+    .home-contact__header h2 {
+        font-family: 'Newsreader', Georgia, serif;
+        font-size: clamp(32px, 4vw, 46px);
+        font-weight: 500;
+        line-height: 1.12;
+        color: var(--color-primary-dark);
+    }
+
+    .home-product__header p,
+    .home-contact__header p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.7;
+        margin-top: 10px;
+    }
+
+    .home-product__grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border: 1px solid var(--border-light);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--bg-surface);
+    }
+
+    .home-product__item {
+        padding: 24px;
+        border-right: 1px solid var(--border-light);
+    }
+
+    .home-product__item:last-child {
+        border-right: 0;
+    }
+
+    .home-product__item strong {
+        display: block;
+        color: var(--color-primary-dark);
+        font-family: 'Outfit', sans-serif;
+        font-size: 17px;
+        margin-bottom: 7px;
+    }
+
+    .home-product__item p {
+        color: var(--text-secondary);
+        font-size: 13.5px;
+        line-height: 1.6;
+    }
+
+    .home-product__actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 22px;
+    }
+
+    .home-contact {
+        padding: 10px 0 70px;
+    }
+
+    .home-contact__panel {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 30px;
+        align-items: center;
+        padding: 30px;
+        border-radius: 14px;
+        background: var(--primary-light);
+        border: 1px solid var(--primary-border);
+    }
+
+    .home-contact__header {
+        margin-bottom: 0;
+    }
+
+    .home-contact__details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        font-size: 13px;
+    }
+
+    .home-contact__details strong {
+        display: block;
+        color: var(--color-primary-dark);
+        font-size: 13px;
+        margin-bottom: 4px;
+    }
+
+    .home-contact__details span,
+    .home-contact__details a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 860px) {
+        .home-product__grid,
+        .home-contact__panel {
+            grid-template-columns: 1fr;
+        }
+
+        .home-product__item {
+            border-right: 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .home-product__item:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .home-contact__panel {
+            padding: 24px 20px;
+        }
+
+        .home-contact__details {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -856,6 +988,39 @@
     </div>
 </section>
 
+<!-- Product summary -->
+<section class="home-product" id="product">
+    <div class="container">
+        <div class="home-product__header">
+            <span class="eyebrow">The Krum product</span>
+            <h2>Everything your store needs to stay in control.</h2>
+            <p>
+                Krum is built for fast-moving stores that need dependable checkout, accurate stock, and clear daily accountability without unnecessary complexity.
+            </p>
+        </div>
+
+        <div class="home-product__grid">
+            <div class="home-product__item">
+                <strong>Sell without interruption</strong>
+                <p>Offline-first checkout, barcode scanning, multi-unit pricing, and receipt printing keep the counter moving.</p>
+            </div>
+            <div class="home-product__item">
+                <strong>Know what is in stock</strong>
+                <p>Track pieces, packs, and cartons, monitor low-stock items, and organize supplier purchases with confidence.</p>
+            </div>
+            <div class="home-product__item">
+                <strong>Close every shift clearly</strong>
+                <p>Cashier sessions, expected till balances, customer ledgers, and reports make the business easier to manage.</p>
+            </div>
+        </div>
+
+        <div class="home-product__actions">
+            <a class="button button--primary" href="/download/krum.apk">Get Krum APK</a>
+            <a class="button button--ghost" href="/pricing/">View plans</a>
+        </div>
+    </div>
+</section>
+
 <!-- 5. LEADERSHIP / MISSION MESSAGE (NSUK VC Message Style) -->
 <section class="section" style="padding-top: 0;">
     <div class="container">
@@ -955,6 +1120,41 @@
                             ⚡ Record Tender (Cash/Card)
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact summary -->
+<section class="home-contact" id="contact">
+    <div class="container">
+        <div class="home-contact__panel">
+            <div class="home-contact__header">
+                <span class="eyebrow">Need a hand?</span>
+                <h2>Let’s make your store run better.</h2>
+                <p>Talk to the Krum team about setup, pricing, or the right hardware for your store.</p>
+                <div class="home-product__actions">
+                    <a class="button button--primary" href="/contact/">Contact the team</a>
+                </div>
+            </div>
+            <div class="home-contact__details">
+                <div>
+                    <strong>Office</strong>
+                    <span>Keffi, Nasarawa State<br>Mon–Sat, 8:00 AM–8:00 PM WAT</span>
+                </div>
+                <div>
+                    <strong>Email</strong>
+                    <a href="mailto:support@krum.app">support@krum.app</a><br>
+                    <a href="mailto:sales@krum.app">sales@krum.app</a>
+                </div>
+                <div>
+                    <strong>WhatsApp</strong>
+                    <a href="https://wa.me/2348000000000" target="_blank" rel="noopener">Chat with support</a>
+                </div>
+                <div>
+                    <strong>Company</strong>
+                    <span>Krum is a product of Dama Technologies LTD.</span>
                 </div>
             </div>
         </div>
