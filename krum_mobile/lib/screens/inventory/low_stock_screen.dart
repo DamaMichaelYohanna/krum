@@ -187,26 +187,37 @@ class _LowStockScreenState extends State<LowStockScreen> {
                   const Divider(height: 24),
 
                   // Supplier Picker
-                  DropdownButtonFormField<int?>(
-                    initialValue: modalSupplierId,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Select Supplier to Order From',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.local_shipping_outlined),
-                    ),
-                    items: [
-                      const DropdownMenuItem<int?>(
-                        value: null,
-                        child: Text('General / Unassigned Supplier', overflow: TextOverflow.ellipsis),
-                      ),
-                      ...suppliers.map((s) => DropdownMenuItem<int?>(
-                            value: s.id,
-                            child: Text('${s.name} ${s.phone.isNotEmpty ? "(${s.phone})" : ""}', overflow: TextOverflow.ellipsis),
-                          )),
-                    ],
-                    onChanged: (val) {
-                      setSheetState(() => modalSupplierId = val);
+                  Builder(
+                    builder: (context) {
+                      final uniqueSuppliers = <int, Supplier>{};
+                      for (final s in suppliers) {
+                        uniqueSuppliers[s.id] = s;
+                      }
+                      final supplierList = uniqueSuppliers.values.toList();
+                      final effectiveSupplierId = supplierList.any((s) => s.id == modalSupplierId) ? modalSupplierId : null;
+
+                      return DropdownButtonFormField<int?>(
+                        value: effectiveSupplierId,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Select Supplier to Order From',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.local_shipping_outlined),
+                        ),
+                        items: [
+                          const DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text('General / Unassigned Supplier', overflow: TextOverflow.ellipsis),
+                          ),
+                          ...supplierList.map((s) => DropdownMenuItem<int?>(
+                                value: s.id,
+                                child: Text('${s.name} ${s.phone.isNotEmpty ? "(${s.phone})" : ""}', overflow: TextOverflow.ellipsis),
+                              )),
+                        ],
+                        onChanged: (val) {
+                          setSheetState(() => modalSupplierId = val);
+                        },
+                      );
                     },
                   ),
                   const SizedBox(height: 14),
@@ -510,19 +521,30 @@ class _LowStockScreenState extends State<LowStockScreen> {
                     const SizedBox(width: 12),
                     Container(height: 20, width: 1, color: Colors.grey.shade300),
                     const SizedBox(width: 12),
-                    DropdownButton<int?>(
-                      value: _selectedSupplierId,
-                      isDense: true,
-                      underline: const SizedBox(),
-                      hint: const Text('Filter by Supplier', style: TextStyle(fontSize: 12)),
-                      items: [
-                        const DropdownMenuItem<int?>(value: null, child: Text('All Suppliers', style: TextStyle(fontSize: 12))),
-                        ...suppliers.map((s) => DropdownMenuItem<int?>(
-                              value: s.id,
-                              child: Text(s.name, style: const TextStyle(fontSize: 12)),
-                            )),
-                      ],
-                      onChanged: (val) => setState(() => _selectedSupplierId = val),
+                    Builder(
+                      builder: (context) {
+                        final uniqueSuppliers = <int, Supplier>{};
+                        for (final s in suppliers) {
+                          uniqueSuppliers[s.id] = s;
+                        }
+                        final supplierList = uniqueSuppliers.values.toList();
+                        final effectiveSupplierId = supplierList.any((s) => s.id == _selectedSupplierId) ? _selectedSupplierId : null;
+
+                        return DropdownButton<int?>(
+                          value: effectiveSupplierId,
+                          isDense: true,
+                          underline: const SizedBox(),
+                          hint: const Text('Filter by Supplier', style: TextStyle(fontSize: 12)),
+                          items: [
+                            const DropdownMenuItem<int?>(value: null, child: Text('All Suppliers', style: TextStyle(fontSize: 12))),
+                            ...supplierList.map((s) => DropdownMenuItem<int?>(
+                                  value: s.id,
+                                  child: Text(s.name, style: const TextStyle(fontSize: 12)),
+                                )),
+                          ],
+                          onChanged: (val) => setState(() => _selectedSupplierId = val),
+                        );
+                      },
                     ),
                   ],
                 ],

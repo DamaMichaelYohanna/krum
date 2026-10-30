@@ -151,18 +151,29 @@ class _AddPurchaseScreenState extends State<AddPurchaseScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField<int?>(
-                        initialValue: _selectedSupplierId,
-                        decoration: const InputDecoration(
-                          labelText: 'Supplier (Optional)',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.local_shipping_outlined),
-                        ),
-                        items: [
-                          const DropdownMenuItem<int?>(value: null, child: Text('Direct / General Supplier')),
-                          ...suppliers.map((s) => DropdownMenuItem<int?>(value: s.id, child: Text(s.name))),
-                        ],
-                        onChanged: (val) => setState(() => _selectedSupplierId = val),
+                      child: Builder(
+                        builder: (context) {
+                          final uniqueSuppliers = <int, Supplier>{};
+                          for (final s in suppliers) {
+                            uniqueSuppliers[s.id] = s;
+                          }
+                          final supplierList = uniqueSuppliers.values.toList();
+                          final effectiveSupplierId = supplierList.any((s) => s.id == _selectedSupplierId) ? _selectedSupplierId : null;
+
+                          return DropdownButtonFormField<int?>(
+                            value: effectiveSupplierId,
+                            decoration: const InputDecoration(
+                              labelText: 'Supplier (Optional)',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.local_shipping_outlined),
+                            ),
+                            items: [
+                              const DropdownMenuItem<int?>(value: null, child: Text('Direct / General Supplier')),
+                              ...supplierList.map((s) => DropdownMenuItem<int?>(value: s.id, child: Text(s.name))),
+                            ],
+                            onChanged: (val) => setState(() => _selectedSupplierId = val),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(width: 8),

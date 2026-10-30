@@ -133,6 +133,9 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<StoreProvider>();
+    final cartUnits = provider.cartTotalUnits;
+
     final pages = [
       DashboardScreen(
         onNavigateTab: _navigateToTab,
@@ -162,15 +165,23 @@ class _AppShellState extends State<AppShell> {
         child: NavigationBar(
           selectedIndex: _currentIndex,
           onDestinationSelected: (index) => setState(() => _currentIndex = index),
-          destinations: const [
-            NavigationDestination(
+          destinations: [
+            const NavigationDestination(
               icon: Icon(Icons.home_outlined),
               selectedIcon: Icon(Icons.home_rounded),
               label: 'Home',
             ),
             NavigationDestination(
-              icon: Icon(Icons.point_of_sale_outlined),
-              selectedIcon: Icon(Icons.point_of_sale_rounded),
+              icon: Badge(
+                isLabelVisible: cartUnits > 0,
+                label: Text('$cartUnits'),
+                child: const Icon(Icons.point_of_sale_outlined),
+              ),
+              selectedIcon: Badge(
+                isLabelVisible: cartUnits > 0,
+                label: Text('$cartUnits'),
+                child: const Icon(Icons.point_of_sale_rounded),
+              ),
               label: 'Sell',
             ),
             NavigationDestination(

@@ -627,35 +627,46 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                   Row(
                     children: [
                       Expanded(
-                        child: DropdownButtonFormField<int?>(
-                          initialValue: customer?.id,
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Customer',
-                            prefixIcon: Icon(Icons.person_outline),
-                            border: OutlineInputBorder(),
-                          ),
-                          items: [
-                            const DropdownMenuItem<int?>(
-                              value: null,
-                              child: Text('Walk-in Customer (Instant)', overflow: TextOverflow.ellipsis),
-                            ),
-                            ...provider.customers.map(
-                              (c) => DropdownMenuItem<int?>(
-                                value: c.id,
-                                child: Text(
-                                  '${c.name} (Owes ${CurrencyFormatter.format(c.outstanding, currency: currency)})',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                        child: Builder(
+                          builder: (context) {
+                            final uniqueCustomers = <int, Customer>{};
+                            for (final c in provider.customers) {
+                              uniqueCustomers[c.id] = c;
+                            }
+                            final customerList = uniqueCustomers.values.toList();
+                            final effectiveCustomerId = customerList.any((c) => c.id == customer?.id) ? customer?.id : null;
+
+                            return DropdownButtonFormField<int?>(
+                              value: effectiveCustomerId,
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Customer',
+                                prefixIcon: Icon(Icons.person_outline),
+                                border: OutlineInputBorder(),
                               ),
-                            ),
-                          ],
-                          onChanged: (val) {
-                            setSheetState(() {
-                              customer = val == null
-                                  ? null
-                                  : provider.customers.firstWhere((c) => c.id == val);
-                            });
+                              items: [
+                                const DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('Walk-in Customer (Instant)', overflow: TextOverflow.ellipsis),
+                                ),
+                                ...customerList.map(
+                                  (c) => DropdownMenuItem<int?>(
+                                    value: c.id,
+                                    child: Text(
+                                      '${c.name} (Owes ${CurrencyFormatter.format(c.outstanding, currency: currency)})',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (val) {
+                                setSheetState(() {
+                                  customer = val == null
+                                      ? null
+                                      : customerList.firstWhere((c) => c.id == val);
+                                });
+                              },
+                            );
                           },
                         ),
                       ),
@@ -1015,6 +1026,61 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
     );
   }
 
+  void _addProductToCart(Product product) {
+    if (!product.active) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${product.name} is marked inactive.'),
+          backgroundColor: Colors.amber.shade800,
+          duration: const Duration(milliseconds: 1400),
+        ),
+      );
+      return;
+    }
+
+    final provider = context.read<StoreProvider>();
+    provider.addToCart(product);
+
+    try {
+      HapticFeedback.lightImpact();
+    } catch (_) {}
+
+    final inCartItems = provider.cart.where((c) => c.product.id == product.id);
+    final inCartQty = inCartItems.fold<double>(0.0, (sum, c) => sum + c.quantity);
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Added ${product.name} (${CurrencyFormatter.formatQty(inCartQty)} in cart)',
+                style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        duration: const Duration(milliseconds: 1200),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.primaryDark,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+        action: SnackBarAction(
+          label: 'View Cart',
+          textColor: Colors.tealAccent,
+          onPressed: () {
+            final currency = provider.business?.currency ?? 'NGN';
+            _showCartModal(context, provider, currency);
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<StoreProvider>();
@@ -1293,18 +1359,51 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                           final product = filteredProducts[index];
                           final basePrice = product.baseUnit.sellingPrice;
                           final isOutOfStock = product.isOutOfStock;
+                          final inCartItems = provider.cart.where((c) => c.product.id == product.id);
+                          final inCartQty = inCartItems.fold<double>(0.0, (sum, c) => sum + c.quantity);
+                          final isInCart = inCartQty > 0;
 
                           return Card(
                             margin: const EdgeInsets.only(bottom: 8),
                             elevation: 0,
+                            color: isInCart ? AppColors.primary.withValues(alpha: 0.05) : Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
-                              side: BorderSide(color: Colors.grey.shade200),
+                              side: BorderSide(
+                                color: isInCart ? AppColors.primary : Colors.grey.shade200,
+                                width: isInCart ? 1.5 : 1.0,
+                              ),
                             ),
                             child: ListTile(
-                              title: Text(
-                                product.name,
-                                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      product.name,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                        color: isInCart ? AppColors.primaryDark : null,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isInCart)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        '${CurrencyFormatter.formatQty(inCartQty)} in cart',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                               subtitle: Text(
                                 '${CurrencyFormatter.format(basePrice, currency: currency)} / ${product.baseUnitName} · Stock: ${CurrencyFormatter.formatQty(product.stockBase)}',
@@ -1314,14 +1413,13 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                                 ),
                               ),
                               trailing: IconButton(
-                                icon: const Icon(Icons.add_shopping_cart, color: AppColors.primary),
-                                onPressed: () {
-                                  provider.addToCart(product);
-                                },
+                                icon: Icon(
+                                  isInCart ? Icons.add_circle : Icons.add_shopping_cart,
+                                  color: AppColors.primary,
+                                ),
+                                onPressed: () => _addProductToCart(product),
                               ),
-                              onTap: () {
-                                provider.addToCart(product);
-                              },
+                              onTap: () => _addProductToCart(product),
                             ),
                           );
                         },
@@ -1367,7 +1465,8 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                   child: Row(
                     children: [
                       Badge(
-                        label: Text('${provider.cartItemCount}'),
+                        isLabelVisible: provider.cartTotalUnits > 0,
+                        label: Text('${provider.cartTotalUnits}'),
                         child: const Icon(Icons.shopping_cart_outlined, color: AppColors.primary),
                       ),
                       const SizedBox(width: 12),
@@ -1392,7 +1491,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
                 FilledButton.icon(
                   onPressed: provider.cart.isEmpty ? null : _showCheckoutSheet,
                   icon: const Icon(Icons.check),
-                  label: const Text('Checkout'),
+                  label: Text('Checkout (${provider.cartTotalUnits})'),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -1451,7 +1550,7 @@ class _PosScreenState extends State<PosScreen> with SingleTickerProviderStateMix
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Cart (${provider.cartItemCount} items)',
+                'Cart (${provider.cartTotalUnits} items)',
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               TextButton(

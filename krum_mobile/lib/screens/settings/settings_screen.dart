@@ -9,8 +9,6 @@ import '../reports/reports_screen.dart';
 import '../sales/sales_history_screen.dart';
 import '../staff/staff_screen.dart';
 import '../cash_drawer/cash_drawer_screen.dart';
-import '../../utils/formatters.dart';
-import '../../services/api_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -314,12 +312,11 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<StoreProvider>();
     final business = provider.business;
-    final username = provider.username;
     final role = provider.userRole;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('More Options'),
+        title: const Text('More'),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -337,10 +334,10 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 CircleAvatar(
                   backgroundColor: AppColors.primary,
-                  radius: 24,
+                  radius: 22,
                   child: Text(
                     business?.name.isNotEmpty == true ? business!.name[0].toUpperCase() : 'K',
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -354,7 +351,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'User: $username (${role.toUpperCase()}) · Currency: ${business?.currency ?? "NGN"}${business?.phone.isNotEmpty == true ? " · ${business!.phone}" : ""}',
+                        '${role.toUpperCase()} · ${business?.currency ?? "NGN"}',
                         style: const TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                     ],
@@ -370,18 +367,12 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
-          // Business Operations Group
-          _sectionHeader('Business Operations'),
+          _sectionHeader('Operations'),
           ListTile(
             leading: const Icon(Icons.point_of_sale_outlined, color: Colors.teal),
-            title: const Text('Cash Drawer & Shift Sessions'),
-            subtitle: Text(
-              provider.isShiftActive
-                  ? 'Shift active · Till: ${CurrencyFormatter.format(provider.currentDrawerMetrics["expectedCash"] ?? 0, currency: provider.business?.currency ?? "NGN")}'
-                  : 'Drawer closed · Tap to open shift',
-            ),
+            title: const Text('Cash Drawer'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const CashDrawerScreen()));
@@ -389,8 +380,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.people_outline, color: AppColors.primary),
-            title: const Text('Customers & Debtors'),
-            subtitle: Text('${provider.customers.where((c) => c.outstanding > 0).length} customer(s) owing'),
+            title: const Text('Customers'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomersScreen()));
@@ -399,8 +389,7 @@ class SettingsScreen extends StatelessWidget {
           if (provider.isOwnerOrManager) ...[
             ListTile(
               leading: const Icon(Icons.local_shipping_outlined, color: AppColors.primary),
-              title: const Text('Receive Stock / Supplier Purchases'),
-              subtitle: Text('${provider.suppliers.length} registered suppliers'),
+              title: const Text('Receive Stock'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPurchaseScreen()));
@@ -408,8 +397,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.receipt_long_outlined, color: Colors.deepOrange),
-              title: const Text('Operating Expenses'),
-              subtitle: const Text('Track generator fuel, electricity, transport'),
+              title: const Text('Expenses'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpensesScreen()));
@@ -417,9 +405,8 @@ class SettingsScreen extends StatelessWidget {
             ),
           ],
           ListTile(
-            leading: const Icon(Icons.receipt_long_outlined, color: AppColors.primary),
-            title: const Text('Sales & Items Sold History'),
-            subtitle: const Text('View receipts, past transactions & items sold'),
+            leading: const Icon(Icons.history_outlined, color: AppColors.primary),
+            title: const Text('Sales History'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen()));
@@ -428,23 +415,20 @@ class SettingsScreen extends StatelessWidget {
           if (provider.isOwnerOrManager)
             ListTile(
               leading: const Icon(Icons.bar_chart_outlined, color: Colors.indigo),
-              title: const Text('Business Reports & Profit/Loss'),
-              subtitle: const Text('Net profit, sales history, valuation'),
+              title: const Text('Reports'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()));
               },
             ),
 
-          const Divider(),
+          const Divider(height: 24),
 
-          // Store Configurations (Categories, Units, Staff & Sync)
-          _sectionHeader('Store Configuration'),
+          _sectionHeader('Settings'),
           if (provider.isOwnerOrManager)
             ListTile(
               leading: const Icon(Icons.badge_outlined, color: AppColors.primary),
-              title: const Text('Staff & Cashiers'),
-              subtitle: const Text('Manage cashiers, managers & store access'),
+              title: const Text('Staff'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const StaffScreen()));
@@ -452,39 +436,19 @@ class SettingsScreen extends StatelessWidget {
             ),
           ListTile(
             leading: const Icon(Icons.category_outlined, color: AppColors.primary),
-            title: const Text('Product Categories'),
-            subtitle: Text('${provider.categories.length} category(ies) defined'),
-            trailing: IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => _showNewCategoryDialog(context),
-            ),
+            title: const Text('Categories'),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () => _showCategoriesManagerDialog(context),
           ),
           ListTile(
             leading: const Icon(Icons.scale_outlined, color: AppColors.primary),
-            title: const Text('Custom Units'),
-            subtitle: Text('${provider.units.length} unit(s) defined (Mudu, Crate, Bag, etc.)'),
-            trailing: IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => _showNewUnitDialog(context),
-            ),
+            title: const Text('Units'),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () => _showUnitsManagerDialog(context),
           ),
           ListTile(
-            leading: const Icon(Icons.cloud_outlined, color: AppColors.primary),
-            title: const Text('Cloud Backend Server'),
-            subtitle: Text(provider.api.baseUrl),
-            trailing: const Icon(Icons.tune),
-            onTap: () => _showServerConfigDialog(context),
-          ),
-          ListTile(
             leading: const Icon(Icons.sync, color: AppColors.primary),
-            title: const Text('Sync Now'),
-            subtitle: Text(
-              provider.pendingSyncCount == 0
-                  ? 'All local records synchronized'
-                  : '${provider.pendingSyncCount} offline transaction(s) queued',
-            ),
+            title: const Text('Sync Data'),
             trailing: FilledButton.tonal(
               onPressed: () async {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -496,12 +460,12 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
-          const Divider(),
+          const Divider(height: 24),
 
           // Logout
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Log Out', style: TextStyle(color: Colors.red)),
+            title: const Text('Log Out', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
             onTap: () async {
               final confirm = await showDialog<bool>(
                 context: context,
@@ -524,150 +488,6 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
         ],
-      ),
-    );
-  }
-
-  void _showServerConfigDialog(BuildContext context) {
-    final provider = context.read<StoreProvider>();
-    final urlController = TextEditingController(text: provider.api.baseUrl);
-    String? testResult;
-    bool isTesting = false;
-    bool isSuccess = false;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: const Text('Backend Server Connection'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Connect your POS device to the live cloud backend or a local dev server.',
-                    style: TextStyle(fontSize: 12.5, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: urlController,
-                    decoration: const InputDecoration(
-                      hintText: 'https://krum.vercel.app/api',
-                      labelText: 'API Base URL',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Quick Presets:',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black45),
-                  ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      ActionChip(
-                        avatar: const Icon(Icons.cloud_done, size: 16, color: AppColors.primary),
-                        label: const Text('Live Cloud (Vercel)'),
-                        onPressed: () {
-                          setDialogState(() {
-                            urlController.text = ApiService.productionBaseUrl;
-                            testResult = null;
-                          });
-                        },
-                      ),
-                      ActionChip(
-                        avatar: const Icon(Icons.phone_android, size: 16),
-                        label: const Text('Emulator (10.0.2.2)'),
-                        onPressed: () {
-                          setDialogState(() {
-                            urlController.text = ApiService.localEmulatorUrl;
-                            testResult = null;
-                          });
-                        },
-                      ),
-                      ActionChip(
-                        avatar: const Icon(Icons.laptop, size: 16),
-                        label: const Text('Localhost (127.0.0.1)'),
-                        onPressed: () {
-                          setDialogState(() {
-                            urlController.text = ApiService.localDevUrl;
-                            testResult = null;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    icon: isTesting
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.network_check, size: 18),
-                    label: Text(isTesting ? 'Testing...' : 'Test Connection'),
-                    onPressed: isTesting
-                        ? null
-                        : () async {
-                            setDialogState(() {
-                              isTesting = true;
-                              testResult = null;
-                            });
-                            try {
-                              await provider.api.setBaseUrl(urlController.text.trim());
-                              final res = await provider.api.healthCheck();
-                              setDialogState(() {
-                                isTesting = false;
-                                isSuccess = true;
-                                testResult = 'Connected: ${res['status']} (DB: ${res['database']})';
-                              });
-                            } catch (e) {
-                              setDialogState(() {
-                                isTesting = false;
-                                isSuccess = false;
-                                testResult = 'Failed: ${e.toString().replaceAll('Exception: ', '')}';
-                              });
-                            }
-                          },
-                  ),
-                  if (testResult != null) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSuccess ? Colors.green.shade50 : Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: isSuccess ? Colors.green.shade300 : Colors.red.shade300),
-                      ),
-                      child: Text(
-                        testResult!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isSuccess ? Colors.green.shade900 : Colors.red.shade900,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () async {
-                  await provider.api.setBaseUrl(urlController.text.trim());
-                  if (ctx.mounted) Navigator.pop(ctx);
-                },
-                child: const Text('Save & Apply'),
-              ),
-            ],
-          );
-        },
       ),
     );
   }

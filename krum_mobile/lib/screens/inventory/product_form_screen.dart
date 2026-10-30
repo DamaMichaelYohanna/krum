@@ -168,6 +168,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   void _showAddAlternativeUnitDialog(List<Unit> units) {
+    // Deduplicate units by ID
+    final uniqueUnits = <int, Unit>{};
+    for (final u in units) {
+      uniqueUnits[u.id] = u;
+    }
+    final unitList = uniqueUnits.values.toList();
     int? altUnitId;
     final conversionController = TextEditingController();
     final altSellingPriceController = TextEditingController();
@@ -181,9 +187,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<int>(
-                initialValue: altUnitId,
+                value: altUnitId != null && unitList.any((u) => u.id == altUnitId) ? altUnitId : null,
                 decoration: const InputDecoration(labelText: 'Unit', border: OutlineInputBorder()),
-                items: units.map((u) => DropdownMenuItem(value: u.id, child: Text(u.name))).toList(),
+                items: unitList.map((u) => DropdownMenuItem(value: u.id, child: Text(u.name))).toList(),
                 onChanged: (val) => setDialogState(() => altUnitId = val),
               ),
               const SizedBox(height: 12),
@@ -215,7 +221,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 final conv = double.tryParse(conversionController.text) ?? 0.0;
                 final price = double.tryParse(altSellingPriceController.text) ?? 0.0;
                 if (altUnitId != null && conv > 0 && price > 0) {
-                  final unitObj = units.firstWhere((u) => u.id == altUnitId);
+                  final unitObj = unitList.firstWhere((u) => u.id == altUnitId);
                   setState(() {
                     _alternativeUnits.add({
                       'unit_id': altUnitId,
@@ -242,8 +248,43 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     final units = provider.units;
     final suppliers = provider.suppliers;
 
-    if (_selectedBaseUnitId == null && units.isNotEmpty) {
-      _selectedBaseUnitId = units.first.id;
+    // Deduplicate lists by ID to ensure exactly one item per ID
+    final uniqueUnits = <int, Unit>{};
+    for (final u in units) {
+      uniqueUnits[u.id] = u;
+    }
+    final unitList = uniqueUnits.values.toList();
+
+    final uniqueCategories = <int, Category>{};
+    for (final c in categories) {
+      uniqueCategories[c.id] = c;
+    }
+    final categoryList = uniqueCategories.values.toList();
+
+    final uniqueSuppliers = <int, Supplier>{};
+    for (final s in suppliers) {
+      uniqueSuppliers[s.id] = s;
+    }
+    final supplierList = uniqueSuppliers.values.toList();
+
+    // Ensure effective selected IDs exist in their respective items list
+    int? effectiveBaseUnitId;
+    if (unitList.isNotEmpty) {
+      if (_selectedBaseUnitId != null && unitList.any((u) => u.id == _selectedBaseUnitId)) {
+        effectiveBaseUnitId = _selectedBaseUnitId;
+      } else {
+        effectiveBaseUnitId = unitList.first.id;
+      }
+    }
+
+    int? effectiveCategoryId;
+    if (_selectedCategoryId != null && categoryList.any((c) => c.id == _selectedCategoryId)) {
+      effectiveCategoryId = _selectedCategoryId;
+    }
+
+    int? effectiveSupplierId;
+    if (_selectedSupplierId != null && supplierList.any((s) => s.id == _selectedSupplierId)) {
+      effectiveSupplierId = _selectedSupplierId;
     }
 
     return Scaffold(
@@ -331,7 +372,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<int?>(
-                        initialValue: _selectedCategoryId,
+                        value: effectiveCategoryId,
                         isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: 'Category',
@@ -340,7 +381,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                         ),
                         items: [
                           const DropdownMenuItem<int?>(value: null, child: Text('No Category', overflow: TextOverflow.ellipsis)),
-                          ...categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis))),
+                          ...categoryList.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis))),
                         ],
                         onChanged: (val) => setState(() => _selectedCategoryId = val),
                       ),
@@ -360,14 +401,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        initialValue: _selectedBaseUnitId,
+                        value: effectiveBaseUnitId,
                         isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: 'Base Unit *',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.scale_outlined),
                         ),
-                        items: units.map((u) => DropdownMenuItem(value: u.id, child: Text(u.name, overflow: TextOverflow.ellipsis))).toList(),
+                        items: unitList.map((u) => DropdownMenuItem(value: u.id, child: Text(u.name, overflow: TextOverflow.ellipsis))).toList(),
                         onChanged: (val) => setState(() => _selectedBaseUnitId = val),
                         validator: (val) => val == null ? 'Please select a base unit' : null,
                       ),
@@ -384,7 +425,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
                 // Preferred Supplier dropdown
                 DropdownButtonFormField<int?>(
-                  initialValue: _selectedSupplierId,
+                  value: effectiveSupplierId,
                   isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Preferred Supplier (Optional)',
@@ -393,7 +434,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   ),
                   items: [
                     const DropdownMenuItem<int?>(value: null, child: Text('No Preferred Supplier', overflow: TextOverflow.ellipsis)),
-                    ...suppliers.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name, overflow: TextOverflow.ellipsis))),
+                    ...supplierList.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name, overflow: TextOverflow.ellipsis))),
                   ],
                   onChanged: (val) => setState(() => _selectedSupplierId = val),
                 ),
@@ -534,28 +575,45 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       : () async {
                           if (!_formKey.currentState!.validate()) return;
 
+                          final chosenBaseUnitId = _selectedBaseUnitId ?? effectiveBaseUnitId;
+                          if (chosenBaseUnitId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please add or select a base unit first')),
+                            );
+                            return;
+                          }
+
                           final cost = double.tryParse(_costPriceController.text) ?? 0.0;
                           final selling = double.parse(_sellingPriceController.text);
                           final opening = double.tryParse(_openingStockController.text) ?? 0.0;
                           final reorder = double.tryParse(_reorderLevelController.text) ?? 0.0;
 
+                          final baseUnitObj = units.firstWhere(
+                            (u) => u.id == chosenBaseUnitId,
+                            orElse: () => Unit(id: chosenBaseUnitId, name: 'Piece'),
+                          );
+
+                          String? catName;
+                          final catId = _selectedCategoryId ?? effectiveCategoryId;
+                          if (catId != null) {
+                            final catMatch = categories.where((c) => c.id == catId);
+                            if (catMatch.isNotEmpty) catName = catMatch.first.name;
+                          }
+
+                          String? supName;
+                          final supId = _selectedSupplierId ?? effectiveSupplierId;
+                          if (supId != null) {
+                            final match = suppliers.where((s) => s.id == supId);
+                            if (match.isNotEmpty) supName = match.first.name;
+                          }
+
                           bool success;
                           if (widget.product != null) {
-                            final baseUnitObj = units.firstWhere(
-                              (u) => u.id == _selectedBaseUnitId!,
-                              orElse: () => Unit(id: _selectedBaseUnitId!, name: 'Piece'),
-                            );
-                            String? catName;
-                            if (_selectedCategoryId != null) {
-                              final catMatch = categories.where((c) => c.id == _selectedCategoryId);
-                              if (catMatch.isNotEmpty) catName = catMatch.first.name;
-                            }
-
                             int uIdCounter = DateTime.now().millisecondsSinceEpoch ~/ 1000;
                             final List<ProductUnit> updatedUnits = [
                               ProductUnit(
                                 id: widget.product!.baseUnit.id != 0 ? widget.product!.baseUnit.id : uIdCounter++,
-                                unitId: _selectedBaseUnitId!,
+                                unitId: chosenBaseUnitId,
                                 unitName: baseUnitObj.name,
                                 conversionToBase: 1.0,
                                 costPrice: cost,
@@ -583,21 +641,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                               ));
                             }
 
-                            String? supName;
-                            if (_selectedSupplierId != null) {
-                              final match = suppliers.where((s) => s.id == _selectedSupplierId);
-                              if (match.isNotEmpty) supName = match.first.name;
-                            }
-
                             final updatedProd = widget.product!.copyWith(
                               name: _nameController.text.trim(),
                               barcode: _barcodeController.text.trim(),
                               sku: _skuController.text.trim(),
-                              categoryId: _selectedCategoryId,
+                              categoryId: catId,
                               categoryName: catName,
-                              preferredSupplierId: _selectedSupplierId,
+                              preferredSupplierId: supId,
                               preferredSupplierName: supName,
-                              baseUnitId: _selectedBaseUnitId!,
+                              baseUnitId: chosenBaseUnitId,
                               baseUnitName: baseUnitObj.name,
                               brand: _brandController.text.trim(),
                               reorderLevel: reorder,
@@ -612,9 +664,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                               name: _nameController.text.trim(),
                               barcode: _barcodeController.text.trim(),
                               sku: _skuController.text.trim(),
-                              categoryId: _selectedCategoryId,
-                              preferredSupplierId: _selectedSupplierId,
-                              baseUnitId: _selectedBaseUnitId!,
+                              categoryId: catId,
+                              preferredSupplierId: supId,
+                              baseUnitId: chosenBaseUnitId,
                               brand: _brandController.text.trim(),
                               costPrice: cost,
                               sellingPrice: selling,

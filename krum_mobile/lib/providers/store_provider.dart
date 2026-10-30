@@ -66,6 +66,7 @@ class StoreProvider extends ChangeNotifier {
   double get cartSubtotal => _cart.fold(0.0, (sum, item) => sum + item.total);
   double get cartTotal => (cartSubtotal - _cartDiscount).clamp(0.0, double.infinity);
   int get cartItemCount => _cart.length;
+  int get cartTotalUnits => _cart.fold<int>(0, (sum, item) => sum + (item.quantity <= 0 ? 0 : item.quantity.ceil()));
 
   DashboardData get dashboard => _dashboard;
   String get dashboardPeriod => _dashboardPeriod;
@@ -425,11 +426,16 @@ class StoreProvider extends ChangeNotifier {
   Future<Unit?> createCustomUnit(String name, {String symbol = ''}) async {
     _setLoading(true);
     try {
-      final unit = await syncService.addUnitLocally(name, symbol: symbol);
+      Unit unit = await syncService.addUnitLocally(name, symbol: symbol);
       if (api.isAuthenticated) {
         try {
-          await api.createUnit(name, symbol: symbol);
+          final res = await api.createUnit(name, symbol: symbol);
           await syncService.sync();
+          final matched = syncService.units.firstWhere(
+            (u) => (res.containsKey('id') && u.id == res['id']) || u.name.trim().toLowerCase() == name.trim().toLowerCase(),
+            orElse: () => unit,
+          );
+          unit = matched;
         } catch (_) {}
       }
       _setLoading(false);
@@ -448,11 +454,16 @@ class StoreProvider extends ChangeNotifier {
   Future<Category?> createCategory(String name) async {
     _setLoading(true);
     try {
-      final cat = await syncService.addCategoryLocally(name);
+      Category cat = await syncService.addCategoryLocally(name);
       if (api.isAuthenticated) {
         try {
-          await api.createCategory(name);
+          final res = await api.createCategory(name);
           await syncService.sync();
+          final matched = syncService.categories.firstWhere(
+            (c) => (res.containsKey('id') && c.id == res['id']) || c.name.trim().toLowerCase() == name.trim().toLowerCase(),
+            orElse: () => cat,
+          );
+          cat = matched;
         } catch (_) {}
       }
       _setLoading(false);
@@ -654,10 +665,16 @@ class StoreProvider extends ChangeNotifier {
   Future<Supplier?> createSupplier(String name, {String phone = ''}) async {
     _setLoading(true);
     try {
-      final supplier = await syncService.addSupplierLocally(name, phone: phone);
+      Supplier supplier = await syncService.addSupplierLocally(name, phone: phone);
       if (api.isAuthenticated) {
         try {
-          await api.createSupplier(name, phone: phone);
+          final res = await api.createSupplier(name, phone: phone);
+          await syncService.sync();
+          final matched = syncService.suppliers.firstWhere(
+            (s) => (res.containsKey('id') && s.id == res['id']) || s.name.trim().toLowerCase() == name.trim().toLowerCase(),
+            orElse: () => supplier,
+          );
+          supplier = matched;
         } catch (_) {}
       }
       _setLoading(false);

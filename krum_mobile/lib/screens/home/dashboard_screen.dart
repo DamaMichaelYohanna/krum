@@ -28,7 +28,6 @@ class DashboardScreen extends StatelessWidget {
     final data = provider.dashboard;
     final currency = provider.business?.currency ?? 'NGN';
     final storeName = provider.business?.name ?? 'My Provision Store';
-    final username = provider.username.isNotEmpty ? provider.username : 'Owner';
 
     final outOfStockProducts = provider.products.where((p) => p.isOutOfStock).toList();
     final lowStockProducts = provider.products.where((p) => p.isLowStock).toList();
@@ -61,7 +60,7 @@ class DashboardScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Welcome back, $username',
+                            'Welcome',
                             style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                           ).animate().fade(duration: 400.ms),
                           Text(
